@@ -4,6 +4,6 @@
     <string name="activity">Activity</string>
     <string name="profile">Profile</string>
     <string name="shared_hubs">Shared Hubs</string>
-    <string name="more">More</string>
+    <string name="menu">Menu</string>
     <string name="back_button">Back Button</string>
 </resources>

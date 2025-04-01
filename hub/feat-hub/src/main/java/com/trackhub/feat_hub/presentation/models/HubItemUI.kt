@@ -4,6 +4,7 @@ import com.trackhub.core_hub.domain.models.HubItem
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 data class HubItemUI(
     val id: Int = 0,
@@ -31,10 +32,10 @@ fun HubItem.toHubItemUI(): HubItemUI {
 
 fun formatHubItemDate(timestamp: String): String {
     // Parse the Supabase timestamp
-    val instant = Instant.parse(timestamp)
+    val instant = Instant.parse(timestamp.substringBeforeLast(".") + "Z")
 
     val readableDateFormatter = DateTimeFormatter
-        .ofPattern("MMMM d, yyyy 'at' h:mm a")
+        .ofPattern("d MMM yyyy \n h:mm a")
         .withZone(ZoneId.systemDefault())
 
     // Return the formatted timestamp

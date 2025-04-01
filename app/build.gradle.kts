@@ -49,6 +49,11 @@ android {
     androidResources {
         generateLocaleConfig = true
     }
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {
@@ -63,6 +68,7 @@ dependencies {
     implementation(project(":hub:feat-hub"))
     implementation(project(":hub:core-hub"))
     implementation(project(":menu:feat-menu"))
+    implementation(project(":menu:core-menu"))
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)

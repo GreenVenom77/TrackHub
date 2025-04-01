@@ -48,7 +48,7 @@ class SupabaseSessionRepository(supabaseClient: SupabaseClient): SessionReposito
                     is SessionSource.UserChanged -> {
                         _userSessionDestination.update { SessionDestinations.AUTH }
                     }
-                    else -> { Log.i("Session Source", sessionStatus.source.toString()) }
+                    else -> { Log.d("Session Source", sessionStatus.source.toString()) }
                 }
             }
             is SessionStatus.NotAuthenticated -> {

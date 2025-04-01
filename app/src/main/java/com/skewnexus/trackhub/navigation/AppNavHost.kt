@@ -1,5 +1,9 @@
 package com.skewnexus.trackhub.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +26,7 @@ import com.greenvenom.feat_auth.presentation.register.RegisterScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.NewPasswordScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.VerifyEmailScreen
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
+import com.greenvenom.feat_menu.presentation.MenuScreen
 import com.trackhub.feat_navigation.routes.Screen
 import com.trackhub.feat_navigation.routes.SubGraph
 import kotlinx.coroutines.flow.update
@@ -209,9 +214,19 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 Text(text = "Activity")
             }
             composable<Screen.Menu> {
-                Text(text = "More")
+                MenuScreen(
+                    navigateToProfile = {
+                        navigationStateRepository.navigate(
+                            NavigationType.Standard(Screen.Profile)
+                        )
+                    },
+                    onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
+                )
             }
-            composable<Screen.Profile> {
+            composable<Screen.Profile>(
+                enterTransition = { slideInHorizontally { it } + fadeIn() },
+                popExitTransition = { slideOutHorizontally { it } + fadeOut() }
+            ) {
                 Text(text = "Profile")
             }
         }

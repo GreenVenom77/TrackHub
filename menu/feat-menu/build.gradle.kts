@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.trackhub.feat_more"
+    namespace = "com.trackhub.feat_menu"
     compileSdk = 35
 
     defaultConfig {

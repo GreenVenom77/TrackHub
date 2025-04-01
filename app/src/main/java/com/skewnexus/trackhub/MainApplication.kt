@@ -1,9 +1,10 @@
 package com.skewnexus.trackhub
 
 import android.app.Application
-import com.greenvenom.core_navigation.di.navigationModule
+import com.greenvenom.core_navigation.di.navigationCoreModule
 import com.greenvenom.core_network.supabase.di.supabaseModule
 import com.greenvenom.feat_auth.di.authFeatureModule
+import com.greenvenom.feat_menu.di.menuModule
 import com.skewnexus.trackhub.di.appModule
 import com.trackhub.feat_network.di.networkFeatureModule
 import com.trackhub.feat_hub.di.hubFeatureModule
@@ -23,10 +24,11 @@ class MainApplication: Application() {
                 appModule,
                 supabaseModule,
                 networkFeatureModule,
+                navigationCoreModule,
                 navigationFeatureModule,
                 authFeatureModule,
                 hubFeatureModule,
-                navigationModule
+                menuModule,
             )
         }
     }

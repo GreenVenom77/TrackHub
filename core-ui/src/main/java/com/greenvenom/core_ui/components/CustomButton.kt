@@ -34,14 +34,18 @@ fun CustomButton(
         shape = RoundedCornerShape(16.dp),
         contentPadding = contentPadding,
         colors = colors,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
     ) {
         Text(
             text = text,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold
-            )
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp
+            ),
+            modifier = Modifier.padding(8.dp),
         )
     }
 }

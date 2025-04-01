@@ -127,7 +127,7 @@ private fun HubListContent(
 
     Box(modifier = modifier) {
         hubsResult?.onSuccess { hubs ->
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(
                     items = hubs,
                     key = { hub -> hub.id }
