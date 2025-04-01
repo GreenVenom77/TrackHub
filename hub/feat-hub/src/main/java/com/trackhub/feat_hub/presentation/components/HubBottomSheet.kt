@@ -98,18 +98,18 @@ private fun HubSheetContent(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            if (isEdit) {
-                CustomTextField(
-                    value = hubId,
-                    readOnly = true,
-                    label = stringResource(R.string.hub_id),
-                    error = "",
-                    onValueChange = {  },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+//            if (isEdit) {
+//                CustomTextField(
+//                    value = hubId,
+//                    readOnly = true,
+//                    label = stringResource(R.string.hub_id),
+//                    error = "",
+//                    onValueChange = {  },
+//                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+//                    modifier = Modifier.fillMaxWidth()
+//                )
+//                Spacer(modifier = Modifier.height(16.dp))
+//            }
             CustomTextField(
                 value = newHubName,
                 label = stringResource(R.string.hub_name),

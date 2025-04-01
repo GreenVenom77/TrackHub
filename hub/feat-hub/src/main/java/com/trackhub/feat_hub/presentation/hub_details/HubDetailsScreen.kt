@@ -1,4 +1,4 @@
-package com.trackhub.feat_hub.presentation.hub_details.screens
+package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,14 +28,10 @@ import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.trackhub.core_hub.domain.models.Hub
-import com.trackhub.core_hub.domain.models.HubItem
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemListCard
-import com.trackhub.feat_hub.presentation.hub_details.HubDetailsAction
-import com.trackhub.feat_hub.presentation.hub_details.HubDetailsState
-import com.trackhub.feat_hub.presentation.hub_details.HubDetailsViewModel
 import com.trackhub.feat_hub.presentation.models.toHubItemUI
 import com.trackhub.feat_hub.presentation.models.toHubUI
 
@@ -51,28 +47,19 @@ fun HubDetailsScreen(
     onEditItem: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    BaseScreen<HubDetailsViewModel> { viewModel ->
+    BaseScreen<HubDetailsViewModel>(
+        onStopAction = {
+            onPhysicalBack()
+            onSheetDismiss()
+        }
+    ) { viewModel ->
         val hubDetailsState by viewModel.hubDetailsState.collectAsStateWithLifecycle()
 
-        DisposableEffect(lifecycleOwner) {
-            val observer = LifecycleEventObserver { _, event ->
-                when (event) {
-                    Lifecycle.Event.ON_STOP -> {
-                        viewModel.hubDetailsAction(HubDetailsAction.StopCollectingHubItems)
-                        onPhysicalBack()
-                        onSheetDismiss()
-                    }
-                    Lifecycle.Event.ON_START -> {
-                        viewModel.hubDetailsAction(HubDetailsAction.StartCollectingHubItems(hubId))
-                    }
-                    else -> { /* Ignore other events */ }
-                }
-            }
-            lifecycleOwner.lifecycle.addObserver(observer)
+        DisposableEffect(Unit) {
+            viewModel.hubDetailsAction(HubDetailsAction.StartCollectingHubItems(hubId))
+
             onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
+                viewModel.hubDetailsAction(HubDetailsAction.StopCollectingHubItems)
                 viewModel.hubDetailsAction(HubDetailsAction.ClearState)
             }
         }
