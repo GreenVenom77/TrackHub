@@ -44,39 +44,32 @@ fun HubListScreen(
     hubBottomSheetState: Boolean,
     onSheetDismiss: () -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    BaseScreen<HubListViewModel> { viewModel ->
+    BaseScreen<HubListViewModel>(
+        onStopAction = {
+            onPhysicalBack()
+            onSheetDismiss()
+        }
+    ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
 
-        DisposableEffect(lifecycleOwner) {
-            val observer = LifecycleEventObserver { _, event ->
-                when (event) {
-                    Lifecycle.Event.ON_STOP -> {
-                        viewModel.hubListAction(HubListAction.StopCollectingHubs(showOwnedHubs))
-                        onPhysicalBack()
-                        onSheetDismiss()
-                    }
-                    Lifecycle.Event.ON_START -> {
-                        viewModel.hubListAction(HubListAction.StartCollectingHubs(showOwnedHubs))
-                    }
-                    else -> { /* Ignore other events */ }
-                }
-            }
-
-            lifecycleOwner.lifecycle.addObserver(observer)
+        DisposableEffect(Unit) {
+            viewModel.hubListAction(HubListAction.StartCollectingHubs(showOwnedHubs))
 
             onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
+                viewModel.hubListAction(HubListAction.StopCollectingHubs(showOwnedHubs))
             }
         }
 
         HubListContent(
             showOwnedHubs = showOwnedHubs,
             hubListState = hubListState,
-            hubListAction = viewModel::hubListAction,
+            hubListAction = { action ->
+                when (action) {
+                    is HubListAction.NavigateToHubDetails -> navigateToHubDetails(action.hubId)
+                }
+                viewModel.hubListAction(action)
+            },
             baseAction = viewModel::baseAction,
-            navigateToHubDetails = navigateToHubDetails,
             hubBottomSheetState = hubBottomSheetState,
             onSheetDismiss = onSheetDismiss,
             modifier = Modifier.fillMaxSize()
@@ -91,7 +84,6 @@ private fun HubListContent(
     hubListState: HubListState,
     hubListAction: (HubListAction) -> Unit,
     baseAction: (BaseAction) -> Unit,
-    navigateToHubDetails: (String) -> Unit,
     hubBottomSheetState: Boolean,
     onSheetDismiss: () -> Unit,
     modifier: Modifier = Modifier
@@ -135,7 +127,9 @@ private fun HubListContent(
                     hub.toHubUI().let { hubUI ->
                         HubListCard(
                             hub = hubUI,
-                            onClick = { navigateToHubDetails(hubUI.id) },
+                            onClick = {
+                                hubListAction(HubListAction.NavigateToHubDetails(hubUI.id))
+                            },
                             modifier = Modifier
                                 .padding(8.dp)
                         )
@@ -168,7 +162,6 @@ private fun HubListPreview() {
         hubListState = HubListState(),
         hubListAction = {  },
         baseAction = {  },
-        navigateToHubDetails = {  },
         hubBottomSheetState = false,
         onSheetDismiss = {  },
     )

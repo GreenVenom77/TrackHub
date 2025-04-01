@@ -96,17 +96,16 @@ private fun ItemSheetContent(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            if (isEdit) {
-                CustomTextField(
-                    value = itemId.toString(),
-                    onValueChange = {},
-                    label = "ID",
-                    error = "",
-                    readOnly = true
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+//            if (isEdit) {
+//                CustomTextField(
+//                    value = itemId.toString(),
+//                    onValueChange = {},
+//                    label = "ID",
+//                    error = "",
+//                    readOnly = true
+//                )
+//                Spacer(modifier = Modifier.height(16.dp))
+//            }
             CustomTextField(
                 value = newItemName,
                 label = stringResource(R.string.item_name),

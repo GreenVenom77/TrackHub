@@ -18,7 +18,7 @@ import com.greenvenom.core_navigation.data.NavigationType
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_navigation.utils.AppNavigator
 import com.trackhub.feat_navigation.data.DestinationHandler
-import com.trackhub.feat_hub.presentation.hub_details.screens.HubDetailsScreen
+import com.trackhub.feat_hub.presentation.hub_details.HubDetailsScreen
 import com.trackhub.feat_hub.presentation.hub_list.HubListScreen
 import com.greenvenom.feat_auth.presentation.login.LoginScreen
 import com.greenvenom.feat_auth.presentation.otp.OtpScreen

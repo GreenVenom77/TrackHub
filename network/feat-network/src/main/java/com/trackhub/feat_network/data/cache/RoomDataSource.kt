@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 class RoomDataSource(
     private val hubDao: HubDao
 ): CacheDataSource {
+    // Hubs
     override suspend fun addHub(hub: Hub) {
         hubDao.addHub(hub.toHubEntity())
     }
@@ -42,6 +43,11 @@ class RoomDataSource(
         return hubDao.getSharedHubs().map { it.map { hubEntity -> hubEntity.toHub() } }
     }
 
+    override suspend fun deleteAllHubs() {
+        hubDao.deleteAllHubs()
+    }
+
+    // Items
     override suspend fun updateHubItems(items: List<HubItem>) {
         hubDao.updateHubItems(items.map { it.toHubItemEntity() })
     }
@@ -53,4 +59,6 @@ class RoomDataSource(
     override fun getItemsFromHub(hubId: String): Flow<List<HubItem>> {
         return hubDao.getItemsFromHub(hubId).map { it.map{ hubItemEntity -> hubItemEntity.toHubItem() } }
     }
+
+    // Profile
 }
