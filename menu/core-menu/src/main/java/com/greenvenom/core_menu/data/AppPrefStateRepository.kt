@@ -1,9 +1,6 @@
-package com.greenvenom.feat_menu.data
+package com.greenvenom.core_menu.data
 
-import android.app.LocaleManager
 import android.content.Context
-import android.os.Build
-import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -21,7 +18,7 @@ class AppPrefStateRepository() {
     val appPrefState = _appPrefState.asStateFlow()
 
     private val Context.themeDataStore by preferencesDataStore(name = "theme_prefs")
-    private val DARK_THEME_KEY = booleanPreferencesKey(name = "dark_theme")
+    private val darkThemeKey = booleanPreferencesKey(name = "dark_theme")
 
     init {
         _appPrefState.update {
@@ -33,7 +30,7 @@ class AppPrefStateRepository() {
     
     suspend fun changeTheme(context: Context, isDarkTheme: Boolean) {
         context.themeDataStore.edit { preferences ->
-            preferences[DARK_THEME_KEY] = isDarkTheme
+            preferences[darkThemeKey] = isDarkTheme
         }
 
         _appPrefState.update {
@@ -45,7 +42,7 @@ class AppPrefStateRepository() {
 
     fun getThemePreference(context: Context): Flow<Boolean> =
         context.themeDataStore.data.map { preferences ->
-            preferences[DARK_THEME_KEY] ?: false
+            preferences[darkThemeKey] ?: false
         }
 
     fun changeLanguage(languageTag: String) {

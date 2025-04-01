@@ -1,5 +1,9 @@
 package com.skewnexus.trackhub.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -210,9 +214,19 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 Text(text = "Activity")
             }
             composable<Screen.Menu> {
-                MenuScreen()
+                MenuScreen(
+                    navigateToProfile = {
+                        navigationStateRepository.navigate(
+                            NavigationType.Standard(Screen.Profile)
+                        )
+                    },
+                    onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
+                )
             }
-            composable<Screen.Profile> {
+            composable<Screen.Profile>(
+                enterTransition = { slideInHorizontally { it } + fadeIn() },
+                popExitTransition = { slideOutHorizontally { it } + fadeOut() }
+            ) {
                 Text(text = "Profile")
             }
         }

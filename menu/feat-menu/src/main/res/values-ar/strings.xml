@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_icon">أيكونة الملف الشخصي</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="logout_icon">أيكونة تسجيل الخروج</string>
+    <string name="logout">تسجيل الخروج</string>
+</resources>

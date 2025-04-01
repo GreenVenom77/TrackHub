@@ -26,7 +26,7 @@ import com.greenvenom.core_navigation.data.NavigationType
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_ui.components.FloatingButton
-import com.greenvenom.feat_menu.data.AppPrefStateRepository
+import com.greenvenom.core_menu.data.AppPrefStateRepository
 import com.skewnexus.trackhub.navigation.AppNavHost
 import com.trackhub.feat_navigation.components.BottomNavigationBar
 import com.trackhub.feat_navigation.components.TopAppBar

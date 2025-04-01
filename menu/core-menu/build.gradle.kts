@@ -34,7 +34,14 @@ android {
 
 dependencies {
 
+    val koin = "4.0.0"
+
     implementation(project(":network:core-network"))
+
+    implementation(platform("io.insert-koin:koin-bom:$koin"))
+    implementation("io.insert-koin:koin-androidx-compose")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.3")
 
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)

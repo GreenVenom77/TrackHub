@@ -1,4 +1,4 @@
-package com.greenvenom.feat_menu.data
+package com.greenvenom.core_menu.data
 
 data class AppPrefState(
     val isDarkTheme: Boolean = false,

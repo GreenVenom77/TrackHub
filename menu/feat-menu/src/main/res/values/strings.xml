@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_icon">Profile Icon</string>
+    <string name="profile">Profile</string>
+    <string name="logout_icon">Logout Icon</string>
+    <string name="logout">Logout</string>
+</resources>
