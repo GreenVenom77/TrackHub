@@ -21,6 +21,9 @@ interface HubDao {
     @Query("DELETE FROM hubs WHERE id = :hubId")
     suspend fun deleteHub(hubId: String)
 
+    @Delete
+    suspend fun deleteHubs(hubs: List<HubEntity>)
+
     @Upsert
     suspend fun updateOwnHubs(hubs: List<HubEntity>)
 

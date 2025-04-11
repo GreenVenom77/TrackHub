@@ -8,6 +8,7 @@ interface CacheDataSource {
     suspend fun addHub(hub: Hub)
     suspend fun updateHub(hub: Hub)
     suspend fun deleteHub(hubId: String)
+    suspend fun deleteHubs(hubs: List<Hub>)
     suspend fun updateOwnHubs(hubs: List<Hub>)
     suspend fun updateSharedHubs(hubs: List<Hub>)
     fun getOwnHubs(): Flow<List<Hub>>
