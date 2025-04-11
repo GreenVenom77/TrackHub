@@ -1,4 +1,4 @@
-package com.trackhub.feat_navigation.components
+package com.greenvenom.core_ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -28,7 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.trackhub.feat_navigation.R
+import com.greenvenom.core_ui.R
 import com.greenvenom.core_ui.theme.AppTheme
 
 @Composable
@@ -36,7 +36,8 @@ fun TopAppBar(
     isVisible: Boolean,
     isSideDestination: Boolean,
     isActionEnabled: Boolean,
-    navigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    navigateBack: () -> Unit = {},
     logo: Painter = painterResource(R.drawable.logo),
     title: String = stringResource(R.string.app_name),
     action: @Composable () -> Unit = {}
@@ -52,6 +53,7 @@ fun TopAppBar(
                 navigateBack = navigateBack,
                 logo = logo,
                 title = title,
+                modifier = modifier,
                 action = action
             )
         }
@@ -66,6 +68,7 @@ private fun TopBarContent(
     navigateBack: () -> Unit,
     logo: Painter,
     title: String,
+    modifier: Modifier = Modifier,
     action: @Composable () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -122,7 +125,8 @@ private fun TopBarContent(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = colorScheme.surface,
             titleContentColor = colorScheme.onSurface
-        )
+        ),
+        modifier = modifier
     )
 }
 

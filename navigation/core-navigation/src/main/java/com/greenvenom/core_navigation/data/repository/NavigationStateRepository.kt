@@ -48,7 +48,7 @@ class NavigationStateRepository(private var appNavigator: AppNavigator) {
                     it.copy(
                         isCurrentDestinationSide = true,
                         bottomBarState = false,
-                        topBarState = true
+                        topBarState = false
                     )
                 }
             }

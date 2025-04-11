@@ -27,6 +27,10 @@ class RoomDataSource(
         hubDao.deleteHub(hubId)
     }
 
+    override suspend fun deleteHubs(hubs: List<Hub>) {
+        hubDao.deleteHubs(hubs.map { it.toHubEntity() })
+    }
+
     override suspend fun updateOwnHubs(hubs: List<Hub>) {
         hubDao.updateOwnHubs(hubs.map { it.toHubEntity() })
     }

@@ -1,6 +1,12 @@
 package com.trackhub.feat_navigation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.Icon
@@ -9,6 +15,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -20,18 +27,42 @@ import com.trackhub.feat_navigation.routes.Screen
 fun BottomNavigationBar(
     defaultNavigationMethod: (NavigationType) -> Unit,
     currentDestination: Destination,
-    isVisible: Boolean
+    isVisible: Boolean,
+    modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = slideInVertically(initialOffsetY = { it }),
-        exit = slideOutVertically(targetOffsetY = { it }),
+        enter = slideInVertically(
+            initialOffsetY = { it },
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = FastOutSlowInEasing
+            )
+        ) + fadeIn(
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = LinearEasing
+            )
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it },
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = FastOutLinearInEasing
+            )
+        ) + fadeOut(
+            animationSpec = tween(
+                durationMillis = 200,
+                easing = LinearEasing
+            )
+        ),
         content = {
             BottomBarContent(
                 defaultNavigationMethod = defaultNavigationMethod,
                 currentDestination = currentDestination
             )
-        }
+        },
+        modifier = modifier
     )
 }
 

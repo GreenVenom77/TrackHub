@@ -3,6 +3,7 @@ package com.greenvenom.core_ui.presentation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -15,6 +16,7 @@ import org.koin.androidx.compose.koinViewModel
 inline fun<reified VM: BaseViewModel> BaseScreen(
     crossinline onStopAction: () -> Unit = {},
     crossinline onStartAction: () -> Unit = {},
+    modifier: Modifier = Modifier,
     enableLifecycleObservation: Boolean = true,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     content: @Composable (viewModel: VM) -> Unit

@@ -1,5 +1,7 @@
 package com.skewnexus.trackhub.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -29,7 +31,6 @@ import com.greenvenom.feat_auth.presentation.splash.SplashScreen
 import com.greenvenom.feat_menu.presentation.MenuScreen
 import com.trackhub.feat_navigation.routes.Screen
 import com.trackhub.feat_navigation.routes.SubGraph
-import kotlinx.coroutines.flow.update
 import org.koin.compose.koinInject
 
 @Composable
@@ -38,7 +39,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val navigationStateRepository = koinInject<NavigationStateRepository>()
     val navigationState by navigationStateRepository.navigationState.collectAsStateWithLifecycle()
     val destinationHandler = koinInject<DestinationHandler>()
-    val destinationState by destinationHandler.destinationState.collectAsStateWithLifecycle()
 
     appNavigator.config(
         returnedDestination = Screen::class,
@@ -48,6 +48,30 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     NavHost(
         navController = appNavigator.navController,
         startDestination = Screen.Splash,
+        enterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
         modifier = modifier
     ) {
         composable<Screen.Splash> {
@@ -136,15 +160,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         )
                     },
                     onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    }
                 )
             }
             composable<Screen.SharedHubs> {
@@ -156,15 +171,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         )
                     },
                     onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    }
                 )
             }
             composable<Screen.HubDetails> {
@@ -173,38 +179,6 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 HubDetailsScreen(
                     hubId = args.hubId,
                     onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    onHubDeletion = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                currentHub = null,
-                                hubBottomSheetState = false
-                            )
-                        }
-                    },
-                    onHubRetrieval = { hub ->
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(currentHub = hub)
-                        }
-                    },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    itemBottomSheetState = destinationState.itemBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    },
-                    onEditItem = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = true
-                            )
-                        }
-                    },
                     navigateBack = {
                         navigationStateRepository.navigate(NavigationType.Back)
                     }
@@ -223,10 +197,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
                 )
             }
-            composable<Screen.Profile>(
-                enterTransition = { slideInHorizontally { it } + fadeIn() },
-                popExitTransition = { slideOutHorizontally { it } + fadeOut() }
-            ) {
+            composable<Screen.Profile> {
                 Text(text = "Profile")
             }
         }
