@@ -3,7 +3,8 @@ package com.greenvenom.core_network.supabase.util
 import com.greenvenom.core_network.data.ErrorType
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
-import com.greenvenom.core_network.utils.toNetworkError
+import com.greenvenom.core_network.utils.buildNetworkError
+import com.greenvenom.core_network.utils.getDefaultMessageId
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.ktor.client.call.NoTransformationFoundException
@@ -16,15 +17,36 @@ inline fun <reified T> supabaseCall (
         val executionResult = execute()
         try {
             NetworkResult.Success(executionResult)
-        } catch (e: NoTransformationFoundException) {
-            NetworkResult.Error(NetworkError(ErrorType.SERIALIZATION_ERROR))
+        } catch (_: NoTransformationFoundException) {
+            NetworkResult.Error(
+                NetworkError(
+                    errorType = ErrorType.SERIALIZATION_ERROR,
+                    messageId = ErrorType.SERIALIZATION_ERROR.getDefaultMessageId()
+                )
+            )
         }
     } catch (exception: RestException) {
-        NetworkResult.Error(toNetworkError(exception.statusCode))
-    } catch (exception: HttpRequestException) {
-        NetworkResult.Error(NetworkError(ErrorType.NO_INTERNET))
-    } catch (exception: HttpRequestTimeoutException) {
-        NetworkResult.Error(NetworkError(ErrorType.REQUEST_TIMEOUT))
+        NetworkResult.Error(
+            buildNetworkError(
+                statusErrorCode = exception.statusCode,
+                message = exception.description
+            )
+        )
+    } catch (_: HttpRequestException) {
+        NetworkResult.Error(
+            NetworkError(
+                errorType = ErrorType.NO_INTERNET,
+                messageId = ErrorType.NO_INTERNET.getDefaultMessageId()
+            )
+        )
+    } catch (_: HttpRequestTimeoutException) {
+        NetworkResult.Error(
+            NetworkError(
+                errorType = ErrorType.REQUEST_TIMEOUT,
+                messageId = ErrorType.REQUEST_TIMEOUT.getDefaultMessageId()
+            )
+        )
     }
+
     return result
 }

@@ -11,13 +11,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,13 +31,11 @@ import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.validation.domain.ValidationError
 import com.greenvenom.validation.domain.ValidationResult
-import com.greenvenom.validation.util.toString
 import org.koin.compose.koinInject
 
 @Composable
@@ -50,7 +46,9 @@ fun VerifyEmailScreen(
     val emailStateRepository: EmailStateRepository = koinInject()
     val emailState by emailStateRepository.emailState.collectAsStateWithLifecycle()
 
-    BaseScreen<ResetPasswordViewModel> { resetPasswordViewModel ->
+    BaseScreen<ResetPasswordViewModel>(
+        onPhysicalBack = { navigateBack() }
+    ) { resetPasswordViewModel ->
         val resetPasswordState by resetPasswordViewModel.resetPasswordState.collectAsStateWithLifecycle()
 
         VerifyEmailContent(
@@ -73,22 +71,21 @@ private fun VerifyEmailContent(
     navigateToOtpScreen: () -> Unit,
     navigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
     var email by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(resetPasswordState.emailSentNetworkResult) {
-        baseActions(BaseAction.HideLoading)
-        resetPasswordState.emailSentNetworkResult?.onSuccess {
+    resetPasswordState.emailSentNetworkResult
+        ?.onSuccess {
+            baseActions(BaseAction.HideLoading)
             navigateToOtpScreen()
         }
-        resetPasswordState.emailSentNetworkResult?.onError {
-            baseActions(
-                BaseAction.ShowErrorMessage(
-                it.errorType?.toString(context)?: context.getString(R.string.something_went_wrong)
+        ?.onError {
+            baseActions(BaseAction.HideLoading)
+            baseActions(BaseAction.ShowErrorMessage(
+                errorMessage = stringResource(it.messageId)
             ))
             resetPasswordActions(ResetPasswordAction.ResetEmailResult)
         }
-    }
+
 
     Column(
         modifier = Modifier
@@ -118,7 +115,8 @@ private fun VerifyEmailContent(
                 },
                 label = stringResource(R.string.enter_your_email),
                 error = if (emailState.emailValidity is ValidationResult.Error) {
-                    (emailState.emailValidity as ValidationResult.Error<ValidationError>).error.toString(context)
+                    stringResource((emailState.emailValidity as ValidationResult.Error<ValidationError>)
+                        .error.messageId)
                 } else "",
             )
             Spacer(modifier = Modifier.height(20.dp))

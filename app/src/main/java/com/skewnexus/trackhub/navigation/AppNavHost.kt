@@ -1,10 +1,12 @@
 package com.skewnexus.trackhub.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
@@ -13,27 +15,23 @@ import androidx.navigation.toRoute
 import com.greenvenom.core_navigation.data.NavigationType
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_navigation.utils.AppNavigator
-import com.trackhub.feat_navigation.data.DestinationHandler
-import com.trackhub.feat_hub.presentation.hub_details.screens.HubDetailsScreen
+import com.trackhub.feat_hub.presentation.hub_details.HubDetailsScreen
 import com.trackhub.feat_hub.presentation.hub_list.HubListScreen
-import com.greenvenom.feat_auth.presentation.login.LoginScreen
-import com.greenvenom.feat_auth.presentation.otp.OtpScreen
-import com.greenvenom.feat_auth.presentation.register.RegisterScreen
-import com.greenvenom.feat_auth.presentation.reset_password.screens.NewPasswordScreen
-import com.greenvenom.feat_auth.presentation.reset_password.screens.VerifyEmailScreen
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
+import com.greenvenom.feat_menu.presentation.MenuScreen
+import com.skewnexus.trackhub.navigation.graphs.authGraph
+import com.skewnexus.trackhub.navigation.graphs.menuGraph
+import com.skewnexus.trackhub.navigation.graphs.notificationsGraph
+import com.skewnexus.trackhub.navigation.graphs.ownedHubsGraph
+import com.skewnexus.trackhub.navigation.graphs.sharedHubsGraph
 import com.trackhub.feat_navigation.routes.Screen
 import com.trackhub.feat_navigation.routes.SubGraph
-import kotlinx.coroutines.flow.update
 import org.koin.compose.koinInject
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
     val appNavigator = koinInject<AppNavigator>()
-    val navigationStateRepository = koinInject<NavigationStateRepository>()
-    val navigationState by navigationStateRepository.navigationState.collectAsStateWithLifecycle()
-    val destinationHandler = koinInject<DestinationHandler>()
-    val destinationState by destinationHandler.destinationState.collectAsStateWithLifecycle()
+    val navigationRepository = koinInject<NavigationStateRepository>()
 
     appNavigator.config(
         returnedDestination = Screen::class,
@@ -43,177 +41,59 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     NavHost(
         navController = appNavigator.navController,
         startDestination = Screen.Splash,
+        enterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.End,
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
         modifier = modifier
     ) {
         composable<Screen.Splash> {
             SplashScreen(
                 onStart = {
-                    destinationHandler.collectSessionDestinations()
+
                 }
             )
         }
 
-        navigation<SubGraph.Auth>(startDestination = Screen.Login) {
-            composable<Screen.Login> {
-                LoginScreen(
-                    navigateToRegisterScreen = {
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.Register)
-                        )
-                    },
-                    navigateToEmailVerificationScreen = {
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.VerifyEmail)
-                        )
-                    },
-                    navigateToNextScreen = {  },
-                )
-            }
-            composable<Screen.Register> {
-                RegisterScreen(
-                    navigateBack = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                    },
-                    navigateToAccountVerificationScreen = {
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.OTP)
-                        )
-                    }
-                )
-            }
-            composable<Screen.VerifyEmail> {
-                VerifyEmailScreen(
-                    navigateBack = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                    },
-                    navigateToOtpScreen = {
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.OTP)
-                        )
-                    }
-                )
-            }
-            composable<Screen.OTP> {
-                OtpScreen(
-                    navigateBack = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                    },
-                    navigateToNewPasswordScreen = {
-                        if (navigationState.previousDestination is Screen.VerifyEmail) {
-                            navigationStateRepository.navigate(
-                                NavigationType.ClearBackStack(Screen.NewPassword)
-                            )
-                        }
-                    }
-                )
-            }
-            composable<Screen.NewPassword> {
-                NewPasswordScreen(
-                    navigateBack = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                    },
-                    navigateToLoginScreen = {
-                        navigationStateRepository.navigate(
-                            NavigationType.ClearBackStack(Screen.Login)
-                        )
-                    }
-                )
-            }
-        }
+        authGraph(
+            navigate = navigationRepository::navigate,
+            navigationStateRepository = navigationRepository
+        )
 
-        navigation<SubGraph.Main>(startDestination = Screen.MyHubs) {
-            composable<Screen.MyHubs> {
-                HubListScreen(
-                    showOwnedHubs = true,
-                    navigateToHubDetails = { hubId ->
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.HubDetails(hubId))
-                        )
-                    },
-                    onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    }
-                )
-            }
-            composable<Screen.SharedHubs> {
-                HubListScreen(
-                    showOwnedHubs = false,
-                    navigateToHubDetails = { hubId ->
-                        navigationStateRepository.navigate(
-                            NavigationType.Standard(Screen.HubDetails(hubId))
-                        )
-                    },
-                    onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    }
-                )
-            }
-            composable<Screen.HubDetails> {
-                val args = it.toRoute<Screen.HubDetails>()
+        ownedHubsGraph(
+            navigate = navigationRepository::navigate
+        )
 
-                HubDetailsScreen(
-                    hubId = args.hubId,
-                    onPhysicalBack = { navigationStateRepository.updateStoredDestinations() },
-                    onHubDeletion = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                currentHub = null,
-                                hubBottomSheetState = false
-                            )
-                        }
-                    },
-                    onHubRetrieval = { hub ->
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(currentHub = hub)
-                        }
-                    },
-                    hubBottomSheetState = destinationState.hubBottomSheetState,
-                    itemBottomSheetState = destinationState.itemBottomSheetState,
-                    onSheetDismiss = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = false
-                            )
-                        }
-                    },
-                    onEditItem = {
-                        destinationHandler.destinationState.update { state ->
-                            state.copy(
-                                hubBottomSheetState = false,
-                                itemBottomSheetState = true
-                            )
-                        }
-                    },
-                    navigateBack = {
-                        navigationStateRepository.navigate(NavigationType.Back)
-                    }
-                )
-            }
-            composable<Screen.Activity> {
-                Text(text = "Activity")
-            }
-            composable<Screen.Menu> {
-                Text(text = "More")
-            }
-            composable<Screen.Profile> {
-                Text(text = "Profile")
-            }
-        }
+        sharedHubsGraph(
+            navigate = navigationRepository::navigate
+        )
+
+        notificationsGraph(
+            navigate = navigationRepository::navigate
+        )
+
+        menuGraph(
+            navigate = navigationRepository::navigate
+        )
     }
 }

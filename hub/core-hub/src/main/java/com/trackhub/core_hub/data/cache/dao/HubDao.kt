@@ -21,6 +21,9 @@ interface HubDao {
     @Query("DELETE FROM hubs WHERE id = :hubId")
     suspend fun deleteHub(hubId: String)
 
+    @Delete
+    suspend fun deleteHubs(hubs: List<HubEntity>)
+
     @Upsert
     suspend fun updateOwnHubs(hubs: List<HubEntity>)
 
@@ -32,6 +35,9 @@ interface HubDao {
 
     @Query("SELECT * FROM hubs WHERE is_owned = 0")
     fun getSharedHubs(): Flow<List<HubEntity>>
+
+    @Query("DELETE FROM hubs")
+    suspend fun deleteAllHubs()
 
     @Upsert
     suspend fun updateHubItems(items: List<HubItemEntity>)

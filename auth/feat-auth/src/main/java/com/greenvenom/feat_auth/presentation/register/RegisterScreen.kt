@@ -13,13 +13,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,19 +29,19 @@ import com.greenvenom.feat_auth.presentation.component.AuthHeader
 import com.greenvenom.core_ui.components.CustomTextField
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.validation.domain.ValidationResult
-import com.greenvenom.validation.util.toString
 
 @Composable
 fun RegisterScreen(
     navigateBack: () -> Unit,
     navigateToAccountVerificationScreen: () -> Unit,
 ) {
-    BaseScreen<RegisterViewModel> { viewModel ->
+    BaseScreen<RegisterViewModel>(
+        onPhysicalBack = { navigateBack() }
+    ) { viewModel ->
         val state by viewModel.registerState.collectAsStateWithLifecycle()
 
         RegisterContent(
@@ -65,25 +63,23 @@ private fun RegisterContent(
     navigateToAccountVerificationScreen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     var username by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(state.registrationNetworkResult) {
-        baseActions(BaseAction.HideLoading)
-        state.registrationNetworkResult?.onSuccess {
+    state.registrationNetworkResult
+        ?.onSuccess {
+            baseActions(BaseAction.HideLoading)
             navigateToAccountVerificationScreen()
         }
-        state.registrationNetworkResult?.onError {
-            baseActions(
-                BaseAction.ShowErrorMessage(
-                it.errorType?.toString(context)?: context.getString(R.string.something_went_wrong)
+        ?.onError {
+            baseActions(BaseAction.HideLoading)
+            baseActions(BaseAction.ShowErrorMessage(
+                errorMessage = stringResource(it.messageId)
             ))
             registerActions(RegisterAction.ResetNetworkResult)
         }
-    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -125,7 +121,9 @@ private fun RegisterContent(
                     registerActions(RegisterAction.ValidateUsername(username))
                 },
                 label = stringResource(R.string.enter_your_username),
-                error = if (state.usernameValidity is ValidationResult.Error) state.usernameValidity.error.toString(context) else "",
+                error = if (state.usernameValidity is ValidationResult.Error)
+                    stringResource(state.usernameValidity.error.messageId)
+                else "",
                 isPasswordField = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
@@ -141,7 +139,9 @@ private fun RegisterContent(
                     registerActions(RegisterAction.ValidateEmail(email))
                 },
                 label = stringResource(R.string.enter_your_email),
-                error = if (state.emailValidity is ValidationResult.Error) state.emailValidity.error.toString(context) else "",
+                error = if (state.emailValidity is ValidationResult.Error)
+                    stringResource(state.emailValidity.error.messageId)
+                else "",
                 isPasswordField = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
@@ -157,7 +157,9 @@ private fun RegisterContent(
                     registerActions(RegisterAction.ValidatePassword(password))
                 },
                 label = stringResource(R.string.enter_your_password),
-                error = if (state.passwordValidity is ValidationResult.Error) state.passwordValidity.error.toString(context) else "",
+                error = if (state.passwordValidity is ValidationResult.Error)
+                    stringResource(state.passwordValidity.error.messageId)
+                else "",
                 isPasswordField = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
@@ -165,7 +167,7 @@ private fun RegisterContent(
             Text(
                 text = stringResource(R.string.confirm_password),
                 color = MaterialTheme.colorScheme.onBackground
-                )
+            )
             CustomTextField(
                 value = confirmPassword,
                 onValueChange = {
@@ -173,7 +175,9 @@ private fun RegisterContent(
                     registerActions(RegisterAction.ValidatePasswordConfirmation(password, confirmPassword))
                 },
                 label = stringResource(R.string.confirm_your_password),
-                error = if (state.confirmPasswordValidity is ValidationResult.Error) state.confirmPasswordValidity.error.toString(context) else "",
+                error = if (state.confirmPasswordValidity is ValidationResult.Error)
+                    stringResource(state.confirmPasswordValidity.error.messageId)
+                else "",
                 isPasswordField = true
             )
             Spacer(modifier = Modifier.height(20.dp))

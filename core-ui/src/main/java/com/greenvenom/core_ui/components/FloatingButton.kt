@@ -3,8 +3,6 @@ package com.greenvenom.core_ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.FloatingActionButton
@@ -24,12 +22,12 @@ fun FloatingButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        content = {
-            Box(modifier = modifier) {
+    Box(modifier = modifier) {
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            content = {
                 FloatingActionButton(
                     onClick = { onClick() },
                     content = {
@@ -42,13 +40,13 @@ fun FloatingButton(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-        }
-    )
+        )
+    }
 }
 
 @PreviewLightDark
 @Composable
-fun FloatingButtonPreview() {
+private fun FloatingButtonPreview() {
     AppTheme {
         FloatingButton(
             isVisible = true,

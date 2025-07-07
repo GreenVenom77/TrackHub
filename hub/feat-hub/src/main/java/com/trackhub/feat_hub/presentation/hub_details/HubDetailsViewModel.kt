@@ -5,7 +5,7 @@ import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.core_network.data.map
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.HubItem
-import com.trackhub.core_hub.domain.repository.HubRepository
+import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

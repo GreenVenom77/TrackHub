@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -13,7 +14,7 @@ val localProperties = Properties().apply {
 
 android {
     namespace = "com.greenvenom.core_network"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -29,7 +30,7 @@ android {
             buildConfigField("String", "API_KEY", "\"${localProperties.getProperty("DEV_KEY")}\"")
         }
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -39,41 +40,26 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         buildConfig = true
     }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }
 }
 
 dependencies {
-    val ktor = "3.1.1"
-    val supabase = "3.1.2"
-    val koin = "4.0.0"
 
     implementation(libs.androidx.core.ktx)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-
-    implementation("io.ktor:ktor-client-cio:$ktor")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor")
-    implementation("io.ktor:ktor-client-core:$ktor")
-    implementation("io.ktor:ktor-client-okhttp:$ktor")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor")
-    implementation("io.ktor:ktor-client-logging:$ktor")
-
-    implementation(platform("io.github.jan-tennert.supabase:bom:$supabase"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
-    implementation("io.github.jan-tennert.supabase:storage-kt")
-    implementation("io.github.jan-tennert.supabase:coil3-integration")
-
-    implementation(platform("io.insert-koin:koin-bom:$koin"))
-    implementation("io.insert-koin:koin-androidx-compose")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.bundles.supabase)
+    implementation(libs.koin.android.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
