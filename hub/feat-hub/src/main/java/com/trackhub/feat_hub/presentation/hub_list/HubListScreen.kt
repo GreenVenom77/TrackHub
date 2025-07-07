@@ -15,21 +15,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.components.TopAppBar
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
-import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
 import com.trackhub.feat_hub.presentation.models.toHubUI
@@ -38,11 +34,12 @@ import com.trackhub.feat_hub.presentation.models.toHubUI
 fun HubListScreen(
     showOwnedHubs: Boolean,
     navigateToHubDetails: (String) -> Unit,
-    onPhysicalBack: () -> Unit,
+    navigateBack: () -> Unit,
 ) {
     BaseScreen<HubListViewModel>(
-        onStopAction = {
-            onPhysicalBack()
+        enableCustomBack = !showOwnedHubs,
+        onPhysicalBack = {
+            navigateBack()
         }
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
@@ -64,8 +61,7 @@ fun HubListScreen(
                 }
                 viewModel.hubListAction(action)
             },
-            baseAction = viewModel::baseAction,
-            modifier = Modifier.fillMaxSize()
+            baseAction = viewModel::baseAction
         )
     }
 }
@@ -76,10 +72,8 @@ private fun HubListContent(
     showOwnedHubs: Boolean,
     hubListState: HubListState,
     hubListAction: (HubListAction) -> Unit,
-    baseAction: (BaseAction) -> Unit,
-    modifier: Modifier = Modifier
+    baseAction: (BaseAction) -> Unit
 ) {
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val hubsResult = if (showOwnedHubs) hubListState.ownedHubsResult else hubListState.sharedHubsResult
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
@@ -91,7 +85,7 @@ private fun HubListContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong)
+                stringResource(error.messageId)
             ))
         }
 
@@ -104,7 +98,7 @@ private fun HubListContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong),
+                errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
         }
@@ -128,7 +122,7 @@ private fun HubListContent(
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Box(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {

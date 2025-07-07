@@ -1,13 +1,15 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.google.ksp)
 }
 
 android {
     namespace = "com.trackhub.core_hub"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -18,7 +20,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -26,26 +28,23 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
 }
 
 dependencies {
 
-    val room = "2.6.1"
-
     implementation(project(":network:core-network"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-
-    implementation("androidx.room:room-runtime:$room")
-    ksp("androidx.room:room-compiler:$room")
-    implementation("androidx.room:room-ktx:$room")
-    implementation("androidx.room:room-paging:$room")
+    implementation(libs.kotlinx.serialization.json)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.bundles.local.data.persistence)
 
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)

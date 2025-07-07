@@ -3,7 +3,7 @@ package com.trackhub.feat_hub.presentation.hub_list
 import androidx.lifecycle.viewModelScope
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.trackhub.core_hub.domain.models.Hub
-import com.trackhub.core_hub.domain.repository.HubRepository
+import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

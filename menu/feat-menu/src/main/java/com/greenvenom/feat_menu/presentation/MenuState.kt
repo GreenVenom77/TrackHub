@@ -7,6 +7,6 @@ import com.greenvenom.core_network.data.NetworkResult
 @Immutable
 data class MenuState(
     val isArabic: Boolean = false,
-    val isDarkTheme: Boolean = false,
+    val isDarkTheme: Boolean? = null,
     val logoutResult: NetworkResult<Unit, NetworkError>? = null
 )
