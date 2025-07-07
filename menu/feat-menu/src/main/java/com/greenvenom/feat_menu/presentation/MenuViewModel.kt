@@ -1,8 +1,7 @@
 package com.greenvenom.feat_menu.presentation
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_menu.domain.MenuRepository
+import com.greenvenom.feat_menu.domain.repo.MenuRepository
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,21 +26,20 @@ class MenuViewModel(
 
     fun menuAction(action: MenuAction) {
         when (action) {
-            is MenuAction.ChangeTheme -> changeTheme(action.context)
+            is MenuAction.ChangeTheme -> changeTheme(action.isDarkTheme)
             is MenuAction.ChangeLanguage -> changeLanguage(action.languageTag)
             is MenuAction.Logout -> logout()
         }
     }
 
-    private fun changeTheme(context: Context) {
+    private fun changeTheme(isDarkTheme: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             menuRepository.changeTheme(
-                context = context,
-                isDarkTheme = !_menuState.value.isDarkTheme
+                isDarkTheme = isDarkTheme
             )
             _menuState.update {
                 it.copy(
-                    isDarkTheme = !it.isDarkTheme
+                    isDarkTheme = isDarkTheme
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.greenvenom.core_ui.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -14,10 +15,16 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 inline fun<reified VM: BaseViewModel> BaseScreen(
-    crossinline onStopAction: () -> Unit = {},
-    crossinline onStartAction: () -> Unit = {},
+    crossinline onCreateAction: (viewModel: VM) -> Unit = {},
+    crossinline onStartAction: (viewModel: VM) -> Unit = {},
+    crossinline onResumeAction: (viewModel: VM) -> Unit = {},
+    crossinline onPauseAction: (viewModel: VM) -> Unit = {},
+    crossinline onStopAction: (viewModel: VM) -> Unit = {},
+    crossinline onDestroyAction: (viewModel: VM) -> Unit = {},
+    crossinline onPhysicalBack: (viewModel: VM) -> Unit = {},
     modifier: Modifier = Modifier,
-    enableLifecycleObservation: Boolean = true,
+    enableCustomBack: Boolean = true,
+    enableLifecycleObservation: Boolean = false,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     content: @Composable (viewModel: VM) -> Unit
 ) {
@@ -28,13 +35,25 @@ inline fun<reified VM: BaseViewModel> BaseScreen(
         DisposableEffect(lifecycleOwner) {
             val observer = LifecycleEventObserver { _, event ->
                 when (event) {
-                    Lifecycle.Event.ON_STOP -> {
-                        onStopAction()
+                    Lifecycle.Event.ON_CREATE -> {
+                        onCreateAction(viewModel)
                     }
                     Lifecycle.Event.ON_START -> {
-                        onStartAction()
+                        onStartAction(viewModel)
                     }
-                    else -> { /* Ignore other events */ }
+                    Lifecycle.Event.ON_RESUME -> {
+                        onResumeAction(viewModel)
+                    }
+                    Lifecycle.Event.ON_PAUSE -> {
+                        onPauseAction(viewModel)
+                    }
+                    Lifecycle.Event.ON_STOP -> {
+                        onStopAction(viewModel)
+                    }
+                    Lifecycle.Event.ON_DESTROY -> {
+                        onDestroyAction(viewModel)
+                    }
+                    else -> {}
                 }
             }
 
@@ -43,6 +62,12 @@ inline fun<reified VM: BaseViewModel> BaseScreen(
             onDispose {
                 lifecycleOwner.lifecycle.removeObserver(observer)
             }
+        }
+    }
+
+    if (enableCustomBack) {
+        BackHandler {
+            onPhysicalBack(viewModel)
         }
     }
 

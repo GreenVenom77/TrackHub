@@ -2,7 +2,6 @@ package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,9 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.components.TopAppBar
 import com.greenvenom.core_ui.presentation.BaseAction
@@ -43,12 +39,11 @@ import com.trackhub.feat_hub.presentation.models.toHubUI
 @Composable
 fun HubDetailsScreen(
     hubId: String,
-    onPhysicalBack: () -> Unit,
     navigateBack: () -> Unit
 ) {
     BaseScreen<HubDetailsViewModel>(
-        onStopAction = {
-            onPhysicalBack()
+        onPhysicalBack = {
+            navigateBack()
         }
     ) { viewModel ->
         val hubDetailsState by viewModel.hubDetailsState.collectAsStateWithLifecycle()
@@ -67,9 +62,7 @@ fun HubDetailsScreen(
             hubDetailsAction = viewModel::hubDetailsAction,
             baseAction = viewModel::baseAction,
             navigateBack = navigateBack,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
+            
         )
     }
 }
@@ -81,9 +74,7 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit,
     navigateBack: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val hubItemsResult = hubDetailsState.hubItemsResult
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
@@ -95,7 +86,7 @@ private fun HubDetailsContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong)
+                stringResource(error.messageId)
             ))
         }
 
@@ -110,7 +101,7 @@ private fun HubDetailsContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong),
+                errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                 }
@@ -128,7 +119,7 @@ private fun HubDetailsContent(
             baseAction(BaseAction.HideLoading)
             baseAction(
                 BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong),
+                    errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                 }
@@ -145,7 +136,7 @@ private fun HubDetailsContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong),
+                errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                 }
@@ -163,7 +154,7 @@ private fun HubDetailsContent(
         ?.onError { error ->
             baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
-                error.errorType?.toString(context) ?: stringResource(R.string.something_went_wrong),
+                errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                 }

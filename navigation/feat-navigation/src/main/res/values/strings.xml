@@ -6,4 +6,5 @@
     <string name="shared_hubs">Shared Hubs</string>
     <string name="menu">Menu</string>
     <string name="back_button">Back Button</string>
+    <string name="navigation_icon">%1$s Navigation Icon</string>
 </resources>

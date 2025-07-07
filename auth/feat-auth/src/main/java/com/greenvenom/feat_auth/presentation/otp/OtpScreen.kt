@@ -28,17 +28,18 @@ import com.greenvenom.feat_auth.presentation.component.AuthHeader
 import com.greenvenom.feat_auth.presentation.otp.components.OtpInputField
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.utils.toString
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
 
 @Composable
 fun OtpScreen(
-    navigateToNewPasswordScreen: () -> Unit,
+    navigateToNextScreen: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    BaseScreen<OtpViewModel> { viewModel ->
+    BaseScreen<OtpViewModel>(
+        onPhysicalBack = { navigateBack() }
+    ) { viewModel ->
         val otpState by viewModel.otpState.collectAsStateWithLifecycle()
         val focusRequesters = remember {
             List(6) { FocusRequester() }
@@ -78,7 +79,7 @@ fun OtpScreen(
             },
             baseActions = viewModel::baseAction,
             focusRequesters = focusRequesters,
-            navigateToNewPasswordScreen = navigateToNewPasswordScreen,
+            navigateToNextScreen = navigateToNextScreen,
             navigateBack = navigateBack,
         )
     }
@@ -90,25 +91,22 @@ private fun OtpContent(
     otpActions: (OtpAction) -> Unit,
     baseActions: (BaseAction) -> Unit,
     focusRequesters: List<FocusRequester>,
-    navigateToNewPasswordScreen: () -> Unit,
+    navigateToNextScreen: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
-    LaunchedEffect(state.otpNetworkResult) {
-        baseActions(BaseAction.HideLoading)
-        state.otpNetworkResult?.onSuccess {
-            navigateToNewPasswordScreen()
+    state.otpNetworkResult
+        ?.onSuccess {
+            baseActions(BaseAction.HideLoading)
+            navigateToNextScreen()
         }
-        state.otpNetworkResult?.onError {
-            baseActions(
-                BaseAction.ShowErrorMessage(
-                it.errorType?.toString(context)?: context.getString(R.string.something_went_wrong)
+        ?.onError {
+            baseActions(BaseAction.HideLoading)
+            baseActions(BaseAction.ShowErrorMessage(
+                errorMessage = stringResource(it.messageId)
             ))
             otpActions(OtpAction.ResetNetworkResult)
         }
-    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -169,7 +167,7 @@ private fun OtpScreenPreview() {
             otpActions = {},
             baseActions = {},
             focusRequesters = List(6) { FocusRequester() },
-            navigateToNewPasswordScreen = {},
+            navigateToNextScreen = {},
             navigateBack = {}
         )
     }

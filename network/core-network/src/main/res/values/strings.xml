@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="error_bad_request">The request is invalid.</string>
-    <string name="error_unauthorized">You are not authorized.</string>
-    <string name="error_forbidden">You don\'t have permission to do that.</string>
-    <string name="error_not_found">The requested resource was not found.</string>
-    <string name="error_request_timeout">The request time out.</string>
-    <string name="error_conflict">The request conflicts with another request.</string>
-    <string name="error_serialization">Couldn\'t serialize the data.</string>
-    <string name="error_too_many_requests">Your quota has been exceeded.</string>
-    <string name="error_server">Couldn\'t contact the server.</string>
-    <string name="error_no_internet">Please check your internet connection.</string>
-    <string name="error_service_unavailable">The service is unavailable.</string>
-    <string name="error_unknown">Unknown error happened.</string>
-    <string name="successful_request">The request was successful.</string>
+    <string name="error_bad_request">Please check your input and try again.</string>
+    <string name="error_unauthorized">Authentication required. Please log in.</string>
+    <string name="error_forbidden">You don\'t have permission to access this.</string>
+    <string name="error_not_found">The requested content was not found.</string>
+    <string name="error_request_timeout">Request timed out. Please try again.</string>
+    <string name="error_conflict">This action conflicts with existing data.</string>
+    <string name="error_serialization">Failed to process the data.</string>
+    <string name="error_too_many_requests">Too many requests. Please wait and try again.</string>
+    <string name="error_server">Server error. Please try again later.</string>
+    <string name="error_no_internet">No internet connection. Please check your network.</string>
+    <string name="error_service_unavailable">Service temporarily unavailable. Please try again later.</string>
+    <string name="error_unknown">Something went wrong. Please try again.</string>
+    <string name="successful_request">Success!</string>
+    <string name="error_invalid_credentials">Invalid username or password.</string>
+    <string name="error_account_locked">Account temporarily locked. Please try again later.</string>
+    <string name="error_email_not_verified">Please verify your email address first.</string>
+    <string name="error_account_suspended">Your account has been suspended.</string>
+    <string name="error_email_taken">This email is already registered.</string>
+    <string name="error_username_taken">This username is already taken.</string>
+    <string name="error_invalid_email_format">Please enter a valid email address.</string>
+    <string name="error_password_too_short">Password must be at least 8 characters long.</string>
 </resources>

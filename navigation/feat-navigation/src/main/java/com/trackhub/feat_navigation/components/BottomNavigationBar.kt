@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.greenvenom.core_navigation.data.NavigationType
 import com.greenvenom.core_navigation.domain.Destination
+import com.trackhub.feat_navigation.R
 import com.trackhub.feat_navigation.routes.Screen
 
 @Composable
@@ -77,11 +78,18 @@ private fun BottomBarContent(
     ) {
         BottomDestination.entries.forEach { destination ->
             NavigationBarItem(
-                onClick = { defaultNavigationMethod(NavigationType.BottomNavigation(destination.target)) },
+                onClick = {
+                    defaultNavigationMethod(NavigationType.BottomNavigation(
+                        destination = destination.subGraph
+                    ))
+                },
                 icon = {
                     Icon(
                         painter = painterResource(destination.icon),
-                        contentDescription = "${stringResource(destination.label)} Navigation Icon"
+                        contentDescription = stringResource(
+                            R.string.navigation_icon,
+                            stringResource(destination.label)
+                        )
                     )
                 },
                 label = {
@@ -90,7 +98,7 @@ private fun BottomBarContent(
                         style = MaterialTheme.typography.labelMedium
                     )
                 },
-                selected = destination.target == currentDestination,
+                selected = destination.comparableScreen == currentDestination,
             )
         }
     }

@@ -32,6 +32,12 @@ class NavigationStateRepository(private var appNavigator: AppNavigator) {
         updateBarsState()
     }
 
+    fun updateAccountType(typeIndex: Int) {
+        _navigationState.update {
+            it.copy(accountTypeIndex = typeIndex)
+        }
+    }
+
     private fun updateBarsState() {
         when (_navigationState.value.currentDestination?.destinationType) {
             DestinationType.MAIN -> {
@@ -48,7 +54,7 @@ class NavigationStateRepository(private var appNavigator: AppNavigator) {
                     it.copy(
                         isCurrentDestinationSide = true,
                         bottomBarState = false,
-                        topBarState = false
+                        topBarState = true
                     )
                 }
             }

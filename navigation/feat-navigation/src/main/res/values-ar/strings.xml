@@ -6,4 +6,5 @@
     <string name="shared_hubs">مخازن الآخرين</string>
     <string name="menu">المزيد</string>
     <string name="back_button">الرجوع للخلف</string>
+    <string name="navigation_icon">أيقونة التنقل %1$s</string>
 </resources>

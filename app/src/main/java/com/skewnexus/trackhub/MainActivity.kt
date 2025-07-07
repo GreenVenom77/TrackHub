@@ -4,24 +4,23 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_menu.data.AppPrefStateRepository
+import com.seravian.core_local.domain.AppPrefsDataSource
 import com.skewnexus.trackhub.navigation.AppNavHost
 import com.trackhub.feat_navigation.components.BottomNavigationBar
 import com.trackhub.feat_navigation.routes.Screen
-import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 class MainActivity : AppCompatActivity() {
@@ -29,27 +28,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val context = LocalContext.current
-            val coroutineScope = rememberCoroutineScope()
-            val appPrefRepository = koinInject<AppPrefStateRepository>()
-            val appPrefState by appPrefRepository.appPrefState.collectAsStateWithLifecycle()
+            val appPrefsRepository = koinInject<AppPrefsDataSource>()
+            val appPrefState by appPrefsRepository.appPrefsState.collectAsStateWithLifecycle()
             val navigationRepository = koinInject<NavigationStateRepository>()
             val navigationState by navigationRepository.navigationState.collectAsStateWithLifecycle()
 
-            DisposableEffect (Unit) {
-                val themeJob = coroutineScope.launch {
-                    appPrefRepository.getThemePreference(context).collect {
-                        appPrefRepository.changeTheme(context, it)
-                        WindowCompat.getInsetsController(window, window.decorView)
-                            .isAppearanceLightStatusBars = !it
-                    }
-                }
-                onDispose { themeJob.cancel() }
-            }
-
-            AppTheme(darkTheme = appPrefState.isDarkTheme) {
+            AppTheme(darkTheme = appPrefState.isDarkTheme ?: isSystemInDarkTheme()) {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.systemBars),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
