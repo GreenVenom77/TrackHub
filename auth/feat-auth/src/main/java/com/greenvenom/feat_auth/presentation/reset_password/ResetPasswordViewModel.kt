@@ -1,7 +1,10 @@
 package com.greenvenom.feat_auth.presentation.reset_password
 
 import androidx.lifecycle.viewModelScope
+import com.greenvenom.core_auth.data.dto.request.ResetPasswordRequest
+import com.greenvenom.core_auth.data.dto.request.UpdatePasswordRequest
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
+import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.validation.ValidateInput
@@ -25,17 +28,21 @@ class ResetPasswordViewModel(
                 validateEmail(action.email)
             }
             is ResetPasswordAction.ValidatePassword -> {
-                _resetPasswordState.value = _resetPasswordState.value.copy(
-                    passwordValidity = ValidateInput.validatePassword(action.password)
-                )
+                _resetPasswordState.update {
+                    it.copy(
+                        passwordValidity = ValidateInput.validatePassword(action.password)
+                    )
+                }
             }
             is ResetPasswordAction.ValidatePasswordConfirmation -> {
-                _resetPasswordState.value = _resetPasswordState.value.copy(
-                    confirmPasswordValidity = ValidateInput.validatePasswordConfirmation(
-                        password = action.password,
-                        confirmPassword = action.confirmPassword
+                _resetPasswordState.update {
+                    it.copy(
+                        confirmPasswordValidity = ValidateInput.validatePasswordConfirmation(
+                            password = action.password,
+                            confirmPassword = action.confirmPassword
+                        )
                     )
-                )
+                }
             }
             is ResetPasswordAction.SendResetPasswordEmail -> {
                 emailStateRepository.emailState.value.email?.let {
@@ -63,16 +70,26 @@ class ResetPasswordViewModel(
     }
 
     private fun sendPasswordResetEmail(email: String) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val result = authRepository.sendResetPasswordEmail(email)
-            _resetPasswordState.update { it.copy(emailSentNetworkResult = result) }
+            val result = authRepository.sendResetPasswordEmail(
+                ResetPasswordRequest(email)
+            )
+            _resetPasswordState.update { it.copy(emailSentNetworkResult = result) }.also {
+                baseAction(BaseAction.HideLoading)
+            }
         }
     }
 
     private fun updatePassword(newPassword: String) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val result = authRepository.updatePassword(newPassword)
-            _resetPasswordState.update { it.copy(passwordUpdatedNetworkResult = result) }
+            val result = authRepository.updatePassword(
+                UpdatePasswordRequest(newPassword)
+            )
+            _resetPasswordState.update { it.copy(passwordUpdatedNetworkResult = result) }.also {
+                baseAction(BaseAction.HideLoading)
+            }
         }
     }
 

@@ -1,5 +1,11 @@
 package com.greenvenom.feat_auth.data.remote
 
+import com.greenvenom.core_auth.data.dto.request.LoginRequest
+import com.greenvenom.core_auth.data.dto.request.RegisterRequest
+import com.greenvenom.core_auth.data.dto.request.ResetPasswordRequest
+import com.greenvenom.core_auth.data.dto.request.UpdatePasswordRequest
+import com.greenvenom.core_auth.data.dto.request.VerifyUserRequest
+import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
 import com.greenvenom.core_network.supabase.util.supabaseCall
@@ -16,47 +22,56 @@ class AuthSupabaseDataSource(
     private val supabaseClient: SupabaseClient
 ): AuthRemoteDataSource {
     override suspend fun registerUser(
-        displayName: String,
-        email: String,
-        password: String
+        registerRequest: RegisterRequest
     ): NetworkResult<UserInfo?, NetworkError> {
         return supabaseCall<UserInfo?> {
             supabaseClient.auth.signUpWith(Email) {
-                this.email = email
-                this.password = password
-                this.data = buildJsonObject { put("display_name", displayName) }
-            }
-        }
-    }
-
-    override suspend fun verifyOtp(email: String, otp: String): NetworkResult<Unit, NetworkError> {
-        return supabaseCall {
-            supabaseClient.auth.verifyEmailOtp(OtpType.Email.EMAIL, email, otp)
-        }
-    }
-
-    override suspend fun sendResetPasswordEmail(email: String): NetworkResult<Unit, NetworkError> {
-        return supabaseCall {
-            supabaseClient.auth.resetPasswordForEmail(email = email)
-        }
-    }
-
-    override suspend fun updatePassword(password: String): NetworkResult<UserInfo, NetworkError> {
-        return supabaseCall {
-            supabaseClient.auth.updateUser {
-                this.password = password
+                email = registerRequest.email
+                password = registerRequest.password
+                data = buildJsonObject { put("display_name", registerRequest.displayName) }
             }
         }
     }
 
     override suspend fun loginUser(
-        email: String,
-        password: String
-    ): NetworkResult<Unit, NetworkError> {
+        loginRequest: LoginRequest
+    ): EmptyResult<NetworkError> {
         return supabaseCall {
             supabaseClient.auth.signInWith(Email) {
-                this.email = email
-                this.password = password
+                email = loginRequest.email
+                password = loginRequest.password
+            }
+        }
+    }
+
+    override suspend fun verifyUser(
+        verifyUserRequest: VerifyUserRequest
+    ): EmptyResult<NetworkError> {
+        return supabaseCall {
+            supabaseClient.auth.verifyEmailOtp(
+                type = OtpType.Email.EMAIL,
+                email = verifyUserRequest.email,
+                token = verifyUserRequest.otp
+            )
+        }
+    }
+
+    override suspend fun sendResetPasswordEmail(
+        resetPasswordRequest: ResetPasswordRequest
+    ): EmptyResult<NetworkError> {
+        return supabaseCall {
+            supabaseClient.auth.resetPasswordForEmail(
+                email = resetPasswordRequest.email
+            )
+        }
+    }
+
+    override suspend fun updatePassword(
+        updatePasswordRequest: UpdatePasswordRequest
+    ): NetworkResult<UserInfo, NetworkError> {
+        return supabaseCall {
+            supabaseClient.auth.updateUser {
+                password = updatePasswordRequest.newPassword
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.data.repo
 
+import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
 import com.greenvenom.core_network.data.map
@@ -32,19 +33,19 @@ class HubRepositoryImpl(
         refreshHubsTrigger.tryEmit(Unit)
     }
 
-    override suspend fun addHub(hub: Hub): NetworkResult<Unit, NetworkError> {
+    override suspend fun addHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.addHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.addHub(returnedHub) }
+        remoteResult.onSuccess { returnedHub -> cacheDataSource.addHub(returnedHub.extractHub()) }
         return remoteResult.map {  }
     }
 
-    override suspend fun updateHub(hub: Hub): NetworkResult<Unit, NetworkError> {
+    override suspend fun updateHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.updateHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.updateHub(returnedHub) }
+        remoteResult.onSuccess { returnedHub -> cacheDataSource.updateHub(returnedHub.extractHub()) }
         return remoteResult.map {  }
     }
 
-    override suspend fun deleteHub(hubId: String): NetworkResult<Unit, NetworkError> {
+    override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.deleteHub(hubId)
         remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
         return remoteResult
@@ -77,9 +78,13 @@ class HubRepositoryImpl(
                 .onEach {
                     // Fetch remote data and update cache
                     val remoteHubs = if (isOwned) {
-                        remoteDataSource.getOwnHubs()
+                        remoteDataSource.getOwnHubs().map { hubs ->
+                            hubs.map { it.extractHub() }
+                        }
                     } else {
-                        remoteDataSource.getSharedHubs()
+                        remoteDataSource.getSharedHubs().map { hubs ->
+                            hubs.map { it.extractHub() }
+                        }
                     }
 
                     remoteHubs
@@ -131,7 +136,7 @@ class HubRepositoryImpl(
         }
     }
 
-    override suspend fun addItemToHub(hubItem: HubItem): NetworkResult<Unit, NetworkError> {
+    override suspend fun addItemToHub(hubItem: HubItem): EmptyResult<NetworkError> {
         return remoteDataSource.addItemToHub(hubItem)
     }
 
@@ -140,14 +145,14 @@ class HubRepositoryImpl(
         itemName: String,
         itemStock: Float,
         unit: String
-    ): NetworkResult<Unit, NetworkError> {
+    ): EmptyResult<NetworkError> {
         val updatedItem = currentItems.find { it.id == itemId }
             ?.copy(name = itemName, stockCount = itemStock, unit = unit) as HubItem
 
         return remoteDataSource.updateItem(updatedItem)
     }
 
-    override suspend fun deleteHubItem(hubItemId: Int): NetworkResult<Unit, NetworkError> {
+    override suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError> {
         return remoteDataSource.deleteItem(hubItemId)
     }
 
@@ -169,7 +174,7 @@ class HubRepositoryImpl(
             // Start fetching remote data
             remoteDataSource.getItemsFromHub(hubId)
                 .onEach { remoteItems ->
-                    remoteItems
+                    remoteItems.map { items -> items.map { it.extractHubItem() } }
                         .onSuccess { fetchedItems ->
                             // Compare the new items to the cached items
                             val newItems = fetchedItems.filter { item -> item !in currentItems }

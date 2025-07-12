@@ -13,30 +13,17 @@ data class HubItemDto(
     val imageUrl: String? = null,
     val createdAt: String = "",
     val updatedAt: String? = null
-)
-
-fun HubItem.toHubItemDto(): HubItemDto {
-    return HubItemDto(
-        id = this.id,
-        hubId = this.hubId,
-        name = this.name,
-        stockCount = this.stockCount,
-        unit = this.unit,
-        imageUrl = this.imageUrl,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt
-    )
-}
-
-fun HubItemDto.toHubItem(): HubItem {
-    return HubItem(
-        id = this.id,
-        hubId = this.hubId,
-        name = this.name,
-        stockCount = this.stockCount,
-        unit = this.unit,
-        imageUrl = this.imageUrl,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt
-    )
+) {
+    fun extractHubItem(): HubItem {
+        return HubItem(
+            id = this.id,
+            hubId = this.hubId,
+            name = this.name,
+            stockCount = this.stockCount,
+            unit = this.unit,
+            imageUrl = this.imageUrl,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt
+        )
+    }
 }
