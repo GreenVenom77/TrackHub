@@ -1,5 +1,6 @@
 package com.trackhub.core_hub.domain.models
 
+import com.trackhub.core_hub.data.cache.entities.HubItemEntity
 import com.trackhub.core_hub.data.remote.dto.HubItemDto
 import kotlinx.serialization.Serializable
 
@@ -16,6 +17,19 @@ data class HubItem(
 ) {
     fun toHubItemDto(): HubItemDto {
         return HubItemDto(
+            id = this.id,
+            hubId = this.hubId,
+            name = this.name,
+            stockCount = this.stockCount,
+            unit = this.unit,
+            imageUrl = this.imageUrl,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt
+        )
+    }
+
+    fun toHubItemEntity(): HubItemEntity {
+        return HubItemEntity(
             id = this.id,
             hubId = this.hubId,
             name = this.name,

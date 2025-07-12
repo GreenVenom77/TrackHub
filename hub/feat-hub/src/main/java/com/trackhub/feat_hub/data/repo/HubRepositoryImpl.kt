@@ -35,13 +35,17 @@ class HubRepositoryImpl(
 
     override suspend fun addHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.addHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.addHub(returnedHub.extractHub()) }
+        remoteResult.onSuccess { returnedHub ->
+            cacheDataSource.addHub(returnedHub.extractHub().toHubEntity())
+        }
         return remoteResult.map {  }
     }
 
     override suspend fun updateHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.updateHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.updateHub(returnedHub.extractHub()) }
+        remoteResult.onSuccess { returnedHub ->
+            cacheDataSource.updateHub(returnedHub.extractHub().toHubEntity())
+        }
         return remoteResult.map {  }
     }
 
@@ -103,23 +107,31 @@ class HubRepositoryImpl(
                                 if (isOwned) {
                                     // Remove deleted hubs from cache
                                     if (deletedHubs.isNotEmpty()) {
-                                        cacheDataSource.deleteHubs(deletedHubs)
+                                        cacheDataSource.deleteHubs(
+                                            deletedHubs.map { it.toHubEntity() }
+                                        )
                                         ownedHubs.removeAll(deletedHubs.toSet())
                                     }
                                     // Add new hubs to cache
                                     if (newHubs.isNotEmpty()) {
-                                        cacheDataSource.updateOwnHubs(newHubs)
+                                        cacheDataSource.updateOwnHubs(
+                                            newHubs.map { it.toHubEntity() }
+                                        )
                                         ownedHubs.addAll(newHubs)
                                     }
                                 } else {
                                     // Remove deleted hubs from cache
                                     if (deletedHubs.isNotEmpty()) {
-                                        cacheDataSource.deleteHubs(deletedHubs)
+                                        cacheDataSource.deleteHubs(
+                                            deletedHubs.map { it.toHubEntity() }
+                                        )
                                         sharedHubs.removeAll(deletedHubs.toSet())
                                     }
                                     // Add new hubs to cache
                                     if (newHubs.isNotEmpty()) {
-                                        cacheDataSource.updateSharedHubs(newHubs)
+                                        cacheDataSource.updateSharedHubs(
+                                            newHubs.map { it.toHubEntity() }
+                                        )
                                         sharedHubs.addAll(newHubs)
                                     }
                                 }
@@ -183,11 +195,15 @@ class HubRepositoryImpl(
                             }
 
                             if (newItems.isNotEmpty()) {
-                                cacheDataSource.updateHubItems(newItems)
+                                cacheDataSource.updateHubItems(
+                                    newItems.map { it.toHubItemEntity() }
+                                )
                             }
 
                             if (deletedItems.isNotEmpty()) {
-                                cacheDataSource.deleteItems(deletedItems)
+                                cacheDataSource.deleteItems(
+                                    deletedItems.map { it.toHubItemEntity() }
+                                )
                                 currentItems.removeAll(deletedItems.toSet())
                             }
                         }

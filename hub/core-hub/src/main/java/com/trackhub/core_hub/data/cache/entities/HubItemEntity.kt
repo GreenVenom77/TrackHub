@@ -40,30 +40,17 @@ data class HubItemEntity(
     val createdAt: String = "",
     @ColumnInfo(name = "updated_at")
     val updatedAt: String? = null
-)
-
-fun HubItem.toHubItemEntity(): HubItemEntity {
-    return HubItemEntity(
-        id = this.id,
-        hubId = this.hubId,
-        name = this.name,
-        stockCount = this.stockCount,
-        unit = this.unit,
-        imageUrl = this.imageUrl,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt
-    )
-}
-
-fun HubItemEntity.toHubItem(): HubItem {
-    return HubItem(
-        id = this.id,
-        hubId = this.hubId,
-        name = this.name,
-        stockCount = this.stockCount,
-        unit = this.unit,
-        imageUrl = this.imageUrl,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt
-    )
+) {
+    fun extractHubItem(): HubItem {
+        return HubItem(
+            id = this.id,
+            hubId = this.hubId,
+            name = this.name,
+            stockCount = this.stockCount,
+            unit = this.unit,
+            imageUrl = this.imageUrl,
+            createdAt = this.createdAt,
+            updatedAt = this.updatedAt
+        )
+    }
 }
