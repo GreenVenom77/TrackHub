@@ -16,6 +16,8 @@ interface HubRepository {
 
     suspend fun deleteHub(hubId: String): EmptyResult<NetworkError>
 
+    suspend fun getHub(hubId: String): Hub
+
     fun getHubs(isOwned: Boolean = true): Flow<NetworkResult<List<Hub>, NetworkError>>
 
     suspend fun addItemToHub(hubItem: HubItem): EmptyResult<NetworkError>

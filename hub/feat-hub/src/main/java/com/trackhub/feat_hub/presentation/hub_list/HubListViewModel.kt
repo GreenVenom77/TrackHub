@@ -15,12 +15,11 @@ class HubListViewModel(
     private val hubRepository: HubRepository
 ): BaseViewModel() {
     private val _hubListState: MutableStateFlow<HubListState> = MutableStateFlow(HubListState())
-    val hubListState = _hubListState
-        .stateIn(
-            viewModelScope,
-            SharingStarted.Lazily,
-            HubListState()
-        )
+    val hubListState = _hubListState.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(3000),
+        HubListState()
+    )
 
     private var ownedHubsJob: Job? = null
     private var sharedHubsJob: Job?  = null

@@ -19,6 +19,8 @@ interface HubCacheDataSource {
 
     suspend fun updateSharedHubs(hubs: List<HubEntity>)
 
+    suspend fun getHub(hubId: String): HubEntity
+
     fun getOwnHubs(): Flow<List<Hub>>
 
     fun getSharedHubs(): Flow<List<Hub>>

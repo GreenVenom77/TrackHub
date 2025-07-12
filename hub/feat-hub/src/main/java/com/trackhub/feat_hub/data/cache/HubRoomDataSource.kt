@@ -37,6 +37,10 @@ class HubRoomDataSource(
         hubDao.updateSharedHubs(hubs)
     }
 
+    override suspend fun getHub(hubId: String): HubEntity {
+        return hubDao.getHub(hubId)
+    }
+
     override fun getOwnHubs(): Flow<List<Hub>> {
         return hubDao.getOwnHubs().map { it.map { hubEntity -> hubEntity.extractHub() } }
     }

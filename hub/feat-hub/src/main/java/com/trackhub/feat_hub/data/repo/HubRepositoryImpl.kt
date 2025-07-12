@@ -8,9 +8,9 @@ import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.HubItem
-import com.trackhub.feat_hub.domain.repo.HubRepository
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
 import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
+import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -53,6 +53,10 @@ class HubRepositoryImpl(
         val remoteResult = remoteDataSource.deleteHub(hubId)
         remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
         return remoteResult
+    }
+
+    override suspend fun getHub(hubId: String): Hub {
+        return cacheDataSource.getHub(hubId).extractHub()
     }
 
     override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
