@@ -2,6 +2,8 @@ package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.greenvenom.core_network.data.map
+import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.trackhub.core_hub.domain.models.Hub
@@ -171,21 +173,32 @@ class HubDetailsViewModel(
 
     private fun getHubItems(hubId: String): Job {
         baseAction(BaseAction.ShowLoading)
-        return viewModelScope.launch {
-           val fetchedHub = withContext(Dispatchers.IO) {
-                hubRepository.getHub(hubId)
-           }
-            _hubDetailsState.update {
-                it.copy(
-                    hub = fetchedHub
-                )
+        return viewModelScope.launch(Dispatchers.IO) {
+           val fetchedHub = hubRepository.getHub(hubId)
+
+            withContext(Dispatchers.Main) {
+                _hubDetailsState.update {
+                    it.copy(
+                        hub = fetchedHub
+                    )
+                }
             }.also {
                 baseAction(BaseAction.HideLoading)
                 hubRepository.getItemsFromHub(fetchedHub.id).collect { itemsResult ->
-                    _hubDetailsState.update {
-                        it.copy(
-                            hubItemsResult = itemsResult
-                        )
+                    withContext(Dispatchers.Main) {
+                        itemsResult.onSuccess { items ->
+                            _hubDetailsState.update {
+                                it.copy(
+                                    hubItems = items
+                                )
+                            }
+                        }
+
+                        _hubDetailsState.update {
+                            it.copy(
+                                hubItemsResult = itemsResult.map {  }
+                            )
+                        }
                     }
                 }
             }

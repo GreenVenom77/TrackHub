@@ -59,6 +59,7 @@ class HubListViewModel(
     }
 
     private fun getHubs(isOwned: Boolean): Job {
+        baseAction(BaseAction.ShowLoading)
         return viewModelScope.launch(Dispatchers.IO) {
             hubRepository.getHubs(isOwned = isOwned).collect { hubsResult ->
                 withContext(Dispatchers.Main) {
@@ -74,6 +75,7 @@ class HubListViewModel(
                             fetchingHubsResult = hubsResult.map {},
                         )
                     }
+                    baseAction(BaseAction.HideLoading)
                 }
             }
         }

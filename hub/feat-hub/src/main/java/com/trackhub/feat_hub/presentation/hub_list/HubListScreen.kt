@@ -74,11 +74,7 @@ private fun HubListContent(
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
 
     hubListState.fetchingHubsResult
-        ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
-        }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 stringResource(error.messageId)
             ))

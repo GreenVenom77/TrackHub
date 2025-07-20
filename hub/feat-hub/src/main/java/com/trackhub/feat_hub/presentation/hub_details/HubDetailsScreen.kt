@@ -50,7 +50,7 @@ fun HubDetailsScreen(
         HubDetailsContent(
             hubDetailsState = hubDetailsState,
             hubDetailsAction = {
-                when (it) {
+                when(it) {
                     is HubDetailsAction.NavigateBack -> navigateBack()
                 }
                 viewModel.hubDetailsAction(it)
@@ -68,13 +68,11 @@ private fun HubDetailsContent(
     baseAction: (BaseAction) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hubItemsResult = hubDetailsState.hubItemsResult
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemSheetState by rememberSaveable { mutableStateOf(false) }
 
-    hubItemsResult
-        ?.onSuccess {  }
+    hubDetailsState.hubItemsResult
         ?.onError { error ->
             baseAction(BaseAction.ShowErrorMessage(
                 stringResource(error.messageId)
@@ -189,7 +187,7 @@ private fun HubDetailsContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            hubItemsResult?.onSuccess { hubItems ->
+            hubDetailsState.hubItems.takeIf { it.isNotEmpty() }?.let { hubItems ->
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(
                         items = hubItems,
