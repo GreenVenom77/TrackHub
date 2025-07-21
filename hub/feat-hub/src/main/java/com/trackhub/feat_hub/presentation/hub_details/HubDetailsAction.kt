@@ -21,8 +21,6 @@ interface HubDetailsAction {
     ): HubDetailsAction
     data class DeleteItem(val itemId: Int): HubDetailsAction
     data class UpdateCurrentItem(val hubItem: HubItem?): HubDetailsAction
-    data class StartCollectingHubItems(val hubId: String): HubDetailsAction
-    data object StopCollectingHubItems: HubDetailsAction
-    data object ClearState: HubDetailsAction
     data object ClearNetworkOperations: HubDetailsAction
+    data object NavigateBack: HubDetailsAction
 }

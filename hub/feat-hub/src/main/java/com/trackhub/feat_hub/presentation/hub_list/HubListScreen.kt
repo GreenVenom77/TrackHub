@@ -10,7 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,28 +32,24 @@ import com.trackhub.feat_hub.presentation.models.toHubUI
 
 @Composable
 fun HubListScreen(
-    showOwnedHubs: Boolean,
+    areHubsOwned: Boolean,
     navigateToHubDetails: (String) -> Unit,
     navigateBack: () -> Unit,
 ) {
     BaseScreen<HubListViewModel>(
-        enableCustomBack = !showOwnedHubs,
+        enableCustomBack = !areHubsOwned,
         onPhysicalBack = {
             navigateBack()
         }
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
 
-        DisposableEffect(Unit) {
-            viewModel.hubListAction(HubListAction.StartCollectingHubs(showOwnedHubs))
-
-            onDispose {
-                viewModel.hubListAction(HubListAction.StopCollectingHubs(showOwnedHubs))
-            }
+        LaunchedEffect(Unit) {
+            viewModel.hubListAction(HubListAction.StartCollectingHubs(areHubsOwned))
         }
 
         HubListContent(
-            showOwnedHubs = showOwnedHubs,
+            areHubsOwned = areHubsOwned,
             hubListState = hubListState,
             hubListAction = { action ->
                 when (action) {
@@ -69,21 +65,16 @@ fun HubListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HubListContent(
-    showOwnedHubs: Boolean,
+    areHubsOwned: Boolean,
     hubListState: HubListState,
     hubListAction: (HubListAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hubsResult = if (showOwnedHubs) hubListState.ownedHubsResult else hubListState.sharedHubsResult
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
 
-    hubsResult
-        ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
-        }
+    hubListState.fetchingHubsResult
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 stringResource(error.messageId)
             ))
@@ -91,12 +82,10 @@ private fun HubListContent(
 
     hubListState.addHubResult
         ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
             hubListAction(HubListAction.ClearNetworkOperations)
             hubSheetState = false
         }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
@@ -113,7 +102,7 @@ private fun HubListContent(
         },
         floatingActionButton = {
             FloatingButton(
-                isVisible = showOwnedHubs,
+                isVisible = areHubsOwned,
                 onClick = { hubSheetState = true },
                 modifier = Modifier
                     .size(64.dp)
@@ -126,7 +115,7 @@ private fun HubListContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            hubsResult?.onSuccess { hubs ->
+            hubListState.hubs.takeIf { it.isNotEmpty() }?.let { hubs ->
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(
                         items = hubs,
@@ -154,7 +143,6 @@ private fun HubListContent(
                     },
                     isEdit = false,
                     onAdd = { hubName, hubDescription ->
-                        baseAction(BaseAction.ShowLoading)
                         hubListAction(HubListAction.AddHub(hubName, hubDescription))
                     }
                 )
@@ -167,7 +155,7 @@ private fun HubListContent(
 @Composable
 private fun HubListPreview() {
     HubListContent(
-        showOwnedHubs = true,
+        areHubsOwned = true,
         hubListState = HubListState(),
         hubListAction = {  },
         baseAction = {  },

@@ -97,11 +97,9 @@ private fun OtpContent(
 ) {
     state.otpNetworkResult
         ?.onSuccess {
-            baseActions(BaseAction.HideLoading)
             navigateToNextScreen()
         }
         ?.onError {
-            baseActions(BaseAction.HideLoading)
             baseActions(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(it.messageId)
             ))

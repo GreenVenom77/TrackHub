@@ -66,7 +66,7 @@ private fun LoginContent(
     baseActions: (BaseAction) -> Unit,
     navigateToRegisterScreen: () -> Unit,
     navigateToEmailVerificationScreen: () -> Unit,
-    navigateToNextScreen: ()-> Unit,
+    navigateToNextScreen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var email by rememberSaveable { mutableStateOf("") }
@@ -74,11 +74,9 @@ private fun LoginContent(
 
     state.loginNetworkResult
         ?.onSuccess {
-            baseActions(BaseAction.HideLoading)
             navigateToNextScreen()
         }
         ?.onError {
-            baseActions(BaseAction.HideLoading)
             baseActions(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(it.messageId)
             ))
@@ -162,10 +160,10 @@ private fun LoginContent(
             CustomButton(
                 text = stringResource(R.string.log_in),
                 onClick = {
-                    baseActions(BaseAction.ShowLoading)
                     loginActions(LoginAction.Login(email, password))
                 },
-                enabled = state.emailValidity is ValidationResult.Success && state.passwordValidity is ValidationResult.Success
+                enabled = state.emailValidity is ValidationResult.Success
+                        && state.passwordValidity is ValidationResult.Success
             )
         }
     }

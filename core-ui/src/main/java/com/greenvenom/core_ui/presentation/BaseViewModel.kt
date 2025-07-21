@@ -21,10 +21,12 @@ abstract class BaseViewModel: ViewModel() {
     }
 
     fun showLoading() {
+        if (baseState.value.isLoading) return
         baseState.update { it.copy(isLoading = true) }
     }
 
     fun hideLoading() {
+        if (!baseState.value.isLoading) return
         baseState.update { it.copy(isLoading = false) }
     }
 
@@ -38,6 +40,7 @@ abstract class BaseViewModel: ViewModel() {
     }
 
     fun hideErrorMessage() {
+        if (baseState.value.errorMessage.isEmpty()) return
         baseState.value.onDismiss?.invoke()
         baseState.update {
             it.copy(

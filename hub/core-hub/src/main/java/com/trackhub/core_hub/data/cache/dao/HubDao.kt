@@ -30,6 +30,9 @@ interface HubDao {
     @Upsert
     suspend fun updateSharedHubs(hubs: List<HubEntity>)
 
+    @Query("SELECT * FROM hubs WHERE id = :hubId")
+    suspend fun getHub(hubId: String): HubEntity
+
     @Query("SELECT * FROM hubs WHERE is_owned = 1")
     fun getOwnHubs(): Flow<List<HubEntity>>
 

@@ -10,24 +10,14 @@ data class HubDto(
     val name: String,
     val description: String? = null,
     val createdAt: String = "",
-)
-
-fun Hub.toHubDto(): HubDto {
-    return HubDto(
-        id = this.id,
-        userId = this.userId,
-        name = this.name,
-        description = this.description,
-        createdAt = this.createdAt,
-    )
-}
-
-fun HubDto.toHub(): Hub {
-    return Hub(
-        id = this.id,
-        userId = this.userId,
-        name = this.name,
-        description = this.description,
-        createdAt = this.createdAt,
-    )
+) {
+    fun extractHub(): Hub {
+        return Hub(
+            id = this.id,
+            userId = this.userId,
+            name = this.name,
+            description = this.description,
+            createdAt = this.createdAt
+        )
+    }
 }

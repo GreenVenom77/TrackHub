@@ -75,11 +75,9 @@ private fun VerifyEmailContent(
 
     resetPasswordState.emailSentNetworkResult
         ?.onSuccess {
-            baseActions(BaseAction.HideLoading)
             navigateToOtpScreen()
         }
         ?.onError {
-            baseActions(BaseAction.HideLoading)
             baseActions(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(it.messageId)
             ))
@@ -124,7 +122,6 @@ private fun VerifyEmailContent(
                 text = stringResource(R.string.next),
                 enabled = emailState.emailValidity is ValidationResult.Success,
                 onClick = {
-                    baseActions(BaseAction.ShowLoading)
                     resetPasswordActions(ResetPasswordAction.SendResetPasswordEmail(email))
                 }
             )

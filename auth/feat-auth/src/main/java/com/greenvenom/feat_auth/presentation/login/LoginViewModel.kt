@@ -1,6 +1,8 @@
 package com.greenvenom.feat_auth.presentation.login
 
 import androidx.lifecycle.viewModelScope
+import com.greenvenom.core_auth.data.dto.request.LoginRequest
+import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.validation.ValidateInput
@@ -18,14 +20,18 @@ class LoginViewModel(
     fun loginAction(action: LoginAction) {
         when(action) {
             is LoginAction.ValidateEmail -> {
-                _loginState.value = _loginState.value.copy(
-                    emailValidity = ValidateInput.validateEmail(action.email)
-                )
+                _loginState.update {
+                    it.copy(
+                        emailValidity = ValidateInput.validateEmail(action.email)
+                    )
+                }
             }
             is LoginAction.ValidatePassword -> {
-                _loginState.value = _loginState.value.copy(
-                    passwordValidity = ValidateInput.validateLoginPassword(action.password)
-                )
+                _loginState.update {
+                    it.copy(
+                        passwordValidity = ValidateInput.validateLoginPassword(action.password)
+                    )
+                }
             }
             is LoginAction.Login -> loginUser(
                 email = action.email,
@@ -40,9 +46,14 @@ class LoginViewModel(
         email: String,
         password: String,
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val result = authRepository.loginUser(email, password)
-            _loginState.update { it.copy(loginNetworkResult = result) }
+            val result = authRepository.loginUser(
+                LoginRequest(email, password)
+            )
+            _loginState.update { it.copy(loginNetworkResult = result) }.also {
+                baseAction(BaseAction.HideLoading)
+            }
         }
     }
 

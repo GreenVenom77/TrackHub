@@ -12,7 +12,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,21 +47,15 @@ fun HubDetailsScreen(
     ) { viewModel ->
         val hubDetailsState by viewModel.hubDetailsState.collectAsStateWithLifecycle()
 
-        DisposableEffect(Unit) {
-            viewModel.hubDetailsAction(HubDetailsAction.StartCollectingHubItems(hubId))
-
-            onDispose {
-                viewModel.hubDetailsAction(HubDetailsAction.StopCollectingHubItems)
-                viewModel.hubDetailsAction(HubDetailsAction.ClearState)
-            }
-        }
-
         HubDetailsContent(
             hubDetailsState = hubDetailsState,
-            hubDetailsAction = viewModel::hubDetailsAction,
-            baseAction = viewModel::baseAction,
-            navigateBack = navigateBack,
-            
+            hubDetailsAction = {
+                when(it) {
+                    is HubDetailsAction.NavigateBack -> navigateBack()
+                }
+                viewModel.hubDetailsAction(it)
+            },
+            baseAction = viewModel::baseAction
         )
     }
 }
@@ -72,19 +65,15 @@ fun HubDetailsScreen(
 private fun HubDetailsContent(
     hubDetailsState: HubDetailsState,
     hubDetailsAction: (HubDetailsAction) -> Unit,
-    baseAction: (BaseAction) -> Unit,
-    navigateBack: () -> Unit,
+    baseAction: (BaseAction) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val hubItemsResult = hubDetailsState.hubItemsResult
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemSheetState by rememberSaveable { mutableStateOf(false) }
 
-    hubItemsResult
-        ?.onSuccess { baseAction(BaseAction.HideLoading) }
+    hubDetailsState.hubItemsResult
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 stringResource(error.messageId)
             ))
@@ -92,14 +81,12 @@ private fun HubDetailsContent(
 
     hubDetailsState.operationResult
         ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
             itemSheetState = false
             isItemEdit = false
         }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
@@ -110,13 +97,11 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubUpdateResult
         ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
             hubSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            navigateBack()
+            hubDetailsAction(HubDetailsAction.NavigateBack)
         }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(
                 BaseAction.ShowErrorMessage(
                     errorMessage = stringResource(error.messageId),
@@ -128,13 +113,11 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubDeletionResult
         ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
             hubSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            navigateBack()
+            hubDetailsAction(HubDetailsAction.NavigateBack)
         }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
@@ -145,14 +128,12 @@ private fun HubDetailsContent(
 
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
-            baseAction(BaseAction.HideLoading)
             itemSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
             isItemEdit = false
         }
         ?.onError { error ->
-            baseAction(BaseAction.HideLoading)
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
@@ -167,7 +148,7 @@ private fun HubDetailsContent(
                 isVisible = true,
                 isSideDestination = true,
                 title = hubDetailsState.hub?.name ?: stringResource(R.string.unknown_hub),
-                navigateBack = { navigateBack() },
+                navigateBack = { hubDetailsAction(HubDetailsAction.NavigateBack) },
                 isActionEnabled = true,
                 action = {
                     IconButton(
@@ -206,7 +187,7 @@ private fun HubDetailsContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            hubItemsResult?.onSuccess { hubItems ->
+            hubDetailsState.hubItems.takeIf { it.isNotEmpty() }?.let { hubItems ->
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(
                         items = hubItems,
@@ -234,11 +215,9 @@ private fun HubDetailsContent(
                         onDismiss = { hubSheetState = false },
                         isEdit = true,
                         onEdit = { hubName, hubDescription ->
-                            baseAction(BaseAction.ShowLoading)
                             hubDetailsAction(HubDetailsAction.UpdateHub(hubName, hubDescription))
                         },
                         onDelete = { hubId ->
-                            baseAction(BaseAction.ShowLoading)
                             hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
                         }
                     )
@@ -256,7 +235,6 @@ private fun HubDetailsContent(
                         hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
                     },
                     onAdd = { itemName, itemStock, unit ->
-                        baseAction(BaseAction.ShowLoading)
                         hubDetailsAction(
                             HubDetailsAction.AddItem(
                                 itemName, itemStock.toFloat(), unit
@@ -264,7 +242,6 @@ private fun HubDetailsContent(
                         )
                     },
                     onEdit = { itemId, itemName, itemStock, unit ->
-                        baseAction(BaseAction.ShowLoading)
                         hubDetailsAction(
                             HubDetailsAction.UpdateItem(
                                 itemId, itemName, itemStock.toFloat(), unit
@@ -272,7 +249,6 @@ private fun HubDetailsContent(
                         )
                     },
                     onDelete = { itemId ->
-                        baseAction(BaseAction.ShowLoading)
                         hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
                     }
                 )
@@ -287,7 +263,6 @@ private fun HubDetailsContentPreview() {
     HubDetailsContent(
         hubDetailsState = HubDetailsState(),
         hubDetailsAction = {  },
-        baseAction = {  },
-        navigateBack = {  }
+        baseAction = {  }
     )
 }
