@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.data.repo
 
+import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
 import com.greenvenom.core_network.data.map
@@ -7,9 +8,9 @@ import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.HubItem
-import com.trackhub.feat_hub.domain.repo.HubRepository
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
 import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
+import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -32,22 +33,30 @@ class HubRepositoryImpl(
         refreshHubsTrigger.tryEmit(Unit)
     }
 
-    override suspend fun addHub(hub: Hub): NetworkResult<Unit, NetworkError> {
+    override suspend fun addHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.addHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.addHub(returnedHub) }
+        remoteResult.onSuccess { returnedHub ->
+            cacheDataSource.addHub(returnedHub.extractHub().toHubEntity())
+        }
         return remoteResult.map {  }
     }
 
-    override suspend fun updateHub(hub: Hub): NetworkResult<Unit, NetworkError> {
+    override suspend fun updateHub(hub: Hub): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.updateHub(hub)
-        remoteResult.onSuccess { returnedHub -> cacheDataSource.updateHub(returnedHub) }
+        remoteResult.onSuccess { returnedHub ->
+            cacheDataSource.updateHub(returnedHub.extractHub().toHubEntity())
+        }
         return remoteResult.map {  }
     }
 
-    override suspend fun deleteHub(hubId: String): NetworkResult<Unit, NetworkError> {
+    override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.deleteHub(hubId)
         remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
         return remoteResult
+    }
+
+    override suspend fun getHub(hubId: String): Hub {
+        return cacheDataSource.getHub(hubId).extractHub()
     }
 
     override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
@@ -77,9 +86,13 @@ class HubRepositoryImpl(
                 .onEach {
                     // Fetch remote data and update cache
                     val remoteHubs = if (isOwned) {
-                        remoteDataSource.getOwnHubs()
+                        remoteDataSource.getOwnHubs().map { hubs ->
+                            hubs.map { it.extractHub() }
+                        }
                     } else {
-                        remoteDataSource.getSharedHubs()
+                        remoteDataSource.getSharedHubs().map { hubs ->
+                            hubs.map { it.extractHub() }
+                        }
                     }
 
                     remoteHubs
@@ -98,23 +111,31 @@ class HubRepositoryImpl(
                                 if (isOwned) {
                                     // Remove deleted hubs from cache
                                     if (deletedHubs.isNotEmpty()) {
-                                        cacheDataSource.deleteHubs(deletedHubs)
+                                        cacheDataSource.deleteHubs(
+                                            deletedHubs.map { it.toHubEntity() }
+                                        )
                                         ownedHubs.removeAll(deletedHubs.toSet())
                                     }
                                     // Add new hubs to cache
                                     if (newHubs.isNotEmpty()) {
-                                        cacheDataSource.updateOwnHubs(newHubs)
+                                        cacheDataSource.updateOwnHubs(
+                                            newHubs.map { it.toHubEntity() }
+                                        )
                                         ownedHubs.addAll(newHubs)
                                     }
                                 } else {
                                     // Remove deleted hubs from cache
                                     if (deletedHubs.isNotEmpty()) {
-                                        cacheDataSource.deleteHubs(deletedHubs)
+                                        cacheDataSource.deleteHubs(
+                                            deletedHubs.map { it.toHubEntity() }
+                                        )
                                         sharedHubs.removeAll(deletedHubs.toSet())
                                     }
                                     // Add new hubs to cache
                                     if (newHubs.isNotEmpty()) {
-                                        cacheDataSource.updateSharedHubs(newHubs)
+                                        cacheDataSource.updateSharedHubs(
+                                            newHubs.map { it.toHubEntity() }
+                                        )
                                         sharedHubs.addAll(newHubs)
                                     }
                                 }
@@ -131,7 +152,7 @@ class HubRepositoryImpl(
         }
     }
 
-    override suspend fun addItemToHub(hubItem: HubItem): NetworkResult<Unit, NetworkError> {
+    override suspend fun addItemToHub(hubItem: HubItem): EmptyResult<NetworkError> {
         return remoteDataSource.addItemToHub(hubItem)
     }
 
@@ -140,14 +161,14 @@ class HubRepositoryImpl(
         itemName: String,
         itemStock: Float,
         unit: String
-    ): NetworkResult<Unit, NetworkError> {
+    ): EmptyResult<NetworkError> {
         val updatedItem = currentItems.find { it.id == itemId }
             ?.copy(name = itemName, stockCount = itemStock, unit = unit) as HubItem
 
         return remoteDataSource.updateItem(updatedItem)
     }
 
-    override suspend fun deleteHubItem(hubItemId: Int): NetworkResult<Unit, NetworkError> {
+    override suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError> {
         return remoteDataSource.deleteItem(hubItemId)
     }
 
@@ -169,7 +190,7 @@ class HubRepositoryImpl(
             // Start fetching remote data
             remoteDataSource.getItemsFromHub(hubId)
                 .onEach { remoteItems ->
-                    remoteItems
+                    remoteItems.map { items -> items.map { it.extractHubItem() } }
                         .onSuccess { fetchedItems ->
                             // Compare the new items to the cached items
                             val newItems = fetchedItems.filter { item -> item !in currentItems }
@@ -178,11 +199,15 @@ class HubRepositoryImpl(
                             }
 
                             if (newItems.isNotEmpty()) {
-                                cacheDataSource.updateHubItems(newItems)
+                                cacheDataSource.updateHubItems(
+                                    newItems.map { it.toHubItemEntity() }
+                                )
                             }
 
                             if (deletedItems.isNotEmpty()) {
-                                cacheDataSource.deleteItems(deletedItems)
+                                cacheDataSource.deleteItems(
+                                    deletedItems.map { it.toHubItemEntity() }
+                                )
                                 currentItems.removeAll(deletedItems.toSet())
                             }
                         }

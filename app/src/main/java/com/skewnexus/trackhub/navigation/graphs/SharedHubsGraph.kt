@@ -14,7 +14,7 @@ fun NavGraphBuilder.sharedHubsGraph(
     navigation<SubGraph.SharedHubs>(startDestination = Screen.SharedHubs) {
         composable<Screen.SharedHubs> {
             HubListScreen(
-                showOwnedHubs = false,
+                areHubsOwned = false,
                 navigateToHubDetails = { hubId ->
                     navigate(
                         NavigationType.Standard(Screen.MyHubDetails(hubId))

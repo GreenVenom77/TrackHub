@@ -16,7 +16,7 @@ fun NavGraphBuilder.ownedHubsGraph(
     navigation<SubGraph.OwnedHubs>(startDestination = Screen.MyHubs) {
         composable<Screen.MyHubs> {
             HubListScreen(
-                showOwnedHubs = true,
+                areHubsOwned = true,
                 navigateToHubDetails = { hubId ->
                     navigate(
                         NavigationType.Standard(Screen.MyHubDetails(hubId))

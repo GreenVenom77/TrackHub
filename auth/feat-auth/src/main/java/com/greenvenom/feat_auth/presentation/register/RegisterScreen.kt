@@ -70,11 +70,9 @@ private fun RegisterContent(
 
     state.registrationNetworkResult
         ?.onSuccess {
-            baseActions(BaseAction.HideLoading)
             navigateToAccountVerificationScreen()
         }
         ?.onError {
-            baseActions(BaseAction.HideLoading)
             baseActions(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(it.messageId)
             ))
@@ -192,7 +190,6 @@ private fun RegisterContent(
                             password,
                         )
                     )
-                    baseActions(BaseAction.ShowLoading)
                 },
                 enabled = state.usernameValidity is ValidationResult.Success &&
                         state.emailValidity is ValidationResult.Success &&

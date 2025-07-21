@@ -71,11 +71,9 @@ private fun NewPasswordContent(
 
     state.passwordUpdatedNetworkResult
         ?.onSuccess {
-            baseActions(BaseAction.HideLoading)
             navigateToLoginScreen()
         }
         ?.onError {
-            baseActions(BaseAction.HideLoading)
             baseActions(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(it.messageId)
             ))
@@ -149,7 +147,6 @@ private fun NewPasswordContent(
                 enabled = state.passwordValidity is ValidationResult.Success
                         && state.confirmPasswordValidity is ValidationResult.Success,
                 onClick = {
-                    baseActions(BaseAction.ShowLoading)
                     resetPasswordActions(ResetPasswordAction.UpdatePassword(password))
                 }
             )

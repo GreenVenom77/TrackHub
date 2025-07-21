@@ -7,4 +7,10 @@
     <string name="arabic">العربية</string>
     <string name="english">الإنجليزية</string>
     <string name="back_button">الرجوع للخلف</string>
+    <string name="select_items">اختر من القائمة</string>
+    <string name="select_an_item">اختر من القائمة</string>
+    <string name="cancel">إغلاق</string>
+    <string name="ok">تأكيد</string>
+    <string name="search">ابحث...</string>
+    <string name="selected_items">العناصر المحددة: %1$d</string>
 </resources>

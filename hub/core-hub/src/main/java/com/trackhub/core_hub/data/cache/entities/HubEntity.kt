@@ -20,25 +20,14 @@ data class HubEntity(
     val isOwned: Boolean = true,
     @ColumnInfo(name = "created_at")
     val createdAt: String = "",
-)
-
-fun Hub.toHubEntity(isOwned: Boolean = true): HubEntity {
-    return HubEntity(
-        id = this.id,
-        userId = this.userId,
-        name = this.name,
-        description = this.description,
-        isOwned = isOwned,
-        createdAt = this.createdAt,
-    )
-}
-
-fun HubEntity.toHub(): Hub {
-    return Hub(
-        id = this.id,
-        userId = this.userId,
-        name = this.name,
-        description = this.description,
-        createdAt = this.createdAt,
-    )
+) {
+    fun extractHub(): Hub {
+        return Hub(
+            id = this.id,
+            userId = this.userId,
+            name = this.name,
+            description = this.description,
+            createdAt = this.createdAt,
+        )
+    }
 }
