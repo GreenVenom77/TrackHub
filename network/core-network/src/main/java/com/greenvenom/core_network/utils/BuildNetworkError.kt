@@ -25,12 +25,11 @@ fun buildNetworkError(
     val customMessageStatusCodes = listOf(400, 401, 403, 409, 422)
 
     val shouldCheckCustomMessage = statusErrorCode in customMessageStatusCodes &&
-            message != null &&
-            message.isNotBlank() &&
+            !message.isNullOrBlank() &&
             message.trim().isNotEmpty()
 
     val messageId = if (shouldCheckCustomMessage) {
-        getCustomMessageId(errorType, message.trim())
+        getCustomMessageId(errorType, message?.trim() ?: "")
     } else {
         errorType.getDefaultMessageId()
     }
@@ -47,6 +46,7 @@ private fun getCustomMessageId(errorType: ErrorType, message: String): Int {
     return when (errorType) {
         ErrorType.BAD_REQUEST -> {
             when {
+                lowerMessage.contains("invalid") && (lowerMessage.contains("credentials") || lowerMessage.contains("login")) -> R.string.error_invalid_credentials
                 lowerMessage.contains("email") && lowerMessage.contains("format") -> R.string.error_invalid_email_format
                 lowerMessage.contains("password") && (lowerMessage.contains("short") || lowerMessage.contains("8")) -> R.string.error_password_too_short
                 else -> R.string.error_bad_request

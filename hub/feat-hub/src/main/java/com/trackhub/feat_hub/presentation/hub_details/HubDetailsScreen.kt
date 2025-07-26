@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,9 +24,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.FloatingButton
-import com.greenvenom.core_ui.components.TopAppBar
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
+import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
@@ -74,9 +73,11 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubItemsResult
         ?.onError { error ->
-            baseAction(BaseAction.ShowErrorMessage(
-                stringResource(error.messageId)
-            ))
+            baseAction(
+                BaseAction.ShowErrorMessage(
+                    stringResource(error.messageId)
+                )
+            )
         }
 
     hubDetailsState.operationResult
@@ -87,7 +88,8 @@ private fun HubDetailsContent(
             isItemEdit = false
         }
         ?.onError { error ->
-            baseAction(BaseAction.ShowErrorMessage(
+            baseAction(
+                BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
@@ -105,10 +107,10 @@ private fun HubDetailsContent(
             baseAction(
                 BaseAction.ShowErrorMessage(
                     errorMessage = stringResource(error.messageId),
-                dismissAction = {
-                    hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                }
-            ))
+                    dismissAction = {
+                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                    }
+                ))
         }
 
     hubDetailsState.hubDeletionResult
@@ -118,7 +120,8 @@ private fun HubDetailsContent(
             hubDetailsAction(HubDetailsAction.NavigateBack)
         }
         ?.onError { error ->
-            baseAction(BaseAction.ShowErrorMessage(
+            baseAction(
+                BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
@@ -134,7 +137,8 @@ private fun HubDetailsContent(
             isItemEdit = false
         }
         ?.onError { error ->
-            baseAction(BaseAction.ShowErrorMessage(
+            baseAction(
+                BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
@@ -142,31 +146,24 @@ private fun HubDetailsContent(
             ))
         }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                isVisible = true,
-                isSideDestination = true,
-                title = hubDetailsState.hub?.name ?: stringResource(R.string.unknown_hub),
-                navigateBack = { hubDetailsAction(HubDetailsAction.NavigateBack) },
-                isActionEnabled = true,
-                action = {
-                    IconButton(
-                        onClick = {
-                            hubSheetState = true
-                        },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .padding(8.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.edit_ic),
-                            contentDescription = stringResource(R.string.edit_hub_Details),
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
-                }
-            )
+    SetScaffold(
+        title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
+        navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
+        topBarActions = {
+            IconButton(
+                onClick = {
+                    hubSheetState = true
+                },
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.edit_ic),
+                    contentDescription = stringResource(R.string.edit_hub_Details),
+                    modifier = Modifier.size(48.dp)
+                )
+            }
         },
         floatingActionButton = {
             FloatingButton(
@@ -179,80 +176,78 @@ private fun HubDetailsContent(
                 modifier = Modifier
                     .size(64.dp)
             )
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            hubDetailsState.hubItems.takeIf { it.isNotEmpty() }?.let { hubItems ->
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(
-                        items = hubItems,
-                        key = { hubItem -> hubItem.id }
-                    ) { hubItem ->
-                        ItemListCard(
-                            hubItem = hubItem.toHubItemUI(),
-                            onClick = {
-                                isItemEdit = true
-                                hubDetailsAction(HubDetailsAction.UpdateCurrentItem(hubItem))
-                                itemSheetState = true
-                            },
-                            modifier = Modifier
-                                .padding(4.dp)
-                        )
-                    }
-                }
-            }
+        }
+    )
 
-            if (hubSheetState) {
-                hubDetailsState.hub?.let { hub ->
-                    HubBottomSheet(
-                        hub = hub.toHubUI(),
-                        sheetState = sheetState,
-                        onDismiss = { hubSheetState = false },
-                        isEdit = true,
-                        onEdit = { hubName, hubDescription ->
-                            hubDetailsAction(HubDetailsAction.UpdateHub(hubName, hubDescription))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        hubDetailsState.hubItems.takeIf { it.isNotEmpty() }?.let { hubItems ->
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(
+                    items = hubItems,
+                    key = { hubItem -> hubItem.id }
+                ) { hubItem ->
+                    ItemListCard(
+                        hubItem = hubItem.toHubItemUI(),
+                        onClick = {
+                            isItemEdit = true
+                            hubDetailsAction(HubDetailsAction.UpdateCurrentItem(hubItem))
+                            itemSheetState = true
                         },
-                        onDelete = { hubId ->
-                            hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
-                        }
+                        modifier = Modifier
+                            .padding(4.dp)
                     )
                 }
             }
+        }
 
-            if (itemSheetState) {
-                ItemBottomSheet(
+        if (hubSheetState) {
+            hubDetailsState.hub?.let { hub ->
+                HubBottomSheet(
+                    hub = hub.toHubUI(),
                     sheetState = sheetState,
-                    isEdit = isItemEdit,
-                    hubItem = hubDetailsState.currentItem?.toHubItemUI(),
-                    onDismiss = {
-                        itemSheetState = false
-                        isItemEdit = false
-                        hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+                    onDismiss = { hubSheetState = false },
+                    isEdit = true,
+                    onEdit = { hubName, hubDescription ->
+                        hubDetailsAction(HubDetailsAction.UpdateHub(hubName, hubDescription))
                     },
-                    onAdd = { itemName, itemStock, unit ->
-                        hubDetailsAction(
-                            HubDetailsAction.AddItem(
-                                itemName, itemStock.toFloat(), unit
-                            )
-                        )
-                    },
-                    onEdit = { itemId, itemName, itemStock, unit ->
-                        hubDetailsAction(
-                            HubDetailsAction.UpdateItem(
-                                itemId, itemName, itemStock.toFloat(), unit
-                            )
-                        )
-                    },
-                    onDelete = { itemId ->
-                        hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
+                    onDelete = { hubId ->
+                        hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
                     }
                 )
             }
+        }
+
+        if (itemSheetState) {
+            ItemBottomSheet(
+                sheetState = sheetState,
+                isEdit = isItemEdit,
+                hubItem = hubDetailsState.currentItem?.toHubItemUI(),
+                onDismiss = {
+                    itemSheetState = false
+                    isItemEdit = false
+                    hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+                },
+                onAdd = { itemName, itemStock, unit ->
+                    hubDetailsAction(
+                        HubDetailsAction.AddItem(
+                            itemName, itemStock.toFloat(), unit
+                        )
+                    )
+                },
+                onEdit = { itemId, itemName, itemStock, unit ->
+                    hubDetailsAction(
+                        HubDetailsAction.UpdateItem(
+                            itemId, itemName, itemStock.toFloat(), unit
+                        )
+                    )
+                },
+                onDelete = { itemId ->
+                    hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
+                }
+            )
         }
     }
 }

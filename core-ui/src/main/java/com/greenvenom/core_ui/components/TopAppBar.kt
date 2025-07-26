@@ -36,12 +36,10 @@ import com.greenvenom.core_ui.theme.AppTheme
 @Composable
 fun TopAppBar(
     isVisible: Boolean,
-    isSideDestination: Boolean,
-    isActionEnabled: Boolean,
     modifier: Modifier = Modifier,
-    navigateBack: () -> Unit = {},
+    navigateBack: (() -> Unit)? = null,
     logo: Painter = painterResource(R.drawable.logo),
-    title: String = stringResource(R.string.app_name),
+    title: String = "",
     action: @Composable (RowScope.() -> Unit) = {}
 ) {
     AnimatedVisibility(
@@ -50,11 +48,9 @@ fun TopAppBar(
         exit = slideOutVertically(targetOffsetY = { -it }),
         content = {
             TopBarContent(
-                isSideDestination = isSideDestination,
-                isActionEnabled = isActionEnabled,
                 navigateBack = navigateBack,
                 logo = logo,
-                title = title,
+                title = title.ifEmpty { stringResource(R.string.app_name) },
                 modifier = modifier,
                 action = action
             )
@@ -65,9 +61,7 @@ fun TopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBarContent(
-    isSideDestination: Boolean,
-    isActionEnabled: Boolean,
-    navigateBack: () -> Unit,
+    navigateBack: (() -> Unit)?,
     logo: Painter,
     title: String,
     modifier: Modifier = Modifier,
@@ -82,9 +76,9 @@ private fun TopBarContent(
     TopAppBar(
         navigationIcon = {
             AnimatedVisibility(
-                visible = isSideDestination,
+                visible = navigateBack != null,
                 content = {
-                    IconButton(onClick = { navigateBack() }) {
+                    IconButton(onClick = { navigateBack?.invoke() }) {
                         Icon(
                             painter = painterResource(id = R.drawable.short_back_arrow),
                             contentDescription = stringResource(R.string.back_button),
@@ -96,9 +90,7 @@ private fun TopBarContent(
             )
         },
         actions = {
-            if (isActionEnabled) {
-                action()
-            }
+            action()
         },
         title = {
             Row(
@@ -135,8 +127,6 @@ private fun TopBarContent(
 private fun TopAppBarPreview() {
     AppTheme {
         TopBarContent(
-            isSideDestination = true,
-            isActionEnabled = true,
             navigateBack = {  },
             logo = painterResource(R.drawable.logo),
             title = "Testsdgd",
