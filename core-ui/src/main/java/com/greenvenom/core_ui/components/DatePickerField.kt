@@ -1,4 +1,4 @@
-package com.greenvenom.validation.components
+package com.greenvenom.core_ui.components
 
 import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -25,7 +25,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.greenvenom.validation.R
+import com.greenvenom.core_ui.R
 import java.util.Date
 import java.util.Locale
 
