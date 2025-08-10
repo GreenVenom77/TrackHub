@@ -41,7 +41,7 @@ fun ItemBottomSheet(
     modifier: Modifier = Modifier,
     hubItem: HubItemUI? = null,
     onAdd: (String, String, String) -> Unit = {_,_,_ ->},
-    onEdit: (Int, String, String, String) -> Unit = {_,_,_,_ ->},
+    onEdit: (String, String, String) -> Unit = {_,_,_ ->},
     onDelete: (Int) -> Unit = {},
 ) {
     ItemSheetContent(
@@ -71,7 +71,7 @@ private fun ItemSheetContent(
     itemStock: String = "",
     itemUnit: String = "",
     onAdd: (String, String, String ) -> Unit,
-    onEdit: (Int, String, String, String) -> Unit,
+    onEdit: (String, String, String) -> Unit,
     onDelete: (Int) -> Unit,
 ) {
     var newItemName by remember { mutableStateOf(itemName) }
@@ -146,7 +146,7 @@ private fun ItemSheetContent(
                     ),
                     onClick = {
                         if (isEdit) {
-                            onEdit(itemId, newItemName, newItemStock, newItemUnit)
+                            onEdit(newItemName, newItemStock, newItemUnit)
                         } else {
                             onAdd(newItemName, newItemStock, newItemUnit)
                         }

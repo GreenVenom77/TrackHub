@@ -1,10 +1,9 @@
 package com.trackhub.feat_hub.presentation.models
 
-import com.trackhub.core_hub.domain.models.HubItem
+import com.trackhub.core_hub.domain.models.Item
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 data class HubItemUI(
     val id: Int = 0,
@@ -17,7 +16,7 @@ data class HubItemUI(
     val updatedAt: String? = null
 )
 
-fun HubItem.toHubItemUI(): HubItemUI {
+fun Item.toHubItemUI(): HubItemUI {
     return HubItemUI(
         id = this.id,
         hubId = this.hubId,

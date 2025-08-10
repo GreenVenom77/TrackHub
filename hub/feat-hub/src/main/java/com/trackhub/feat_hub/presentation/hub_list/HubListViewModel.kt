@@ -5,7 +5,7 @@ import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +45,7 @@ class HubListViewModel(
                 it.copy(
                     addHubResult = withContext(Dispatchers.IO) {
                         hubRepository.addHub(
-                            Hub(
+                            HubInsertRequest(
                                 name = hubName,
                                 description = hubDescription
                             )

@@ -83,7 +83,7 @@ private fun HubDetailsContent(
     hubDetailsState.operationResult
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+            hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
             itemSheetState = false
             isItemEdit = false
         }
@@ -133,7 +133,7 @@ private fun HubDetailsContent(
         ?.onSuccess {
             itemSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+            hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
             isItemEdit = false
         }
         ?.onError { error ->
@@ -170,7 +170,7 @@ private fun HubDetailsContent(
                 isVisible = true,
                 onClick = {
                     isItemEdit = false
-                    hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+                    hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                     itemSheetState = true
                 },
                 modifier = Modifier
@@ -183,7 +183,7 @@ private fun HubDetailsContent(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        hubDetailsState.hubItems.takeIf { it.isNotEmpty() }?.let { hubItems ->
+        hubDetailsState.items.takeIf { it.isNotEmpty() }?.let { hubItems ->
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(
                     items = hubItems,
@@ -193,7 +193,7 @@ private fun HubDetailsContent(
                         hubItem = hubItem.toHubItemUI(),
                         onClick = {
                             isItemEdit = true
-                            hubDetailsAction(HubDetailsAction.UpdateCurrentItem(hubItem))
+                            hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
                             itemSheetState = true
                         },
                         modifier = Modifier
@@ -228,7 +228,7 @@ private fun HubDetailsContent(
                 onDismiss = {
                     itemSheetState = false
                     isItemEdit = false
-                    hubDetailsAction(HubDetailsAction.UpdateCurrentItem(null))
+                    hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                 },
                 onAdd = { itemName, itemStock, unit ->
                     hubDetailsAction(
@@ -237,10 +237,10 @@ private fun HubDetailsContent(
                         )
                     )
                 },
-                onEdit = { itemId, itemName, itemStock, unit ->
+                onEdit = { itemName, itemStock, unit ->
                     hubDetailsAction(
                         HubDetailsAction.UpdateItem(
-                            itemId, itemName, itemStock.toFloat(), unit
+                            itemName, itemStock.toFloat(), unit
                         )
                     )
                 },

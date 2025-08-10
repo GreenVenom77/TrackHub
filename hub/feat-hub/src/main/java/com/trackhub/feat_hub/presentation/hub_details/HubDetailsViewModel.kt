@@ -6,8 +6,10 @@ import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_hub.domain.models.Hub
-import com.trackhub.core_hub.domain.models.HubItem
+import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
+import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -47,16 +49,19 @@ class HubDetailsViewModel(
             is HubDetailsAction.AddItem -> addItemToHub(
                 action.itemName,
                 action.itemStock,
-                action.itemUnit
+                action.itemUnit,
+                action.manufacturer,
+                action.category
             )
             is HubDetailsAction.UpdateItem -> updateItem(
-                action.itemId,
                 action.itemName,
                 action.itemStock,
-                action.itemUnit
+                action.itemUnit,
+                action.manufacturer,
+                action.category
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
-            is HubDetailsAction.UpdateCurrentItem -> updateCurrentItem(action.hubItem)
+            is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
         }
@@ -66,14 +71,18 @@ class HubDetailsViewModel(
         hubName: String,
         hubDescription: String
     ) {
-        val updatedHub = _hubDetailsState.value.hub?.copy(
-            name = hubName,
-            description = hubDescription
-        ) as Hub
-
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val updateHubResult = hubRepository.updateHub(updatedHub)
+            val updateHubResult = withContext(Dispatchers.IO) {
+                hubRepository.updateHub(
+                    HubUpdateRequest(
+                        id = _hubDetailsState.value.hub?.id ?: "",
+                        name = hubName,
+                        description = hubDescription
+                    )
+                )
+            }
+
             _hubDetailsState.update {
                 it.copy(
                     hubUpdateResult = updateHubResult
@@ -87,7 +96,10 @@ class HubDetailsViewModel(
     private fun deleteHub(hubId: String) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val deleteHubResult = hubRepository.deleteHub(hubId)
+            val deleteHubResult = withContext(Dispatchers.IO) {
+                hubRepository.deleteHub(hubId)
+            }
+
             _hubDetailsState.update {
                 it.copy(
                     hubDeletionResult = deleteHubResult
@@ -101,18 +113,24 @@ class HubDetailsViewModel(
     private fun addItemToHub(
         itemName: String,
         itemStock: Float,
-        unit: String
+        unit: String,
+        manufacturer: String?,
+        category: String?
     ) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val addItemResult = hubRepository.addItemToHub(
-                HubItem(
-                    hubId = _hubDetailsState.value.hub?.id ?: "",
-                    name = itemName,
-                    stockCount = itemStock,
-                    unit = unit
+            val addItemResult = withContext(Dispatchers.IO) {
+                hubRepository.addItemToHub(
+                    ItemInsertRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        name = itemName,
+                        stockCount = itemStock,
+                        unit = unit,
+                        manufacturer = manufacturer,
+                        category = category
+                    )
                 )
-            )
+            }
 
             _hubDetailsState.update {
                 it.copy(
@@ -125,19 +143,26 @@ class HubDetailsViewModel(
     }
 
     private fun updateItem(
-        itemId: Int,
         itemName: String,
         itemStock: Float,
-        unit: String
+        unit: String,
+        manufacturer: String?,
+        category: String?
     ) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val updateItemResult = hubRepository.updateItem(
-                itemId = itemId,
-                itemName = itemName,
-                itemStock = itemStock,
-                unit = unit
-            )
+            val updateItemResult = withContext(Dispatchers.IO) {
+                hubRepository.updateItem(
+                    ItemUpdateRequest(
+                        id = _hubDetailsState.value.currentItem?.id ?: 0,
+                        name = itemName,
+                        stockCount = itemStock,
+                        unit = unit,
+                        manufacturer = manufacturer,
+                        category = category
+                    )
+                )
+            }
 
             _hubDetailsState.update {
                 it.copy(
@@ -152,7 +177,10 @@ class HubDetailsViewModel(
     private fun deleteItem(itemId: Int) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
-            val deleteItemResult = hubRepository.deleteHubItem(itemId)
+            val deleteItemResult = withContext(Dispatchers.IO) {
+                hubRepository.deleteHubItem(itemId)
+            }
+
             _hubDetailsState.update {
                 it.copy(
                     itemDeletionResult = deleteItemResult
@@ -163,7 +191,7 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun updateCurrentItem(item: HubItem?) {
+    private fun updateCurrentItem(item: Item?) {
         _hubDetailsState.update {
             it.copy(
                 currentItem = item
@@ -189,7 +217,7 @@ class HubDetailsViewModel(
                         itemsResult.onSuccess { items ->
                             _hubDetailsState.update {
                                 it.copy(
-                                    hubItems = items
+                                    items = items
                                 )
                             }
                         }

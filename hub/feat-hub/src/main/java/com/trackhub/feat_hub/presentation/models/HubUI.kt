@@ -4,7 +4,6 @@ import com.trackhub.core_hub.domain.models.Hub
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 data class HubUI(
     val id: String = "",
@@ -17,7 +16,7 @@ data class HubUI(
 fun Hub.toHubUI(): HubUI {
     return HubUI(
         id = this.id,
-        userId = this.userId,
+        userId = this.ownerId,
         name = this.name,
         description = this.description,
         createdAt = formatHubDate(this.createdAt),
