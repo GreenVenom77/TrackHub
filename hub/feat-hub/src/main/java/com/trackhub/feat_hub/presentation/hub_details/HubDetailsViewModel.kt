@@ -71,7 +71,6 @@ class HubDetailsViewModel(
         hubName: String,
         hubDescription: String
     ) {
-        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateHubResult = withContext(Dispatchers.IO) {
                 hubRepository.updateHub(
@@ -87,14 +86,11 @@ class HubDetailsViewModel(
                 it.copy(
                     hubUpdateResult = updateHubResult
                 )
-            }.also {
-                baseAction(BaseAction.HideLoading)
             }
         }
     }
 
     private fun deleteHub(hubId: String) {
-        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteHubResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHub(hubId)
@@ -104,8 +100,6 @@ class HubDetailsViewModel(
                 it.copy(
                     hubDeletionResult = deleteHubResult
                 )
-            }.also {
-                baseAction(BaseAction.HideLoading)
             }
         }
     }
@@ -117,7 +111,6 @@ class HubDetailsViewModel(
         manufacturer: String?,
         category: String?
     ) {
-        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val addItemResult = withContext(Dispatchers.IO) {
                 hubRepository.addItemToHub(
@@ -136,8 +129,6 @@ class HubDetailsViewModel(
                 it.copy(
                     operationResult = addItemResult
                 )
-            }.also {
-                baseAction(BaseAction.HideLoading)
             }
         }
     }
@@ -149,7 +140,6 @@ class HubDetailsViewModel(
         manufacturer: String?,
         category: String?
     ) {
-        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateItemResult = withContext(Dispatchers.IO) {
                 hubRepository.updateItem(
@@ -168,14 +158,11 @@ class HubDetailsViewModel(
                 it.copy(
                     operationResult = updateItemResult
                 )
-            }.also {
-                baseAction(BaseAction.HideLoading)
             }
         }
     }
 
     private fun deleteItem(itemId: Int) {
-        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteItemResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHubItem(itemId)
@@ -185,8 +172,6 @@ class HubDetailsViewModel(
                 it.copy(
                     itemDeletionResult = deleteItemResult
                 )
-            }.also {
-                baseAction(BaseAction.HideLoading)
             }
         }
     }

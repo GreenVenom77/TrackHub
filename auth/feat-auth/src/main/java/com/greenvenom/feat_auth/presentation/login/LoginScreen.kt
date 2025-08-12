@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,20 +19,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
+import com.greenvenom.core_ui.components.CustomButton
+import com.greenvenom.core_ui.components.EmailField
+import com.greenvenom.core_ui.components.PasswordField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_ui.theme.bluePrimary
 import com.greenvenom.feat_auth.R
-import com.greenvenom.core_ui.components.CustomButton
 import com.greenvenom.feat_auth.presentation.component.AuthHeader
-import com.greenvenom.core_ui.components.CustomTextField
 import com.greenvenom.validation.domain.ValidationResult
 
 @Composable
@@ -109,42 +107,32 @@ private fun LoginContent(
                 .padding(18.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(13.dp) // Adds spacing between items
+            verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
-            //email field
-            Text(
-                text = stringResource(R.string.email),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+            EmailField(
                 value = email,
                 onValueChange = {
                     email = it
                     loginActions(LoginAction.ValidateEmail(email))
                 },
-                label = stringResource(R.string.enter_your_email),
-                error = if (state.emailValidity is ValidationResult.Error)
+                label = stringResource(R.string.email),
+                placeholder = stringResource(R.string.enter_your_email),
+                errorText = if (state.emailValidity is ValidationResult.Error)
                     stringResource(state.emailValidity.error.messageId)
-                else "",
-                isPasswordField = false,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                else ""
             )
-            //password field
-            Text(
-                text = stringResource(R.string.Password),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+
+            PasswordField(
                 value = password,
                 onValueChange = {
                     password = it
                     loginActions(LoginAction.ValidatePassword(password))
                 },
-                label = stringResource(R.string.enter_your_password),
-                error = if (state.passwordValidity is ValidationResult.Error)
+                label = stringResource(R.string.password),
+                placeholder = stringResource(R.string.enter_your_password),
+                errorText = if (state.passwordValidity is ValidationResult.Error)
                     stringResource(state.passwordValidity.error.messageId)
-                else "",
-                isPasswordField = true
+                else ""
             )
             //forgot field
             Text(

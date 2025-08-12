@@ -7,13 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,18 +20,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.feat_auth.R
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.feat_auth.presentation.component.AuthHeader
-import com.greenvenom.core_ui.components.CustomTextField
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
+import com.greenvenom.core_ui.components.CustomButton
+import com.greenvenom.core_ui.components.PasswordField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
+import com.greenvenom.feat_auth.R
+import com.greenvenom.feat_auth.presentation.component.AuthHeader
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import com.greenvenom.validation.domain.ValidationResult
 
 @Composable
@@ -103,31 +99,22 @@ private fun NewPasswordContent(
                 .padding(18.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(13.dp) // Adds spacing between items
+            verticalArrangement = Arrangement.spacedBy(13.dp)
         ) {
-            Text(
-                text = stringResource(R.string.Password),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+            PasswordField(
                 value = password,
                 onValueChange = {
                     password = it
                     resetPasswordActions(ResetPasswordAction.ValidatePassword(password))
                 },
                 label = stringResource(R.string.enter_your_password),
-                error = if (state.passwordValidity is ValidationResult.Error)
+                errorText = if (state.passwordValidity is ValidationResult.Error)
                     stringResource(state.passwordValidity.error.messageId)
                 else "",
-                isPasswordField = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                imeAction = ImeAction.Next
             )
-            // Confirm Password Field
-            Text(
-                text = stringResource(R.string.confirm_password),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+
+            PasswordField(
                 value = confirmPassword,
                 onValueChange = {
                     confirmPassword = it
@@ -136,10 +123,9 @@ private fun NewPasswordContent(
                     ))
                 },
                 label = stringResource(R.string.confirm_your_password),
-                error = if (state.confirmPasswordValidity is ValidationResult.Error)
+                errorText = if (state.confirmPasswordValidity is ValidationResult.Error)
                     stringResource(state.confirmPasswordValidity.error.messageId)
-                else "",
-                isPasswordField = true
+                else ""
             )
             Spacer(modifier = Modifier.height(20.dp))
             CustomButton(

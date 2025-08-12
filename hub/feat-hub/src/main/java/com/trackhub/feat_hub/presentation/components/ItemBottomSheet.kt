@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +16,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ fun ItemBottomSheet(
     onDismiss: () -> Unit,
     isEdit: Boolean,
     modifier: Modifier = Modifier,
+    isDismissible: Boolean = true,
     hubItem: HubItemUI? = null,
     onAdd: (String, String, String) -> Unit = {_,_,_ ->},
     onEdit: (String, String, String) -> Unit = {_,_,_ ->},
@@ -48,6 +50,7 @@ fun ItemBottomSheet(
         sheetState = sheetState,
         onDismiss = onDismiss,
         isEdit = isEdit,
+        isDismissible = isDismissible,
         modifier = modifier,
         itemId = hubItem?.id ?: -1,
         itemName = hubItem?.name ?: "",
@@ -65,6 +68,7 @@ private fun ItemSheetContent(
     sheetState: SheetState,
     onDismiss: () -> Unit,
     isEdit: Boolean,
+    isDismissible: Boolean,
     modifier: Modifier = Modifier,
     itemId: Int = -1,
     itemName: String = "",
@@ -77,14 +81,30 @@ private fun ItemSheetContent(
     var newItemName by remember { mutableStateOf(itemName) }
     var newItemStock by remember { mutableStateOf(itemStock) }
     var newItemUnit by remember { mutableStateOf(itemUnit) }
+    var isDeletePressed by remember { mutableStateOf(false) }
+    var isEditPressed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isDismissible) {
+        if (isEditPressed || isDeletePressed) {
+            isDeletePressed = false
+            isEditPressed = false
+        }
+    }
 
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = {
-            onDismiss()
-            newItemName = ""
-            newItemStock = ""
-            newItemUnit = ""
+            if (isDismissible) {
+                onDismiss()
+                newItemName = ""
+                newItemStock = ""
+                newItemUnit = ""
+                isDeletePressed = false
+                isEditPressed = false
+            }
+        },
+        dragHandle = {
+            if (isDismissible) { BottomSheetDefaults.DragHandle() }
         },
         modifier = modifier
     ) {
@@ -96,46 +116,38 @@ private fun ItemSheetContent(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-//            if (isEdit) {
-//                CustomTextField(
-//                    value = itemId.toString(),
-//                    onValueChange = {},
-//                    label = "ID",
-//                    error = "",
-//                    readOnly = true
-//                )
-//                Spacer(modifier = Modifier.height(16.dp))
-//            }
+
             CustomTextField(
                 value = newItemName,
                 label = stringResource(R.string.item_name),
-                error = "",
                 onValueChange = { newItemName = it },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+                imeAction = ImeAction.Next,
+                readOnly = isDeletePressed || isEditPressed
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             CustomTextField(
                 value = newItemStock,
                 label = stringResource(R.string.item_stock),
-                error = "",
                 onValueChange = { newItemStock = it },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next,
+                readOnly = isDeletePressed || isEditPressed
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             CustomTextField(
                 value = newItemUnit,
                 label = stringResource(R.string.item_unit),
-                error = "",
                 onValueChange = { newItemUnit = it },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                modifier = Modifier.fillMaxWidth()
+                imeAction = ImeAction.Next,
+                readOnly = isDeletePressed || isEditPressed
             )
+
             Spacer(modifier = Modifier.height(40.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -153,7 +165,9 @@ private fun ItemSheetContent(
                     },
                     enabled = newItemName.isNotEmpty()
                             && newItemStock.isNotEmpty()
-                            && newItemUnit.isNotEmpty(),
+                            && newItemUnit.isNotEmpty()
+                            && !isDeletePressed,
+                    isLoading = isEditPressed,
                     modifier = Modifier.weight(1f)
                 )
                 if (isEdit) {
@@ -166,7 +180,8 @@ private fun ItemSheetContent(
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer
                         ),
-                        enabled = itemId != -1,
+                        enabled = itemId != -1 && !isEditPressed,
+                        isLoading = isDeletePressed,
                         modifier = Modifier.weight(1f)
                     )
                 }

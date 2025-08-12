@@ -3,7 +3,6 @@ package com.trackhub.feat_hub.presentation.hub_list
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,6 +70,7 @@ private fun HubListContent(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
+    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubListState.fetchingHubsResult
         ?.onError { error ->
@@ -82,6 +82,7 @@ private fun HubListContent(
     hubListState.addHubResult
         ?.onSuccess {
             hubListAction(HubListAction.ClearNetworkOperations)
+            isSheetDismissible = true
             hubSheetState = false
         }
         ?.onError { error ->
@@ -89,15 +90,17 @@ private fun HubListContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
+            isSheetDismissible = true
         }
 
     SetScaffold(
         floatingActionButton = {
             FloatingButton(
                 isVisible = areHubsOwned,
-                onClick = { hubSheetState = true },
-                modifier = Modifier
-                    .size(64.dp)
+                onClick = {
+                    isSheetDismissible = true
+                    hubSheetState = true
+                }
             )
         }
     )
@@ -133,7 +136,9 @@ private fun HubListContent(
                     hubSheetState = false
                 },
                 isEdit = false,
+                isDismissible = isSheetDismissible,
                 onAdd = { hubName, hubDescription ->
+                    isSheetDismissible = false
                     hubListAction(HubListAction.AddHub(hubName, hubDescription))
                 }
             )

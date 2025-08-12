@@ -70,6 +70,7 @@ private fun HubDetailsContent(
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemSheetState by rememberSaveable { mutableStateOf(false) }
+    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubDetailsState.hubItemsResult
         ?.onError { error ->
@@ -84,6 +85,7 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
+            isSheetDismissible = true
             itemSheetState = false
             isItemEdit = false
         }
@@ -93,12 +95,14 @@ private fun HubDetailsContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                    isSheetDismissible = true
                 }
             ))
         }
 
     hubDetailsState.hubUpdateResult
         ?.onSuccess {
+            isSheetDismissible = true
             hubSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.NavigateBack)
@@ -109,12 +113,14 @@ private fun HubDetailsContent(
                     errorMessage = stringResource(error.messageId),
                     dismissAction = {
                         hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                        isSheetDismissible = true
                     }
                 ))
         }
 
     hubDetailsState.hubDeletionResult
         ?.onSuccess {
+            isSheetDismissible = true
             hubSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.NavigateBack)
@@ -125,12 +131,14 @@ private fun HubDetailsContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                    isSheetDismissible = true
                 }
             ))
         }
 
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
+            isSheetDismissible = true
             itemSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
@@ -142,6 +150,7 @@ private fun HubDetailsContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                    isSheetDismissible = true
                 }
             ))
         }
@@ -169,12 +178,11 @@ private fun HubDetailsContent(
             FloatingButton(
                 isVisible = true,
                 onClick = {
+                    isSheetDismissible = true
                     isItemEdit = false
                     hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                     itemSheetState = true
-                },
-                modifier = Modifier
-                    .size(64.dp)
+                }
             )
         }
     )
@@ -192,6 +200,7 @@ private fun HubDetailsContent(
                     ItemListCard(
                         hubItem = hubItem.toHubItemUI(),
                         onClick = {
+                            isSheetDismissible = true
                             isItemEdit = true
                             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
                             itemSheetState = true
@@ -210,10 +219,13 @@ private fun HubDetailsContent(
                     sheetState = sheetState,
                     onDismiss = { hubSheetState = false },
                     isEdit = true,
+                    isDismissible = isSheetDismissible,
                     onEdit = { hubName, hubDescription ->
+                        isSheetDismissible = false
                         hubDetailsAction(HubDetailsAction.UpdateHub(hubName, hubDescription))
                     },
                     onDelete = { hubId ->
+                        isSheetDismissible = false
                         hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
                     }
                 )
@@ -224,6 +236,7 @@ private fun HubDetailsContent(
             ItemBottomSheet(
                 sheetState = sheetState,
                 isEdit = isItemEdit,
+                isDismissible = isSheetDismissible,
                 hubItem = hubDetailsState.currentItem?.toHubItemUI(),
                 onDismiss = {
                     itemSheetState = false
@@ -231,6 +244,7 @@ private fun HubDetailsContent(
                     hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                 },
                 onAdd = { itemName, itemStock, unit ->
+                    isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.AddItem(
                             itemName, itemStock.toFloat(), unit
@@ -238,6 +252,7 @@ private fun HubDetailsContent(
                     )
                 },
                 onEdit = { itemName, itemStock, unit ->
+                    isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.UpdateItem(
                             itemName, itemStock.toFloat(), unit
@@ -245,6 +260,7 @@ private fun HubDetailsContent(
                     )
                 },
                 onDelete = { itemId ->
+                    isSheetDismissible = false
                     hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
                 }
             )
