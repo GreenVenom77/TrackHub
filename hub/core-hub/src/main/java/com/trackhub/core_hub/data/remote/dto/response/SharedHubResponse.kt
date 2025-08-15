@@ -5,8 +5,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SharedHubResponse(
     val hubId: String,
+    val ownerId: String,
     val hubName: String,
-    val description: String,
+    val description: String?,
     val hubRole: String,
-    val createdAt: String
+    val createdAt: String,
+    val manufacturerList: List<String>?,
+    val categoryList: List<String>?
 )

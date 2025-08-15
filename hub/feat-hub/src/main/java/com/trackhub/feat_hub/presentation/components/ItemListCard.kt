@@ -1,6 +1,5 @@
 package com.trackhub.feat_hub.presentation.components
 
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -26,11 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.trackhub.feat_hub.R
-import com.trackhub.feat_hub.presentation.models.HubItemUI
+import com.trackhub.feat_hub.presentation.models.ItemUI
 
 @Composable
 fun ItemListCard(
-    hubItem: HubItemUI,
+    hubItem: ItemUI,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -88,7 +86,7 @@ fun ItemListCard(
 @Composable
 private fun ItemPreview() {
     ItemListCard(
-        hubItem = HubItemUI(
+        hubItem = ItemUI(
             id = 1,
             hubId = "1",
             name = "Test Item",

@@ -3,6 +3,7 @@ package com.trackhub.feat_hub.data.cache
 import com.trackhub.core_hub.data.cache.dao.HubDao
 import com.trackhub.core_hub.data.cache.entities.HubEntity
 import com.trackhub.core_hub.data.cache.entities.ItemEntity
+import com.trackhub.core_hub.data.mappers.extractHub
 import com.trackhub.core_hub.data.mappers.extractItem
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item

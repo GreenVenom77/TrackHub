@@ -31,8 +31,8 @@ import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemListCard
-import com.trackhub.feat_hub.presentation.models.toHubItemUI
-import com.trackhub.feat_hub.presentation.models.toHubUI
+import com.trackhub.feat_hub.presentation.mappers.toHubItemUI
+import com.trackhub.feat_hub.presentation.mappers.toHubUI
 
 @Composable
 fun HubDetailsScreen(

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.components.CustomButton
 import com.greenvenom.core_ui.components.CustomTextField
 import com.trackhub.feat_hub.R
-import com.trackhub.feat_hub.presentation.models.HubItemUI
+import com.trackhub.feat_hub.presentation.models.ItemUI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,7 @@ fun ItemBottomSheet(
     isEdit: Boolean,
     modifier: Modifier = Modifier,
     isDismissible: Boolean = true,
-    hubItem: HubItemUI? = null,
+    hubItem: ItemUI? = null,
     onAdd: (String, String, String) -> Unit = {_,_,_ ->},
     onEdit: (String, String, String) -> Unit = {_,_,_ ->},
     onDelete: (Int) -> Unit = {},

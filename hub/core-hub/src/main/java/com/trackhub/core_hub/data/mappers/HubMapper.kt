@@ -9,11 +9,13 @@ import com.trackhub.core_hub.domain.models.Hub
 fun SharedHubResponse.extractHub(): Hub {
     return Hub(
         id = hubId,
-        ownerId = "",
+        ownerId = ownerId,
         name = hubName,
         description = description,
         createdAt = createdAt,
-        role = HubRole.valueOf(hubRole)
+        role = HubRole.valueOf(hubRole),
+        manufacturerList = manufacturerList,
+        categoryList = categoryList
     )
 }
 
@@ -24,7 +26,9 @@ fun OwnedHubResponse.extractHub(): Hub {
         name = this.name,
         description = this.description,
         createdAt = this.createdAt,
-        role = HubRole.Owner
+        role = HubRole.Owner,
+        manufacturerList = this.manufacturerList,
+        categoryList = this.categoryList
     )
 }
 
@@ -36,6 +40,21 @@ fun Hub.toHubEntity(): HubEntity {
         description = this.description,
         isOwned = ownerId.isNotBlank(),
         createdAt = this.createdAt,
-        hubRole = this.role
+        hubRole = this.role,
+        manufacturerList = this.manufacturerList,
+        categoryList = this.categoryList
+    )
+}
+
+fun HubEntity.extractHub(): Hub {
+    return Hub(
+        id = this.id,
+        ownerId = this.ownerId,
+        name = this.name,
+        description = this.description,
+        createdAt = this.createdAt,
+        role = this.hubRole,
+        manufacturerList = this.manufacturerList,
+        categoryList = this.categoryList
     )
 }

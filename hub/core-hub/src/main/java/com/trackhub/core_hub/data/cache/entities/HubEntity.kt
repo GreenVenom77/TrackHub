@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.models.Hub
 
 @Entity(tableName = "hubs")
 data class HubEntity(
@@ -22,16 +21,9 @@ data class HubEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: String,
     @ColumnInfo(name = "hub_role")
-    val hubRole: HubRole
-) {
-    fun extractHub(): Hub {
-        return Hub(
-            id = this.id,
-            ownerId = this.ownerId,
-            name = this.name,
-            description = this.description,
-            createdAt = this.createdAt,
-            role = this.hubRole
-        )
-    }
-}
+    val hubRole: HubRole,
+    @ColumnInfo(name = "manufacturer_list")
+    val manufacturerList: List<String>?,
+    @ColumnInfo(name = "category_list")
+    val categoryList: List<String>?
+)

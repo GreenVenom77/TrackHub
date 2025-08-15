@@ -26,7 +26,7 @@ import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
-import com.trackhub.feat_hub.presentation.models.toHubUI
+import com.trackhub.feat_hub.presentation.mappers.toHubUI
 
 @Composable
 fun HubListScreen(
