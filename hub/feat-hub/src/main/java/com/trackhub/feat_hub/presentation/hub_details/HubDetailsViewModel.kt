@@ -47,18 +47,18 @@ class HubDetailsViewModel(
             )
             is HubDetailsAction.DeleteHub -> deleteHub(action.hubId)
             is HubDetailsAction.AddItem -> addItemToHub(
-                action.itemName,
-                action.itemStock,
-                action.itemUnit,
-                action.manufacturer,
-                action.category
+                action.newItem.name,
+                action.newItem.stockCount,
+                action.newItem.unit,
+                action.newItem.manufacturer,
+                action.newItem.category
             )
             is HubDetailsAction.UpdateItem -> updateItem(
-                action.itemName,
-                action.itemStock,
-                action.itemUnit,
-                action.manufacturer,
-                action.category
+                action.updatedItem.name,
+                action.updatedItem.stockCount,
+                action.updatedItem.unit,
+                action.updatedItem.manufacturer,
+                action.updatedItem.category
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)

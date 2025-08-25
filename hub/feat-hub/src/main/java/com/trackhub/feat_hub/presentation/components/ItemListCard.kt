@@ -87,14 +87,16 @@ fun ItemListCard(
 private fun ItemPreview() {
     ItemListCard(
         hubItem = ItemUI(
-            id = 1,
             hubId = "1",
             name = "Test Item",
             stockCount = "10",
             unit = "pcs",
             imageUrl = "",
             createdAt = "March 9, 2025 at 5:30 PM",
-            updatedAt = "March 9, 2025 at 5:30 PM"
+            updatedAt = "March 9, 2025 at 5:30 PM",
+            manufacturer = "Test Manufacturer",
+            category = "Test Category",
+            inStock = true
         ),
         onClick = {  },
         modifier = Modifier

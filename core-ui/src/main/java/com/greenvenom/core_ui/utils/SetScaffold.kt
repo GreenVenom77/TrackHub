@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalInspectionMode
 import com.greenvenom.core_ui.presentation.ScaffoldViewModel
 
 val LocalScaffoldViewModel = compositionLocalOf<ScaffoldViewModel> {
@@ -19,18 +20,22 @@ fun SetScaffold(
     topBarActions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
 ) {
-    val scaffoldViewModel = LocalScaffoldViewModel.current
+    val isInPreview = LocalInspectionMode.current
 
-    val stableTopBarActions by rememberUpdatedState(topBarActions)
+    if (!isInPreview) {
+        // Only access LocalScaffoldViewModel when not in preview
+        val scaffoldViewModel = LocalScaffoldViewModel.current
 
-    val stableFloatingActionButton by rememberUpdatedState(floatingActionButton)
+        val stableTopBarActions by rememberUpdatedState(topBarActions)
+        val stableFloatingActionButton by rememberUpdatedState(floatingActionButton)
 
-    LaunchedEffect(title, navigateBackAction, stableTopBarActions, stableFloatingActionButton) {
-        scaffoldViewModel.updateScaffold(
-            title = title,
-            navigateBackAction = navigateBackAction,
-            topBarActions = stableTopBarActions,
-            floatingActionButton = stableFloatingActionButton,
-        )
+        LaunchedEffect(title, navigateBackAction, stableTopBarActions, stableFloatingActionButton) {
+            scaffoldViewModel.updateScaffold(
+                title = title,
+                navigateBackAction = navigateBackAction,
+                topBarActions = stableTopBarActions,
+                floatingActionButton = stableFloatingActionButton,
+            )
+        }
     }
 }

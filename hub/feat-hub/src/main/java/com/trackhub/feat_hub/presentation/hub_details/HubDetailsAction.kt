@@ -9,18 +9,10 @@ interface HubDetailsAction {
     ): HubDetailsAction
     data class DeleteHub(val hubId: String): HubDetailsAction
     data class AddItem(
-        val itemName: String,
-        val itemStock: Float,
-        val itemUnit: String,
-        val manufacturer: String? = null,
-        val category: String? = null
+        val newItem: Item
     ): HubDetailsAction
     data class UpdateItem(
-        val itemName: String,
-        val itemStock: Float,
-        val itemUnit: String,
-        val manufacturer: String? = null,
-        val category: String? = null
+        val updatedItem: Item,
     ): HubDetailsAction
     data class DeleteItem(val itemId: Int): HubDetailsAction
     data class ChangeCurrentItem(val item: Item?): HubDetailsAction

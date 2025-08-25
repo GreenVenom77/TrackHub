@@ -16,6 +16,7 @@ fun Hub.toHubUI(): HubUI {
             this.createdAt,
             withTime = false
         ),
+        role = this.role.value
     )
 }
 
@@ -38,6 +39,9 @@ fun Item.toHubItemUI(): ItemUI {
                 withTime = true,
                 timeBelowDate = true
             )
-        }
+        },
+        manufacturer = this.manufacturer ?: "",
+        category = this.category ?: "",
+        inStock = inStock
     )
 }

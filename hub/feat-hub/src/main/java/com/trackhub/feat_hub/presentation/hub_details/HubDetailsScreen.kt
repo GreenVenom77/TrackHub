@@ -36,7 +36,6 @@ import com.trackhub.feat_hub.presentation.mappers.toHubUI
 
 @Composable
 fun HubDetailsScreen(
-    hubId: String,
     navigateBack: () -> Unit
 ) {
     BaseScreen<HubDetailsViewModel>(
@@ -174,6 +173,7 @@ private fun HubDetailsContent(
                 )
             }
         },
+
         floatingActionButton = {
             FloatingButton(
                 isVisible = true,
@@ -243,19 +243,19 @@ private fun HubDetailsContent(
                     isItemEdit = false
                     hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                 },
-                onAdd = { itemName, itemStock, unit ->
+                onAdd = { newItem ->
                     isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.AddItem(
-                            itemName, itemStock.toFloat(), unit
+                            newItem
                         )
                     )
                 },
-                onEdit = { itemName, itemStock, unit ->
+                onEdit = { updatedItem ->
                     isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.UpdateItem(
-                            itemName, itemStock.toFloat(), unit
+                            updatedItem
                         )
                     )
                 },

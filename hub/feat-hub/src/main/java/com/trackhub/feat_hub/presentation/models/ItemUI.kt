@@ -6,7 +6,10 @@ data class ItemUI(
     val name: String,
     val stockCount: String,
     val unit: String,
-    val imageUrl: String? = null,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
+    val imageUrl: String?,
+    val createdAt: String,
+    val updatedAt: String?,
+    val manufacturer: String?,
+    val category: String?,
+    val inStock: Boolean
 )
