@@ -27,6 +27,7 @@ import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
+import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
@@ -102,9 +103,11 @@ private fun HubDetailsContent(
     hubDetailsState.hubUpdateResult
         ?.onSuccess {
             isSheetDismissible = true
-            hubSheetState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            hubDetailsAction(HubDetailsAction.NavigateBack)
+            if (hubSheetState) {
+                hubSheetState = false
+                hubDetailsAction(HubDetailsAction.NavigateBack)
+            }
         }
         ?.onError { error ->
             baseAction(
@@ -222,7 +225,12 @@ private fun HubDetailsContent(
                     isDismissible = isSheetDismissible,
                     onEdit = { hubName, hubDescription ->
                         isSheetDismissible = false
-                        hubDetailsAction(HubDetailsAction.UpdateHub(hubName, hubDescription))
+                        hubDetailsAction(HubDetailsAction.UpdateHub(
+                            hub.copy(
+                                name = hubName,
+                                description = hubDescription
+                            )
+                        ))
                     },
                     onDelete = { hubId ->
                         isSheetDismissible = false
@@ -238,6 +246,8 @@ private fun HubDetailsContent(
                 isEdit = isItemEdit,
                 isDismissible = isSheetDismissible,
                 hubItem = hubDetailsState.currentItem?.toHubItemUI(),
+                manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
+                categories = hubDetailsState.hub?.categoryList ?: emptyList(),
                 onDismiss = {
                     itemSheetState = false
                     isItemEdit = false
@@ -262,13 +272,31 @@ private fun HubDetailsContent(
                 onDelete = { itemId ->
                     isSheetDismissible = false
                     hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
+                },
+                onAddManufacturer = { manufacturerName ->
+                    hubDetailsAction(HubDetailsAction.UpdateHub(
+                        hubDetailsState.hub?.copy(
+                            manufacturerList = hubDetailsState.hub.manufacturerList?.plus(
+                                manufacturerName
+                            )
+                        ) as Hub
+                    ))
+                },
+                onAddCategory = { categoryName ->
+                    hubDetailsAction(HubDetailsAction.UpdateHub(
+                        hubDetailsState.hub?.copy(
+                            categoryList = hubDetailsState.hub.categoryList?.plus(
+                                categoryName
+                            )
+                        ) as Hub
+                    ))
                 }
             )
         }
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 private fun HubDetailsContentPreview() {
     HubDetailsContent(

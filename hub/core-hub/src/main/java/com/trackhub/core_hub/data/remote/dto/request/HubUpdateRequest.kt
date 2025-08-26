@@ -7,5 +7,7 @@ import kotlinx.serialization.Transient
 data class HubUpdateRequest(
     @Transient val id: String = "",
     val name: String,
-    val description: String
+    val description: String?,
+    val manufacturerList: List<String>?,
+    val categoryList: List<String>?
 )

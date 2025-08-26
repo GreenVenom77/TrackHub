@@ -1,6 +1,8 @@
 package com.trackhub.core_hub.data.mappers
 
 import com.trackhub.core_hub.data.cache.entities.ItemEntity
+import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
+import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.domain.models.Item
 
@@ -49,5 +51,28 @@ fun ItemResponse.extractItem(): Item {
         manufacturer = this.manufacturer,
         category = this.category,
         inStock = this.inStock
+    )
+}
+
+fun Item.toInsertRequest(hubId: String): ItemInsertRequest {
+    return ItemInsertRequest(
+        hubId = hubId,
+        name = this.name,
+        stockCount = this.stockCount,
+        unit = this.unit,
+        manufacturer = this.manufacturer,
+        category = this.category,
+    )
+}
+
+fun Item.toUpdateRequest(): ItemUpdateRequest {
+    return ItemUpdateRequest(
+        id = this.id,
+        name = this.name,
+        stockCount = this.stockCount,
+        unit = this.unit,
+        imageUrl = this.imageUrl,
+        manufacturer = this.manufacturer,
+        category = this.category,
     )
 }

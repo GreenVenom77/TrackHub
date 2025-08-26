@@ -139,7 +139,9 @@ private fun HubListContent(
                 isDismissible = isSheetDismissible,
                 onAdd = { hubName, hubDescription ->
                     isSheetDismissible = false
-                    hubListAction(HubListAction.AddHub(hubName, hubDescription))
+                    hubListAction(HubListAction.AddHub(
+                        hubName, hubDescription
+                    ))
                 }
             )
         }

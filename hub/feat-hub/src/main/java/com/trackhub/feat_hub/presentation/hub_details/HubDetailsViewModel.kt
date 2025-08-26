@@ -6,9 +6,9 @@ import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
-import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
-import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.data.mappers.toInsertRequest
+import com.trackhub.core_hub.data.mappers.toUpdateRequest
+import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
@@ -42,23 +42,14 @@ class HubDetailsViewModel(
     fun hubDetailsAction(action: HubDetailsAction) {
         when (action) {
             is HubDetailsAction.UpdateHub -> updateHub(
-                action.hubName,
-                action.hubDescription
+                action.updatedHub
             )
             is HubDetailsAction.DeleteHub -> deleteHub(action.hubId)
             is HubDetailsAction.AddItem -> addItemToHub(
-                action.newItem.name,
-                action.newItem.stockCount,
-                action.newItem.unit,
-                action.newItem.manufacturer,
-                action.newItem.category
+                action.newItem
             )
             is HubDetailsAction.UpdateItem -> updateItem(
-                action.updatedItem.name,
-                action.updatedItem.stockCount,
-                action.updatedItem.unit,
-                action.updatedItem.manufacturer,
-                action.updatedItem.category
+                action.updatedItem
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
@@ -68,17 +59,12 @@ class HubDetailsViewModel(
     }
 
     private fun updateHub(
-        hubName: String,
-        hubDescription: String
+        updatedHub: Hub
     ) {
         viewModelScope.launch {
             val updateHubResult = withContext(Dispatchers.IO) {
                 hubRepository.updateHub(
-                    HubUpdateRequest(
-                        id = _hubDetailsState.value.hub?.id ?: "",
-                        name = hubName,
-                        description = hubDescription
-                    )
+                    updatedHub.toUpdateRequest()
                 )
             }
 
@@ -105,22 +91,13 @@ class HubDetailsViewModel(
     }
 
     private fun addItemToHub(
-        itemName: String,
-        itemStock: Float,
-        unit: String,
-        manufacturer: String?,
-        category: String?
+        newItem: Item
     ) {
         viewModelScope.launch {
             val addItemResult = withContext(Dispatchers.IO) {
                 hubRepository.addItemToHub(
-                    ItemInsertRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: "",
-                        name = itemName,
-                        stockCount = itemStock,
-                        unit = unit,
-                        manufacturer = manufacturer,
-                        category = category
+                    newItem.toInsertRequest(
+                        _hubDetailsState.value.hub?.id ?: ""
                     )
                 )
             }
@@ -134,23 +111,12 @@ class HubDetailsViewModel(
     }
 
     private fun updateItem(
-        itemName: String,
-        itemStock: Float,
-        unit: String,
-        manufacturer: String?,
-        category: String?
+        updatedItem: Item
     ) {
         viewModelScope.launch {
             val updateItemResult = withContext(Dispatchers.IO) {
                 hubRepository.updateItem(
-                    ItemUpdateRequest(
-                        id = _hubDetailsState.value.currentItem?.id ?: 0,
-                        name = itemName,
-                        stockCount = itemStock,
-                        unit = unit,
-                        manufacturer = manufacturer,
-                        category = category
-                    )
+                    updatedItem.toUpdateRequest()
                 )
             }
 

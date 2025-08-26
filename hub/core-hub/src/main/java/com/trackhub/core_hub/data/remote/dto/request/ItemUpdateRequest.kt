@@ -9,6 +9,7 @@ data class ItemUpdateRequest(
     val name: String,
     val stockCount: Float,
     val unit: String,
+    val imageUrl: String?,
     val manufacturer: String?,
     val category: String?
 )

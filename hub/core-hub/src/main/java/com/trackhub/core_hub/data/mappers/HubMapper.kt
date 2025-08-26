@@ -1,6 +1,8 @@
 package com.trackhub.core_hub.data.mappers
 
 import com.trackhub.core_hub.data.cache.entities.HubEntity
+import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
+import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
 import com.trackhub.core_hub.data.remote.dto.response.SharedHubResponse
 import com.trackhub.core_hub.domain.HubRole
@@ -54,6 +56,23 @@ fun HubEntity.extractHub(): Hub {
         description = this.description,
         createdAt = this.createdAt,
         role = this.hubRole,
+        manufacturerList = this.manufacturerList,
+        categoryList = this.categoryList
+    )
+}
+
+fun Hub.toInsertRequest(): HubInsertRequest {
+    return HubInsertRequest(
+        name = this.name,
+        description = this.description
+    )
+}
+
+fun Hub.toUpdateRequest(): HubUpdateRequest {
+    return HubUpdateRequest(
+        id = this.id,
+        name = this.name,
+        description = this.description,
         manufacturerList = this.manufacturerList,
         categoryList = this.categoryList
     )

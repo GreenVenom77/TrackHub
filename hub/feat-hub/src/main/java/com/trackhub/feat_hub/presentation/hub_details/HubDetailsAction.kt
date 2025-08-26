@@ -1,11 +1,11 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
+import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 
 interface HubDetailsAction {
     data class UpdateHub(
-        val hubName: String,
-        val hubDescription: String
+        val updatedHub: Hub
     ): HubDetailsAction
     data class DeleteHub(val hubId: String): HubDetailsAction
     data class AddItem(
