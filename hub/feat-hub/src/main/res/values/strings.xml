@@ -8,11 +8,37 @@
     <string name="edit_hub_Details">Edit Hub Details</string>
     <string name="hub_id">Hub ID</string>
     <string name="update_hub">Update Hub</string>
-    <string name="item_name">Name</string>
-    <string name="item_stock">Stock</string>
-    <string name="item_unit">Unit</string>
-    <string name="update_item">Update Item</string>
-    <string name="add_item">Add Item</string>
-    <string name="delete_item">Delete Item</string>
     <string name="unknown_hub">Unknown Hub</string>
+
+    <!-- Category related strings -->
+    <string name="category">Category</string>
+    <string name="select_category">Select category</string>
+    <string name="add_category">Add Category</string>
+    <string name="category_name">Category name</string>
+
+    <!-- Manufacturer related strings -->
+    <string name="manufacturer">Manufacturer</string>
+    <string name="select_manufacturer">Select manufacturer</string>
+    <string name="add_manufacturer">Add Manufacturer</string>
+    <string name="manufacturer_name">Manufacturer name</string>
+
+    <!-- General action strings -->
+    <string name="add_new">Add New</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+
+    <!-- Item form strings -->
+    <string name="item_name">Item name</string>
+    <string name="item_stock">Item stock</string>
+    <string name="item_unit">Item unit</string>
+    <string name="add_item">Add Item</string>
+    <string name="update_item">Update Item</string>
+    <string name="delete_item">Delete Item</string>
+
+    <!-- Selection strings -->
+    <string name="select_an_item">Select an item</string>
+    <string name="select_items">Select items</string>
+    <string name="selected_items">%d items selected</string>
+    <string name="search">Search</string>
 </resources>

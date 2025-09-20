@@ -8,11 +8,37 @@
     <string name="edit_hub_Details">تعديل معلومات المخزن</string>
     <string name="hub_id">كود المخزن</string>
     <string name="update_hub">حدث المخزن</string>
-    <string name="item_name">اسم المنتج</string>
-    <string name="item_stock">كمية المنتج</string>
-    <string name="item_unit">وحدة القياس</string>
-    <string name="update_item">حدث المنتج</string>
-    <string name="add_item">أضف المنتج</string>
-    <string name="delete_item">حذف المنتج</string>
     <string name="unknown_hub">مخزن غير معلوم</string>
+
+    <!-- Category related strings -->
+    <string name="category">الفئة</string>
+    <string name="select_category">اختر فئة</string>
+    <string name="add_category">إضافة فئة</string>
+    <string name="category_name">اسم الفئة</string>
+
+    <!-- Manufacturer related strings -->
+    <string name="manufacturer">الشركة المصنعة</string>
+    <string name="select_manufacturer">اختر شركة مصنعة</string>
+    <string name="add_manufacturer">إضافة شركة مصنعة</string>
+    <string name="manufacturer_name">اسم الشركة المصنعة</string>
+
+    <!-- General action strings -->
+    <string name="add_new">إضافة جديد</string>
+    <string name="add">إضافة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+
+    <!-- Item form strings -->
+    <string name="item_name">اسم العنصر</string>
+    <string name="item_stock">مخزون العنصر</string>
+    <string name="item_unit">وحدة العنصر</string>
+    <string name="add_item">إضافة عنصر</string>
+    <string name="update_item">تحديث العنصر</string>
+    <string name="delete_item">حذف العنصر</string>
+
+    <!-- Selection strings -->
+    <string name="select_an_item">اختر عنصراً</string>
+    <string name="select_items">اختر عناصر</string>
+    <string name="selected_items">تم اختيار %d عناصر</string>
+    <string name="search">بحث</string>
 </resources>

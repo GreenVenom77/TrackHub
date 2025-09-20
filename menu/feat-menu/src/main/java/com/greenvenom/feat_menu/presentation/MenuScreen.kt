@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,8 +55,6 @@ private fun MenuContent(
     baseAction: (BaseAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val localContext = LocalContext.current
-
     Column(
         modifier = modifier
             .fillMaxSize()

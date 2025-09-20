@@ -5,10 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.trackhub.core_hub.domain.models.HubItem
 
 @Entity(
-    tableName = "hub_items",
+    tableName = "items",
     foreignKeys = [
         ForeignKey(
             entity = HubEntity::class,
@@ -22,10 +21,10 @@ import com.trackhub.core_hub.domain.models.HubItem
         Index("hub_id")
     ]
 )
-data class HubItemEntity(
+data class ItemEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
-    val id: Int = 0,
+    val id: Int,
     @ColumnInfo(name = "hub_id")
     val hubId: String,
     @ColumnInfo(name = "name")
@@ -35,22 +34,15 @@ data class HubItemEntity(
     @ColumnInfo(name = "unit")
     val unit: String,
     @ColumnInfo(name = "image_url")
-    val imageUrl: String? = null,
+    val imageUrl: String?,
     @ColumnInfo(name = "created_at")
-    val createdAt: String = "",
+    val createdAt: String,
     @ColumnInfo(name = "updated_at")
-    val updatedAt: String? = null
-) {
-    fun extractHubItem(): HubItem {
-        return HubItem(
-            id = this.id,
-            hubId = this.hubId,
-            name = this.name,
-            stockCount = this.stockCount,
-            unit = this.unit,
-            imageUrl = this.imageUrl,
-            createdAt = this.createdAt,
-            updatedAt = this.updatedAt
-        )
-    }
-}
+    val updatedAt: String?,
+    @ColumnInfo(name = "manufacturer")
+    val manufacturer: String?,
+    @ColumnInfo(name = "category")
+    val category: String?,
+    @ColumnInfo(name = "in_stock")
+    val inStock: Boolean
+)

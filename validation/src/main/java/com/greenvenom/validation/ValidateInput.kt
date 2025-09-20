@@ -1,11 +1,19 @@
 package com.greenvenom.validation
 
-import android.util.Patterns
-import com.arpitkatiyarprojects.countrypicker.utils.CountryPickerUtils
 import com.greenvenom.validation.domain.ValidationError
 import com.greenvenom.validation.domain.ValidationResult
 
 object ValidateInput {
+    private val emailAddressRegex = Regex(
+        "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
+                "\\@" +
+                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+                "(" +
+                "\\." +
+                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
+                ")+"
+    )
+
     fun validateUsername(username: String): ValidationResult<Unit, ValidationError> {
         return when {
             username.isEmpty() -> ValidationResult.Error(ValidationError.EMPTY_USER_NAME)
@@ -18,8 +26,7 @@ object ValidateInput {
     fun validateEmail(email: String): ValidationResult<Unit, ValidationError> {
         return when {
             email.isEmpty() -> ValidationResult.Error(ValidationError.EMPTY_EMAIL)
-            !Patterns.EMAIL_ADDRESS.matcher(email)
-                .matches() -> ValidationResult.Error(ValidationError.INVALID_EMAIL)
+            emailAddressRegex.matches(email) -> ValidationResult.Error(ValidationError.INVALID_EMAIL)
 
             else -> ValidationResult.Success(Unit)
         }
@@ -73,17 +80,5 @@ object ValidateInput {
 
             else -> ValidationResult.Success(Unit)
         }
-    }
-
-    fun validateMobileNumber(mobileNumber: String, countryCode: String): ValidationResult<String, ValidationError> {
-        val isValid = CountryPickerUtils.isMobileNumberValid(mobileNumber, countryCode)
-        val validationResult = if (isValid) {
-            val formattedNumber = CountryPickerUtils.getFormattedMobileNumber(mobileNumber, countryCode)
-            ValidationResult.Success(formattedNumber)
-        } else {
-            ValidationResult.Error(ValidationError.INVALID_PHONE_NUMBER)
-        }
-
-        return validationResult
     }
 }

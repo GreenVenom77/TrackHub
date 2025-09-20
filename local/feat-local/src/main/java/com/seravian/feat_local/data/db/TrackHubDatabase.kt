@@ -6,10 +6,10 @@ import androidx.room.TypeConverters
 import com.seravian.core_local.utils.ListStringConverters
 import com.trackhub.core_hub.data.cache.dao.HubDao
 import com.trackhub.core_hub.data.cache.entities.HubEntity
-import com.trackhub.core_hub.data.cache.entities.HubItemEntity
+import com.trackhub.core_hub.data.cache.entities.ItemEntity
 
 @Database(
-    entities = [HubEntity::class, HubItemEntity::class],
+    entities = [HubEntity::class, ItemEntity::class],
     version = 1,
     exportSchema = false
 )

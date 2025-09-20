@@ -3,11 +3,9 @@ package com.trackhub.feat_hub.presentation.hub_list
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,12 +21,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.FloatingButton
-import com.greenvenom.core_ui.components.TopAppBar
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
+import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
-import com.trackhub.feat_hub.presentation.models.toHubUI
+import com.trackhub.feat_hub.presentation.mappers.toHubUI
 
 @Composable
 fun HubListScreen(
@@ -72,6 +70,7 @@ private fun HubListContent(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
+    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubListState.fetchingHubsResult
         ?.onError { error ->
@@ -83,6 +82,7 @@ private fun HubListContent(
     hubListState.addHubResult
         ?.onSuccess {
             hubListAction(HubListAction.ClearNetworkOperations)
+            isSheetDismissible = true
             hubSheetState = false
         }
         ?.onError { error ->
@@ -90,63 +90,60 @@ private fun HubListContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
+            isSheetDismissible = true
         }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                isVisible = true,
-                isSideDestination = false,
-                isActionEnabled = false
-            )
-        },
+    SetScaffold(
         floatingActionButton = {
             FloatingButton(
                 isVisible = areHubsOwned,
-                onClick = { hubSheetState = true },
-                modifier = Modifier
-                    .size(64.dp)
+                onClick = {
+                    isSheetDismissible = true
+                    hubSheetState = true
+                }
             )
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            hubListState.hubs.takeIf { it.isNotEmpty() }?.let { hubs ->
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(
-                        items = hubs,
-                        key = { hub -> hub.id }
-                    ) { hub ->
-                        hub.toHubUI().let { hubUI ->
-                            HubListCard(
-                                hub = hubUI,
-                                onClick = {
-                                    hubListAction(HubListAction.NavigateToHubDetails(hubUI.id))
-                                },
-                                modifier = Modifier
-                                    .padding(8.dp)
-                            )
-                        }
+        }
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        hubListState.hubs.takeIf { it.isNotEmpty() }?.let { hubs ->
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(
+                    items = hubs,
+                    key = { hub -> hub.id }
+                ) { hub ->
+                    hub.toHubUI().let { hubUI ->
+                        HubListCard(
+                            hub = hubUI,
+                            onClick = {
+                                hubListAction(HubListAction.NavigateToHubDetails(hubUI.id))
+                            },
+                            modifier = Modifier
+                                .padding(8.dp)
+                        )
                     }
                 }
             }
+        }
 
-            if (hubSheetState) {
-                HubBottomSheet(
-                    sheetState = sheetState,
-                    onDismiss = {
-                        hubSheetState = false
-                    },
-                    isEdit = false,
-                    onAdd = { hubName, hubDescription ->
-                        hubListAction(HubListAction.AddHub(hubName, hubDescription))
-                    }
-                )
-            }
+        if (hubSheetState) {
+            HubBottomSheet(
+                sheetState = sheetState,
+                onDismiss = {
+                    hubSheetState = false
+                },
+                isEdit = false,
+                isDismissible = isSheetDismissible,
+                onAdd = { hubName, hubDescription ->
+                    isSheetDismissible = false
+                    hubListAction(HubListAction.AddHub(
+                        hubName, hubDescription
+                    ))
+                }
+            )
         }
     }
 }

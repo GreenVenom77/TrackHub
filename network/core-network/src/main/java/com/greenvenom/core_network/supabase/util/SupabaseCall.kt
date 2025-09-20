@@ -29,7 +29,7 @@ inline fun <reified T> supabaseCall (
         NetworkResult.Error(
             buildNetworkError(
                 statusErrorCode = exception.statusCode,
-                message = exception.description
+                message = exception.message
             )
         )
     } catch (_: HttpRequestException) {

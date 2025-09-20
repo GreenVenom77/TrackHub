@@ -13,4 +13,25 @@
     <string name="ok">تأكيد</string>
     <string name="search">ابحث...</string>
     <string name="selected_items">العناصر المحددة: %1$d</string>
+    <string name="oops">عذراً!</string>
+    <string name="close_menu">إغلاق القائمة</string>
+    <string name="open_menu">فتح القائمة</string>
+    <string name="select_event_date">اختر تاريخ الحدث</string>
+    <string name="select_your_birth_date">اختر تاريخ ميلادك</string>
+    <string name="clear_date">مسح التاريخ</string>
+    <string name="event_date">تاريخ الحدث</string>
+    <string name="date_of_birth">تاريخ الميلاد</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="comment">تعليق</string>
+    <string name="write_your_comment_here">اكتب تعليقك هنا...</string>
+    <string name="description">الوصف</string>
+    <string name="enter_description">أدخل الوصف...</string>
+    <string name="add_a_note">أضف ملاحظة...</string>
+    <string name="select_date">اختر التاريخ</string>
+    <string name="calendar">التقويم</string>
+    <string name="loading">جارٍ التحميل...</string>
+    <string name="loading_2">جارٍ التحميل</string>
 </resources>
