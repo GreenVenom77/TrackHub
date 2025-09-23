@@ -1,5 +1,9 @@
 package com.trackhub.feat_hub.data.repo
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -74,9 +79,17 @@ class HubRepositoryImpl(
     override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
         return channelFlow {
             val cachedHubsFlow = if (isOwned) {
-                cacheDataSource.getOwnHubs()
+                cacheDataSource.getOwnHubs().map {
+                    it.map { hubEntity ->
+                        hubEntity.extractHub()
+                    }
+                }
             } else {
-                cacheDataSource.getSharedHubs()
+                cacheDataSource.getSharedHubs().map {
+                    it.map { hubEntity ->
+                        hubEntity.extractHub()
+                    }
+                }
             }
 
             cachedHubsFlow
@@ -180,20 +193,28 @@ class HubRepositoryImpl(
         return remoteDataSource.deleteItem(hubItemId)
     }
 
-    override fun getItemsFromHub(hubId: String): Flow<NetworkResult<List<Item>, NetworkError>> {
+    override fun getItemsFromHub(hubId: String): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
         return channelFlow {
-            val cachedItemsFlow = cacheDataSource.getItemsFromHub(hubId)
+            val pagedItems: Flow<PagingData<Item>> = Pager(
+                PagingConfig(
+                    pageSize = 12,
+                    prefetchDistance = 15
+                )
+            ) {
+                cacheDataSource.getItemsFromHubPaged(hubId)
+            }.flow.map { pagingData ->
+                pagingData.map { it.extractItem() }
+            }
+            send(NetworkResult.Success(pagedItems))
 
-            // First emit from cache immediately
-            cachedItemsFlow
-                .onEach { cachedItems ->
-                    currentItems.removeIf { currentItem ->
-                        currentItem.id in cachedItems.map { it.id }
-                    }
-                    currentItems.addAll(cachedItems)
-                    send(NetworkResult.Success(cachedItems))
+            cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                entities.map { it.extractItem() }
+            }.onEach { cachedItems ->
+                currentItems.removeIf { currentItem ->
+                    currentItem.id in cachedItems.map { it.id }
                 }
-                .launchIn(this)
+                currentItems.addAll(cachedItems)
+            }.launchIn(this)
 
             // Start fetching remote data
             remoteDataSource.getItemsFromHub(hubId)
@@ -216,14 +237,13 @@ class HubRepositoryImpl(
                                 cacheDataSource.deleteItems(
                                     deletedItems.map { it.toItemEntity() }
                                 )
-                                currentItems.removeAll(deletedItems.toSet())
+                                currentItems.removeAll(deletedItems)
                             }
                         }
                         .onError { error ->
                             send(NetworkResult.Error(error))
                         }
-                }
-                .launchIn(this)
+                }.launchIn(this)
         }.onCompletion { currentItems.clear() }
     }
 }

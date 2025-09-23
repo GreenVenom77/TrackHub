@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.FloatingButton
@@ -28,6 +30,7 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
@@ -66,6 +69,7 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
+    val lazyPagingItems = hubDetailsState.items.collectAsLazyPagingItems()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
@@ -194,12 +198,14 @@ private fun HubDetailsContent(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        hubDetailsState.items.takeIf { it.isNotEmpty() }?.let { hubItems ->
+        lazyPagingItems.takeIf { it.itemCount > 0 }?.let { hubItems ->
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(
-                    items = hubItems,
-                    key = { hubItem -> hubItem.id }
-                ) { hubItem ->
+                    count = hubItems.itemCount,
+                    key = hubItems.itemKey { item -> item.id },
+                    contentType = lazyPagingItems.itemContentType { "Items" }
+                ) { index ->
+                    val hubItem = lazyPagingItems[index] as Item
                     ItemListCard(
                         hubItem = hubItem.toHubItemUI(),
                         onClick = {
