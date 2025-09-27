@@ -19,8 +19,6 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE hub_id = :hubId ORDER BY name ASC")
     fun getItemsFromHub(hubId: String): Flow<List<ItemEntity>>
 
-    @Query("SELECT * FROM items WHERE hub_id = :hubId ORDER BY name ASC")
-    fun getItemsFromHubPaged(hubId: String): PagingSource<Int, ItemEntity>
 
     @Query("""
         SELECT * FROM items 

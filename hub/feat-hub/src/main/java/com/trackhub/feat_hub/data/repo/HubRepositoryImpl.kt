@@ -23,20 +23,28 @@ import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
 import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
 import com.trackhub.feat_hub.domain.repo.HubRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.take
 
 class HubRepositoryImpl(
     private val remoteDataSource: HubRemoteDataSource,
     private val cacheDataSource: HubCacheDataSource
 ): HubRepository {
     private val refreshHubsTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val hubSyncFlows = mutableMapOf<String, Flow<EmptyResult<NetworkError>>>()
 
     private val ownedHubs: MutableSet<Hub> = mutableSetOf()
     private val sharedHubs: MutableSet<Hub> = mutableSetOf()
@@ -193,57 +201,92 @@ class HubRepositoryImpl(
         return remoteDataSource.deleteItem(hubItemId)
     }
 
-    override fun getItemsFromHub(hubId: String): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
-        return channelFlow {
+    private fun startHubSync(hubId: String): Flow<EmptyResult<NetworkError>> {
+        return hubSyncFlows.getOrPut(hubId) {
+            channelFlow {
+                // Initial cache load
+                cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                    entities.map { it.extractItem() }
+                }.onEach { cachedItems ->
+                    currentItems.removeIf { currentItem ->
+                        currentItem.id in cachedItems.map { it.id }
+                    }
+                    currentItems.addAll(cachedItems)
+                }.launchIn(this)
+
+                // Continuous remote sync
+                remoteDataSource.getItemsFromHub(hubId)
+                    .onEach { remoteItems ->
+                        remoteItems.map { items -> items.map { it.extractItem() } }
+                            .onSuccess { fetchedItems ->
+                                // Compare the new items to the cached items
+                                val newItems = fetchedItems.filter { item -> item !in currentItems }
+                                val deletedItems = currentItems.filter { currentItem ->
+                                    currentItem.id !in fetchedItems.map { it.id }
+                                }
+
+                                if (newItems.isNotEmpty()) {
+                                    cacheDataSource.updateHubItems(
+                                        newItems.map { it.toItemEntity() }
+                                    )
+                                }
+
+                                if (deletedItems.isNotEmpty()) {
+                                    cacheDataSource.deleteItems(
+                                        deletedItems.map { it.toItemEntity() }
+                                    )
+                                    currentItems.removeAll(deletedItems)
+                                }
+                            }
+                            .onError { error ->
+                                send(NetworkResult.Error(error))
+                            }
+                    }.launchIn(this)
+
+                // Emit unit to indicate sync is running
+                send(NetworkResult.Success(Unit))
+            }.onCompletion {
+                currentItems.clear()
+                hubSyncFlows.remove(hubId) // Clean up when sync stops
+            }.shareIn(
+                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+                started = SharingStarted.WhileSubscribed(5000), // Keep alive for 5 seconds after last subscriber
+                replay = 1
+            )
+        }
+    }
+
+    /**
+     * Main function - now lightweight and only handles filtering
+     */
+    override fun getItemsFromHub(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
+        return flow {
+            // Start hub sync (or get existing one) - this doesn't restart on filter changes
+            startHubSync(hubId)
+                .take(1) // Just ensure sync is started
+                .collect { result ->
+                    if (result is NetworkResult.Error) {
+                        emit(result)
+                    }
+                }
+
+            // Create paging flow with current filters
             val pagedItems: Flow<PagingData<Item>> = Pager(
                 PagingConfig(
-                    pageSize = 12,
+                    pageSize = 10,
                     prefetchDistance = 15
                 )
             ) {
-                cacheDataSource.getItemsFromHubPaged(hubId)
+                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer)
             }.flow.map { pagingData ->
                 pagingData.map { it.extractItem() }
             }
-            send(NetworkResult.Success(pagedItems))
 
-            cacheDataSource.getItemsFromHub(hubId).map { entities ->
-                entities.map { it.extractItem() }
-            }.onEach { cachedItems ->
-                currentItems.removeIf { currentItem ->
-                    currentItem.id in cachedItems.map { it.id }
-                }
-                currentItems.addAll(cachedItems)
-            }.launchIn(this)
-
-            // Start fetching remote data
-            remoteDataSource.getItemsFromHub(hubId)
-                .onEach { remoteItems ->
-                    remoteItems.map { items -> items.map { it.extractItem() } }
-                        .onSuccess { fetchedItems ->
-                            // Compare the new items to the cached items
-                            val newItems = fetchedItems.filter { item -> item !in currentItems }
-                            val deletedItems = currentItems.filter { currentItem ->
-                                currentItem.id !in fetchedItems.map { it.id }
-                            }
-
-                            if (newItems.isNotEmpty()) {
-                                cacheDataSource.updateHubItems(
-                                    newItems.map { it.toItemEntity() }
-                                )
-                            }
-
-                            if (deletedItems.isNotEmpty()) {
-                                cacheDataSource.deleteItems(
-                                    deletedItems.map { it.toItemEntity() }
-                                )
-                                currentItems.removeAll(deletedItems)
-                            }
-                        }
-                        .onError { error ->
-                            send(NetworkResult.Error(error))
-                        }
-                }.launchIn(this)
-        }.onCompletion { currentItems.clear() }
+            emit(NetworkResult.Success(pagedItems))
+        }
     }
 }

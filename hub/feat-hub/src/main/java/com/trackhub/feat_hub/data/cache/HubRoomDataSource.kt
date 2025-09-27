@@ -66,7 +66,15 @@ class HubRoomDataSource(
         return itemDao.getItemsFromHub(hubId)
     }
 
-    override fun getItemsFromHubPaged(hubId: String): PagingSource<Int, ItemEntity> {
-        return itemDao.getItemsFromHubPaged(hubId)
+    override fun getItemsWithFiltersPaged(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): PagingSource<Int, ItemEntity> {
+        return itemDao.getItemsWithFiltersPaged(
+            hubId,
+            category,
+            manufacturer
+        )
     }
 }

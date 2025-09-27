@@ -31,5 +31,9 @@ interface HubRepository {
 
     suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError>
 
-    fun getItemsFromHub(hubId: String): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>>
+    fun getItemsFromHub(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>>
 }

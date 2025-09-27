@@ -32,5 +32,9 @@ interface HubCacheDataSource {
 
     fun getItemsFromHub(hubId: String): Flow<List<ItemEntity>>
 
-    fun getItemsFromHubPaged(hubId: String): PagingSource<Int, ItemEntity>
+    fun getItemsWithFiltersPaged(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): PagingSource<Int, ItemEntity>
 }
