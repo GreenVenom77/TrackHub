@@ -163,6 +163,7 @@ private fun HubDetailsContent(
 
     SetScaffold(
         title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
+        showLogo = false,
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
             IconButton(

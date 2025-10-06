@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                             TopAppBar(
                                 isVisible = navigationState.topBarState,
                                 title = scaffoldState.title,
+                                showLogo = scaffoldState.showLogo,
                                 navigateBack = scaffoldState.navigateBackAction,
                                 action = scaffoldState.topBarActions
                             )

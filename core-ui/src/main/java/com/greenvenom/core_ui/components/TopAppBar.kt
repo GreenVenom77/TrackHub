@@ -38,6 +38,7 @@ fun TopAppBar(
     isVisible: Boolean,
     modifier: Modifier = Modifier,
     navigateBack: (() -> Unit)? = null,
+    showLogo: Boolean = true,
     logo: Painter = painterResource(R.drawable.logo),
     title: String = "",
     action: @Composable (RowScope.() -> Unit) = {}
@@ -49,6 +50,7 @@ fun TopAppBar(
         content = {
             TopBarContent(
                 navigateBack = navigateBack,
+                showLogo = showLogo,
                 logo = logo,
                 title = title.ifEmpty { stringResource(R.string.app_name) },
                 modifier = modifier,
@@ -62,6 +64,7 @@ fun TopAppBar(
 @Composable
 private fun TopBarContent(
     navigateBack: (() -> Unit)?,
+    showLogo: Boolean,
     logo: Painter,
     title: String,
     modifier: Modifier = Modifier,
@@ -99,17 +102,19 @@ private fun TopBarContent(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // Logo
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                ) {
-                    Image(
-                        painter = logo,
-                        contentDescription = "Logo",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                if (showLogo) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                    ) {
+                        Image(
+                            painter = logo,
+                            contentDescription = "Logo",
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
-                Spacer(modifier = Modifier.width(16.dp))
                 // Title
                 Text(
                     text = title,
@@ -122,12 +127,13 @@ private fun TopBarContent(
     )
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 private fun TopAppBarPreview() {
     AppTheme {
         TopBarContent(
             navigateBack = {  },
+            showLogo = false,
             logo = painterResource(R.drawable.logo),
             title = "Testsdgd",
             action = {
