@@ -12,6 +12,8 @@ data class HubDetailsState(
     val hub: Hub? = null,
     val items: Flow<PagingData<Item>> = flow { emit(PagingData.from(emptyList())) },
     val currentItem: Item? = null,
+    val selectedCategory: String? = null,
+    val selectedManufacturer: String? = null,
     val hubDeletionResult: EmptyResult<NetworkError>? = null,
     val hubUpdateResult: EmptyResult<NetworkError>? = null,
     val operationResult: EmptyResult<NetworkError>? = null,
