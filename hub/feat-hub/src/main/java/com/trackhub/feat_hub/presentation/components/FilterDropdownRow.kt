@@ -32,7 +32,7 @@ fun FilterDropdownRow(
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Category Dropdown
@@ -43,7 +43,8 @@ fun FilterDropdownRow(
                 selectedItem = selectedCategory,
                 defaultItem = stringResource(R.string.all_categories),
                 onItemSelected = onCategorySelected,
-                modifier = Modifier.width(180.dp)
+                modifier = Modifier
+                    .width(200.dp)
             )
         }
 
@@ -55,7 +56,8 @@ fun FilterDropdownRow(
                 selectedItem = selectedManufacturer,
                 defaultItem = stringResource(R.string.all_manufacturers),
                 onItemSelected = onManufacturerSelected,
-                modifier = Modifier.width(200.dp)
+                modifier = Modifier
+                    .width(200.dp)
             )
         }
     }

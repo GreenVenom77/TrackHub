@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -53,7 +54,9 @@ fun FilterDropdown(
     ) {
         FilterChip(
             selected = selectedItem != defaultItem,
-            onClick = { expanded = true },
+            onClick = {
+                expanded = true
+            },
             label = {
                 Text(
                     text = selectedItem,
@@ -79,7 +82,8 @@ fun FilterDropdown(
                 )
             },
             modifier = Modifier
-                .height(40.dp),
+                .height(40.dp)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             border = FilterChipDefaults.filterChipBorder(
                 enabled = true,
                 selected = selectedItem != defaultItem,
@@ -90,8 +94,9 @@ fun FilterDropdown(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.exposedDropdownSize()
-        ) {
+            modifier = Modifier
+                .exposedDropdownSize()
+            ) {
             DropdownMenuItem(
                 text = {
                     Text(
