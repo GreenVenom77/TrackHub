@@ -25,10 +25,10 @@ espressoCore = "3.6.1"
 koin = "4.1.0"
 
 # Network
-ktor = "3.2.3"
+ktor = "3.3.0"
 materialIconsExtended = "1.7.8"
 pagingRuntime = "3.3.6"
-supabase = "3.2.2"
+supabase = "3.2.4"
 
 # Data Persistence
 datastore = "1.1.7"
@@ -68,6 +68,7 @@ koin-android-compose-navigation = { group = "io.insert-koin", name = "koin-andro
 
 # Supabase
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
 supabase-postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 supabase-realtime-kt = { module = "io.github.jan-tennert.supabase:realtime-kt" }
@@ -146,4 +147,5 @@ supabase = [
     "supabase-auth-kt",
     "supabase-coil3-integration",
     "ktor-client-cio",
+    "ktor-client-logging",
 ]

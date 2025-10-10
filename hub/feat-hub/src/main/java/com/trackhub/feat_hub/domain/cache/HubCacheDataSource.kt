@@ -30,7 +30,7 @@ interface HubCacheDataSource {
 
     suspend fun deleteItems(items: List<ItemEntity>)
 
-    fun getItemsFromHub(hubId: String): Flow<List<ItemEntity>>
+    fun getItemsFromHub(hubId: String): List<ItemEntity>
 
     fun getItemsWithFiltersPaged(
         hubId: String,

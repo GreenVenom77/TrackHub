@@ -62,7 +62,7 @@ class HubRoomDataSource(
         itemDao.deleteItems(items)
     }
 
-    override fun getItemsFromHub(hubId: String): Flow<List<ItemEntity>> {
+    override fun getItemsFromHub(hubId: String): List<ItemEntity> {
         return itemDao.getItemsFromHub(hubId)
     }
 

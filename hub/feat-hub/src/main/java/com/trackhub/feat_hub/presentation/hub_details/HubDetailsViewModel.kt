@@ -2,6 +2,7 @@ package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
@@ -81,6 +82,7 @@ class HubDetailsViewModel(
     private fun updateHub(
         updatedHub: Hub
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateHubResult = withContext(Dispatchers.IO) {
                 hubRepository.updateHub(
@@ -93,10 +95,12 @@ class HubDetailsViewModel(
                     hubUpdateResult = updateHubResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun deleteHub(hubId: String) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteHubResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHub(hubId)
@@ -107,12 +111,14 @@ class HubDetailsViewModel(
                     hubDeletionResult = deleteHubResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun addItemToHub(
         newItem: Item
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val addItemResult = withContext(Dispatchers.IO) {
                 hubRepository.addItemToHub(
@@ -127,12 +133,14 @@ class HubDetailsViewModel(
                     operationResult = addItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun updateItem(
         updatedItem: Item
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateItemResult = withContext(Dispatchers.IO) {
                 hubRepository.updateItem(
@@ -145,10 +153,12 @@ class HubDetailsViewModel(
                     operationResult = updateItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun deleteItem(itemId: Int) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteItemResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHubItem(itemId)
@@ -159,6 +169,7 @@ class HubDetailsViewModel(
                     itemDeletionResult = deleteItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
@@ -187,7 +198,7 @@ class HubDetailsViewModel(
                     itemsResult.onSuccess { items ->
                         _hubDetailsState.update {
                             it.copy(
-                                items = items
+                                items = items.cachedIn(viewModelScope)
                             )
                         }
                     }

@@ -26,18 +26,17 @@ import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.take
 
 class HubRepositoryImpl(
     private val remoteDataSource: HubRemoteDataSource,
@@ -45,10 +44,8 @@ class HubRepositoryImpl(
 ): HubRepository {
     private val refreshHubsTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val hubSyncFlows = mutableMapOf<String, Flow<EmptyResult<NetworkError>>>()
-
     private val ownedHubs: MutableSet<Hub> = mutableSetOf()
     private val sharedHubs: MutableSet<Hub> = mutableSetOf()
-    private val currentItems: MutableSet<Item> = mutableSetOf()
 
     override fun refreshHubs() {
         refreshHubsTrigger.tryEmit(Unit)
@@ -204,24 +201,20 @@ class HubRepositoryImpl(
     private fun startHubSync(hubId: String): Flow<EmptyResult<NetworkError>> {
         return hubSyncFlows.getOrPut(hubId) {
             channelFlow {
-                // Initial cache load
-                cacheDataSource.getItemsFromHub(hubId).map { entities ->
-                    entities.map { it.extractItem() }
-                }.onEach { cachedItems ->
-                    currentItems.removeIf { currentItem ->
-                        currentItem.id in cachedItems.map { it.id }
-                    }
-                    currentItems.addAll(cachedItems)
-                }.launchIn(this)
-
                 // Continuous remote sync
                 remoteDataSource.getItemsFromHub(hubId)
                     .onEach { remoteItems ->
                         remoteItems.map { items -> items.map { it.extractItem() } }
                             .onSuccess { fetchedItems ->
                                 // Compare the new items to the cached items
-                                val newItems = fetchedItems.filter { item -> item !in currentItems }
-                                val deletedItems = currentItems.filter { currentItem ->
+                                val newItems = fetchedItems.filter { item ->
+                                    item !in cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                                        entities.extractItem()
+                                    }
+                                }
+                                val deletedItems = cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                                    entities.extractItem()
+                                }.filter { currentItem ->
                                     currentItem.id !in fetchedItems.map { it.id }
                                 }
 
@@ -235,18 +228,13 @@ class HubRepositoryImpl(
                                     cacheDataSource.deleteItems(
                                         deletedItems.map { it.toItemEntity() }
                                     )
-                                    currentItems.removeAll(deletedItems)
                                 }
                             }
                             .onError { error ->
                                 send(NetworkResult.Error(error))
                             }
                     }.launchIn(this)
-
-                // Emit unit to indicate sync is running
-                send(NetworkResult.Success(Unit))
             }.onCompletion {
-                currentItems.clear()
                 hubSyncFlows.remove(hubId) // Clean up when sync stops
             }.shareIn(
                 scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
@@ -257,22 +245,22 @@ class HubRepositoryImpl(
     }
 
     /**
-     * Main function - now lightweight and only handles filtering
+     * Main function - lightweight and only handles filtering
      */
     override fun getItemsFromHub(
         hubId: String,
         category: String?,
         manufacturer: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
-        return flow {
+        return channelFlow {
             // Start hub sync (or get existing one) - this doesn't restart on filter changes
-            startHubSync(hubId)
-                .take(1) // Just ensure sync is started
-                .collect { result ->
+            val syncJob = startHubSync(hubId)
+                .onEach { result ->
                     if (result is NetworkResult.Error) {
-                        emit(result)
+                        send(result) // Report all errors
                     }
                 }
+                .launchIn(this)
 
             // Create paging flow with current filters
             val pagedItems: Flow<PagingData<Item>> = Pager(
@@ -286,7 +274,8 @@ class HubRepositoryImpl(
                 pagingData.map { it.extractItem() }
             }
 
-            emit(NetworkResult.Success(pagedItems))
+            send(NetworkResult.Success(pagedItems))
+            awaitClose { syncJob.cancel() }
         }
     }
 }
