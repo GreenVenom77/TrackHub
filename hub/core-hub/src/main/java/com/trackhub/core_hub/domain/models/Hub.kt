@@ -9,6 +9,6 @@ data class Hub(
     val description: String?,
     val createdAt: String,
     val role: HubRole,
-    val manufacturerList: List<String>?,
-    val categoryList: List<String>?
+    val manufacturerList: List<String>,
+    val categoryList: List<String>
 )

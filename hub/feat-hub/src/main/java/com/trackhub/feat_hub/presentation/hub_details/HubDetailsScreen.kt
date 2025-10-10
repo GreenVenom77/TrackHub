@@ -328,7 +328,7 @@ private fun HubDetailsContent(
                 onAddManufacturer = { manufacturerName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
                         hubDetailsState.hub?.copy(
-                            manufacturerList = hubDetailsState.hub.manufacturerList?.plus(
+                            manufacturerList = hubDetailsState.hub.manufacturerList.plus(
                                 manufacturerName
                             )
                         ) as Hub
@@ -337,7 +337,7 @@ private fun HubDetailsContent(
                 onAddCategory = { categoryName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
                         hubDetailsState.hub?.copy(
-                            categoryList = hubDetailsState.hub.categoryList?.plus(
+                            categoryList = hubDetailsState.hub.categoryList.plus(
                                 categoryName
                             )
                         ) as Hub
