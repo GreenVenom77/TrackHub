@@ -117,7 +117,6 @@ private fun HubDetailsContent(
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             if (hubSheetState) {
                 hubSheetState = false
-                hubDetailsAction(HubDetailsAction.NavigateBack)
             }
         }
         ?.onError { error ->
@@ -208,8 +207,8 @@ private fun HubDetailsContent(
             FilterDropdownRow(
                 categories = hubDetailsState.hub?.categoryList ?: emptyList(),
                 manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
-                selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+                defaultCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+                defaultManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
                 onCategorySelected = { category ->
                     hubDetailsAction(HubDetailsAction.FilterItems(
                         category = category,

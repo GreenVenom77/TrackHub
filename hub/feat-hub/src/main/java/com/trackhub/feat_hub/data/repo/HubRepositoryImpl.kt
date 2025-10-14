@@ -55,20 +55,20 @@ class HubRepositoryImpl(
         hubInsertRequest: HubInsertRequest
     ): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.addHub(hubInsertRequest)
-        remoteResult.onSuccess { returnedHub ->
-            cacheDataSource.addHub(returnedHub.extractHub().toHubEntity())
+        remoteResult.onSuccess { hubDto ->
+            cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
         }
         return remoteResult.map {  }
     }
 
     override suspend fun updateHub(
         hubUpdateRequest: HubUpdateRequest
-    ): EmptyResult<NetworkError> {
+    ): NetworkResult<Hub, NetworkError> {
         val remoteResult = remoteDataSource.updateHub(hubUpdateRequest)
-        remoteResult.onSuccess { returnedHub ->
-            cacheDataSource.updateHub(returnedHub.extractHub().toHubEntity())
+        remoteResult.onSuccess { hubDto ->
+            cacheDataSource.updateHub(hubDto.extractHub().toHubEntity())
         }
-        return remoteResult.map {  }
+        return remoteResult.map { it.extractHub() }
     }
 
     override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {

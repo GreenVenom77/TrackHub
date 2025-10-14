@@ -17,7 +17,7 @@ interface HubRepository {
 
     suspend fun addHub(hubInsertRequest: HubInsertRequest): EmptyResult<NetworkError>
 
-    suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): EmptyResult<NetworkError>
+    suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): NetworkResult<Hub, NetworkError>
 
     suspend fun deleteHub(hubId: String): EmptyResult<NetworkError>
 

@@ -3,6 +3,7 @@ package com.trackhub.feat_hub.presentation.hub_details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.greenvenom.core_network.data.NetworkResult
 import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
@@ -92,9 +93,17 @@ class HubDetailsViewModel(
 
             _hubDetailsState.update {
                 it.copy(
-                    hubUpdateResult = updateHubResult
+                    hubUpdateResult = updateHubResult.map {  }
                 )
             }
+            if (updateHubResult is NetworkResult.Success) {
+                _hubDetailsState.update {
+                    it.copy(
+                        hub = updateHubResult.data
+                    )
+                }
+            }
+
             baseAction(BaseAction.HideLoading)
         }
     }

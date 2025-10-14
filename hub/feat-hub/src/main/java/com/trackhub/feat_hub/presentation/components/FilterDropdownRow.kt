@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,14 +23,17 @@ import com.trackhub.feat_hub.R
 fun FilterDropdownRow(
     categories: List<String> = emptyList(),
     manufacturers: List<String> = emptyList(),
-    selectedCategory: String = stringResource(R.string.all_categories),
-    selectedManufacturer: String = stringResource(R.string.all_manufacturers),
-    onCategorySelected: (String) -> Unit = {},
-    onManufacturerSelected: (String) -> Unit = {},
+    defaultCategory: String = stringResource(R.string.all_categories),
+    defaultManufacturer: String = stringResource(R.string.all_manufacturers),
+    onCategorySelected: (String?) -> Unit = {},
+    onManufacturerSelected: (String?) -> Unit = {},
     modifier: Modifier = Modifier,
     showCategory: Boolean = true,
     showManufacturer: Boolean = true
 ) {
+    var selectedCategory by rememberSaveable { mutableStateOf(defaultCategory) }
+    var selectedManufacturer by rememberSaveable { mutableStateOf(defaultManufacturer) }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -38,11 +45,13 @@ fun FilterDropdownRow(
         // Category Dropdown
         if (showCategory) {
             FilterDropdown(
-                label = stringResource(R.string.category),
                 items = categories,
                 selectedItem = selectedCategory,
-                defaultItem = stringResource(R.string.all_categories),
-                onItemSelected = onCategorySelected,
+                defaultItem = defaultCategory,
+                onItemSelected = { category ->
+                    onCategorySelected(if (category == defaultCategory) null else category)
+                    selectedCategory = category
+                },
                 modifier = Modifier
                     .width(200.dp)
             )
@@ -51,11 +60,13 @@ fun FilterDropdownRow(
         // Manufacturer Dropdown
         if (showManufacturer) {
             FilterDropdown(
-                label = stringResource(R.string.manufacturer),
                 items = manufacturers,
                 selectedItem = selectedManufacturer,
-                defaultItem = stringResource(R.string.all_manufacturers),
-                onItemSelected = onManufacturerSelected,
+                defaultItem = defaultManufacturer,
+                onItemSelected = { manufacturer ->
+                    onManufacturerSelected(if (manufacturer == defaultManufacturer) null else manufacturer)
+                    selectedManufacturer = manufacturer
+                },
                 modifier = Modifier
                     .width(200.dp)
             )

@@ -38,7 +38,6 @@ import com.greenvenom.core_ui.theme.AppTheme
 
 @Composable
 fun FilterDropdown(
-    label: String,
     items: List<String>,
     selectedItem: String,
     defaultItem: String,
@@ -96,7 +95,7 @@ fun FilterDropdown(
             onDismissRequest = { expanded = false },
             modifier = Modifier
                 .exposedDropdownSize()
-            ) {
+        ) {
             DropdownMenuItem(
                 text = {
                     Text(
@@ -135,7 +134,11 @@ fun FilterDropdown(
                         )
                     },
                     onClick = {
-                        onItemSelected(item)
+                        if (selectedItem == item) {
+                            onItemSelected(defaultItem)
+                        } else {
+                            onItemSelected(item)
+                        }
                         expanded = false
                     },
                     leadingIcon = if (selectedItem == item) {
@@ -172,7 +175,6 @@ private fun FilterDropdownPreview() {
 
             // Default state
             FilterDropdown(
-                label = "Category",
                 items = listOf("Electronics", "Furniture", "Food", "Clothing"),
                 selectedItem = "All Categories",
                 defaultItem = "All Categories",
@@ -181,7 +183,6 @@ private fun FilterDropdownPreview() {
 
             // Selected state
             FilterDropdown(
-                label = "Manufacturer",
                 items = listOf("Samsung", "LG", "Sony", "Apple"),
                 selectedItem = "Samsung",
                 defaultItem = "All Manufacturers",
