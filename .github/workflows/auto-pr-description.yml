@@ -15,14 +15,29 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for proper diffs
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
       - name: Get commit messages and diff summary
         id: context
         run: |
           echo "### Commits" > context.txt
-          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt
+          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No commits found)" >> context.txt
           echo -e "\n\n### Diff Summary" >> context.txt
-          git diff --stat origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt
+          git diff --stat origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No diff found)" >> context.txt
+
+          # Truncate context if too large (>25KB) to avoid hitting API limits
+          MAX_BYTES=25000
+          ACTUAL_BYTES=$(wc -c < context.txt)
+          if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
+            echo -e "\n\n[Note: diff truncated for size]" >> context.txt
+            head -c $MAX_BYTES context.txt > truncated.txt && mv truncated.txt context.txt
+          fi
+
           echo "context<<EOF" >> $GITHUB_OUTPUT
           cat context.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -44,7 +59,7 @@ jobs:
                 },
                 {
                   \"role\": \"user\",
-                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA short paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
+                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA short paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response under 500 words.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
                 }
               ]
             }")
