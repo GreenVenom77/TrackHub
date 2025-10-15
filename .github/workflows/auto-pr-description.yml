@@ -51,7 +51,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"deepseek-r1t2-chimera:free\",
+              \"model\": \"qwen3-coder:free\",
               \"messages\": [
                 {
                   \"role\": \"system\",
