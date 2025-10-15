@@ -86,11 +86,8 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Escape the context for JSON
-          CONTEXT=$(cat <<'CONTEXT_EOF'
-          ${{ steps.context.outputs.context }}
-          CONTEXT_EOF
-          )
+          # Read context from the file directly to avoid shell interpretation issues
+          CONTEXT=$(cat context.txt)
 
           # Create the JSON payload using jq to properly escape everything
           PAYLOAD=$(jq -n \
