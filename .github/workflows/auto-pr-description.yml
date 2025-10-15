@@ -22,7 +22,7 @@ jobs:
         run: |
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
-      - name: Get commit messages and diff summary
+      - name: Get commit messages and diff summary (safe)
         id: context
         run: |
           echo "### Commits" > context.txt
@@ -51,7 +51,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"gpt-oss-20b\",
+              \"model\": \"deepseek-r1t2-chimera:free\",
               \"messages\": [
                 {
                   \"role\": \"system\",
@@ -59,7 +59,7 @@ jobs:
                 },
                 {
                   \"role\": \"user\",
-                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA short paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response under 500 words.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
+                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response clear from unnecessary Info.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
                 }
               ]
             }")
@@ -74,5 +74,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CURRENT_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q '.body')
-          NEW_BODY="${CURRENT_BODY}\n\n---\n\n### AI-Generated Pull Request Summary\n${{ steps.ai.outputs.description }}"
-          gh pr edit ${{ github.event.pull_request.number }} --body "$NEW_BODY"
+
+          {
+            echo "$CURRENT_BODY"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### AI-Generated Pull Request Summary"
+            echo ""
+            echo "${{ steps.ai.outputs.description }}"
+          } > new_body.txt
+
+          gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt
