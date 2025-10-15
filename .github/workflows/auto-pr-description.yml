@@ -11,7 +11,6 @@ permissions:
 jobs:
   generate-description:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,14 +19,12 @@ jobs:
 
       - name: Fetch base branch
         run: |
-          set -e
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
       - name: Get commit messages and code changes
         id: context
-        shell: bash
         run: |
-          set -e
+          # Create context content in a file first
           {
             echo "### Commits"
             git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits found)"
@@ -37,41 +34,50 @@ jobs:
 
             echo -e "\n\n### Actual Code Changes (Added & Modified Files)"
 
-            ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "")
-            MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "")
+            # Get list of added and modified files
+            ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
+            MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
 
+            # Show actual code changes for each added file
             if [ -n "$ADDED_FILES" ]; then
               echo -e "\n#### 🆕 New Files:"
-              for file in $ADDED_FILES; do
+              while IFS= read -r file; do
+                [ -z "$file" ] && continue
                 echo -e "\n**$file**:"
-                git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" | grep -E "^\+" | grep -v "^\+\+\+" || echo "  (No content to show)"
-              done
+                git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No content to show)"
+              done <<< "$ADDED_FILES"
             fi
 
+            # Show actual code changes for each modified file
             if [ -n "$MODIFIED_FILES" ]; then
               echo -e "\n#### ✏️ Modified Files:"
-              for file in $MODIFIED_FILES; do
+              while IFS= read -r file; do
+                [ -z "$file" ] && continue
                 echo -e "\n**$file**:"
-                git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" || echo "  (No changes to show)"
-              done
+                git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No changes to show)"
+              done <<< "$MODIFIED_FILES"
             fi
 
+            # If no added or modified files found
             if [ -z "$ADDED_FILES" ] && [ -z "$MODIFIED_FILES" ]; then
               echo "No added or modified files found in this PR."
             fi
           } > context.txt
 
+          # Truncate context if too large (>25KB) to avoid hitting API limits
           MAX_BYTES=25000
-          ACTUAL_BYTES=$(wc -c < context.txt)
+          ACTUAL_BYTES=$(wc -c < context.txt | awk '{print $1}')
           if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
             echo -e "\n\n[Note: diff truncated for size]" >> context.txt
             head -c $MAX_BYTES context.txt > truncated.txt
             mv truncated.txt context.txt
           fi
 
+          # Set output using the proper format
+          CONTENT=$(cat context.txt)
           {
             echo "context<<EOF"
-            cat context.txt
+            echo "$CONTENT"
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
@@ -79,9 +85,7 @@ jobs:
         id: ai
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        shell: bash
         run: |
-          set -e
           RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
@@ -101,18 +105,14 @@ jobs:
 
           DESCRIPTION=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "No description generated."')
 
-          {
-            echo "description<<EOF"
-            echo "$DESCRIPTION"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Overwrite PR body completely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
-          set -e
           {
             echo "### AI-Generated Pull Request Summary"
             echo ""
