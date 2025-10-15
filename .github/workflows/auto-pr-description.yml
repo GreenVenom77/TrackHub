@@ -94,7 +94,7 @@ jobs:
 
           # Create the JSON payload using jq with rawfile to read from file
           PAYLOAD=$(jq -n \
-            --arg model "mistralai/devstral-small-2505:free" \
+            --arg model "z-ai/glm-4.5-air:free" \
             --arg system_content "You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions." \
             --rawfile user_content prompt_template.txt \
             '{
