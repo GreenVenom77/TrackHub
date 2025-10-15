@@ -20,179 +20,93 @@ jobs:
 
       - name: Fetch base branch
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
       - name: Get commit messages and code changes
         id: context
         run: |
-          # Generate commits section
           echo "### Commits" > context.txt
-          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No commits found" >> context.txt
+          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No commits found)" >> context.txt
 
-          # Generate code diff for ADDED and MODIFIED files only (ignore deleted, renamed, etc.)
-          echo -e "\n\n### Code Changes (Added & Modified Files Only)" >> context.txt
-          git diff --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No diff found for added/modified files" >> context.txt
+          echo -e "\n\n### Diff Summary (Added & Modified Files Only)" >> context.txt
+          git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No diff found)" >> context.txt
 
-          # Check size and truncate if needed
-          MAX_BYTES=25000
-          ACTUAL_BYTES=$(wc -c < context.txt)
+          echo -e "\n\n### Actual Code Changes (Added & Modified Files)" >> context.txt
 
-          if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
-            echo "### Commits" > context_temp.txt
-            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context_temp.txt 2>&1
+          # Get list of added and modified files
+          ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD)
+          MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD)
 
-            echo -e "\n\n### Code Changes (Added & Modified Files Only - truncated)" >> context_temp.txt
-            git diff --diff-filter=AM --unified=1 origin/${{ github.event.pull_request.base.ref }}..HEAD >> context_temp2.txt 2>&1
-
-            COMMITS_SIZE=$(wc -c < context_temp.txt)
-            REMAINING=$((MAX_BYTES - COMMITS_SIZE - 200))
-
-            head -c $REMAINING context_temp2.txt >> context_temp.txt
-            echo -e "\n\n[Note: Diff truncated due to size limits. Showing first ${REMAINING} bytes of changes from added/modified files only.]" >> context_temp.txt
-
-            mv context_temp.txt context.txt
-            rm -f context_temp2.txt
+          # Show actual code changes for each added file
+          if [ -n "$ADDED_FILES" ]; then
+            echo -e "\n#### 🆕 New Files:" >> context.txt
+            for file in $ADDED_FILES; do
+              echo -e "\n**$file**:" >> context.txt
+              git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" | grep -E "^\+" | grep -v "^\+\+\+" >> context.txt || echo "  (No content to show)" >> context.txt
+            done
           fi
 
-          # Show summary of changed files
-          echo -e "\n\n### Changed Files Summary" >> context.txt
-          echo "Added files:" >> context.txt
-          git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No added files" >> context.txt
-          echo -e "\nModified files:" >> context.txt
-          git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No modified files" >> context.txt
+          # Show actual code changes for each modified file
+          if [ -n "$MODIFIED_FILES" ]; then
+            echo -e "\n#### ✏️ Modified Files:" >> context.txt
+            for file in $MODIFIED_FILES; do
+              echo -e "\n**$file**:" >> context.txt
+              git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" >> context.txt || echo "  (No changes to show)" >> context.txt
+            done
+          fi
 
-          # Set the output using proper multiline format
-          CONTENT=$(cat context.txt)
+          # If no added or modified files found
+          if [ -z "$ADDED_FILES$MODIFIED_FILES" ]; then
+            echo "No added or modified files found in this PR." >> context.txt
+          fi
+
+          # Truncate context if too large (>25KB) to avoid hitting API limits
+          MAX_BYTES=25000
+          ACTUAL_BYTES=$(wc -c < context.txt)
+          if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
+            echo -e "\n\n[Note: diff truncated for size]" >> context.txt
+            head -c $MAX_BYTES context.txt > truncated.txt && mv truncated.txt context.txt
+          fi
+
           echo "context<<EOF" >> $GITHUB_OUTPUT
-          echo "$CONTENT" >> $GITHUB_OUTPUT
+          cat context.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
-          # Cleanup
-          rm -f context.txt
 
       - name: Generate AI Pull Request Description
         id: ai
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Create a temporary file for the JSON payload
-          cat > payload.json << 'EOF'
-          {
-            "model": "z-ai/glm-4.5-air:free",
-            "messages": [
-              {
-                "role": "system",
-                "content": "You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions. Focus only on code changes in ADDED and MODIFIED files."
-              },
-              {
-                "role": "user",
-                "content": "Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified. ONLY consider changes in ADDED and MODIFIED files.\n\n## Summary\n2-3 sentences describing the main technical changes and why they were made.\n\n## Technical Changes\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\n\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\n\nCRITICAL RULES:\n1. ONLY analyze ADDED and MODIFIED files (ignore deleted, renamed, copied files)\n2. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\n3. Focus on features and architecture, not file names\n4. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\n5. Prioritize: major features > refactors > minor changes\n6. Skip: gradle configs, string resources, minor tweaks\n\nGOOD EXAMPLES:\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\n\nBAD EXAMPLES (DON'T DO THIS):\n❌ HubRepository — Updated repository interface\n❌ HubMapper — Updated data transformation\n❌ HubDetailsScreen — Added filter component\n❌ ItemDao — Implemented new queries\n(These are too vague and file-focused)\n\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\n\nContext:\n${{ steps.context.outputs.context }}"
-              }
-            ]
-          }
-          EOF
-
-          # Make API call with error handling
-          RESPONSE=$(curl -s -w "\n%{http_code}" https://openrouter.ai/api/v1/chat/completions \
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d @payload.json)
+            -d "{
+              \"model\": \"mistralai/devstral-small-2505:free\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified.\\n\\n## Summary\\n2-3 sentences describing the main technical changes and why they were made.\\n\\n## Technical Changes\\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\\n\\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\\n\\nCRITICAL RULES:\\n1. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\\n2. Focus on features and architecture, not file names\\n3. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\\n4. Prioritize: major features > refactors > minor changes\\n5. Skip: gradle configs, string resources, minor tweaks\\n\\nGOOD EXAMPLES:\\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\\n\\nBAD EXAMPLES (DON'T DO THIS):\\n❌ HubRepository — Updated repository interface\\n❌ HubMapper — Updated data transformation\\n❌ HubDetailsScreen — Added filter component\\n❌ ItemDao — Implemented new queries\\n(These are too vague and file-focused)\\n\\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\\n\\nContext:\\n${{ steps.context.outputs.context }}\"
+                }
+              ]
+            }")
 
-          # Extract HTTP status code and response body
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-
-          # Check if API call was successful
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "Error: API call failed with status code $HTTP_CODE"
-            echo "Response: $RESPONSE_BODY"
-
-            # Extract error message from response if available
-            ERROR_MSG=$(echo "$RESPONSE_BODY" | jq -r '.error.message // .message // "Unknown error"' 2>/dev/null)
-
-            # Create detailed error description
-            DESCRIPTION="⚠️ **Failed to generate AI description**
-
-            **HTTP Status:** $HTTP_CODE
-
-            **Error:** $ERROR_MSG
-
-            **Possible causes:**
-            - Invalid or missing OPENROUTER_API_KEY secret
-            - API rate limit exceeded
-            - Model unavailable or deprecated
-            - Network connectivity issues
-            - Invalid API request format
-
-            **Raw Response:**
-            \`\`\`
-            $RESPONSE_BODY
-            \`\`\`"
-                    else
-                        # Validate JSON response
-                        if echo "$RESPONSE_BODY" | jq empty 2>/dev/null; then
-                        DESCRIPTION=$(echo "$RESPONSE_BODY" | jq -r '.choices[0].message.content // "⚠️ No description generated by AI."')
-
-                        # Check if description is empty or null
-                        if [ -z "$DESCRIPTION" ] || [ "$DESCRIPTION" = "null" ]; then
-                            DESCRIPTION="⚠️ **AI returned empty description**
-
-            **Possible causes:**
-            - Model returned no content
-            - Content was filtered or rejected
-            - API response missing expected fields
-
-            **Raw Response:**
-            \`\`\`
-            $RESPONSE_BODY
-            \`\`\`"
-                        fi
-                        else
-                        echo "Error: Invalid JSON response"
-                        echo "Response: $RESPONSE_BODY"
-                        DESCRIPTION="⚠️ **Failed to parse AI response**
-
-            **Error:** Response is not valid JSON
-
-            **Possible causes:**
-            - API returned HTML error page instead of JSON
-            - Network proxy interference
-            - API endpoint issue
-
-            **Raw Response:**
-            \`\`\`
-            $RESPONSE_BODY
-            \`\`\`"
-                        fi
-                    fi
-
-          # Set output using proper multiline format
+          DESCRIPTION=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "No description generated."')
           echo "description<<EOF" >> $GITHUB_OUTPUT
           echo "$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          # Cleanup
-          rm -f payload.json
-
-      - name: Update PR description
+      - name: Overwrite PR body completely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat > new_body.txt << 'EOF'
-          ### AI-Generated Pull Request Summary
+          {
+            echo "### AI-Generated Pull Request Summary"
+            echo ""
+            echo "${{ steps.ai.outputs.description }}"
+          } > new_body.txt
 
-          ${{ steps.ai.outputs.description }}
-
-          ---
-          EOF
-
-          # Update PR with error handling
-          if gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt; then
-            echo "✅ PR description updated successfully"
-          else
-            echo "❌ Failed to update PR description"
-            exit 1
-          fi
-
-          # Cleanup
-          rm -f new_body.txt
+          gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt
