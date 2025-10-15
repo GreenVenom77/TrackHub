@@ -78,7 +78,7 @@ jobs:
           # Create a temporary file for the JSON payload
           cat > payload.json << 'EOF'
           {
-            "model": "mistralai/devstral-small-2505:free",
+            "model": "z-ai/glm-4.5-air:free",
             "messages": [
               {
                 "role": "system",
