@@ -51,7 +51,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"tngtech/deepseek-r1t2-chimera:free\",
+              \"model\": \"qwen/qwen3-coder:free\",
               \"messages\": [
                 {
                   \"role\": \"system\",
@@ -59,7 +59,7 @@ jobs:
                 },
                 {
                   \"role\": \"user\",
-                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response clear from unnecessary info and under 500 words.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
+                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nIMPORTANT: If commit messages are vague or just filenames, analyze the diff summary to understand what was actually changed. Provide meaningful descriptions based on the code changes, not just the commit text.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
                 }
               ]
             }")
