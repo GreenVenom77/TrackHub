@@ -86,14 +86,17 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Read context from the file directly to avoid shell interpretation issues
-          CONTEXT=$(cat context.txt)
+          # Create the prompt with context
+          {
+            echo -n "Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified.\n\n## Summary\n2-3 sentences describing the main technical changes and why they were made.\n\n## Technical Changes\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\n\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\n\nCRITICAL RULES:\n1. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\n2. Focus on features and architecture, not file names\n3. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\n4. Prioritize: major features > refactors > minor changes\n5. Skip: gradle configs, string resources, minor tweaks\n\nGOOD EXAMPLES:\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\n\nBAD EXAMPLES (DON'T DO THIS):\n❌ HubRepository — Updated repository interface\n❌ HubMapper — Updated data transformation\n❌ HubDetailsScreen — Added filter component\n❌ ItemDao — Implemented new queries\n(These are too vague and file-focused)\n\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\n\nContext:\n"
+            cat context.txt
+          } > prompt_template.txt
 
-          # Create the JSON payload using jq to properly escape everything
+          # Create the JSON payload using jq with rawfile to read from file
           PAYLOAD=$(jq -n \
             --arg model "mistralai/devstral-small-2505:free" \
             --arg system_content "You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions." \
-            --arg context "$CONTEXT" \
+            --rawfile user_content prompt_template.txt \
             '{
               model: $model,
               messages: [
@@ -103,7 +106,7 @@ jobs:
                 },
                 {
                   role: "user",
-                  content: ("Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified.\n\n## Summary\n2-3 sentences describing the main technical changes and why they were made.\n\n## Technical Changes\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\n\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\n\nCRITICAL RULES:\n1. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\n2. Focus on features and architecture, not file names\n3. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\n4. Prioritize: major features > refactors > minor changes\n5. Skip: gradle configs, string resources, minor tweaks\n\nGOOD EXAMPLES:\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\n\nBAD EXAMPLES (DON'T DO THIS):\n❌ HubRepository — Updated repository interface\n❌ HubMapper — Updated data transformation\n❌ HubDetailsScreen — Added filter component\n❌ ItemDao — Implemented new queries\n(These are too vague and file-focused)\n\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\n\nContext:\n" + $context)
+                  content: $user_content
                 }
               ]
             }')
