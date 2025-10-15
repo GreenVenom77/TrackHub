@@ -2,7 +2,7 @@ name: "AI Pull Request Description Generator"
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 permissions:
   pull-requests: write
@@ -59,7 +59,7 @@ jobs:
                 },
                 {
                   \"role\": \"user\",
-                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response clear from unnecessary Info and under 500 words.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
+                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler, and keep the response clear from unnecessary info and under 500 words.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
                 }
               ]
             }")
@@ -69,17 +69,11 @@ jobs:
           echo "$DESCRIPTION" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Append description to PR body
+      - name: Overwrite PR body completely
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CURRENT_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q '.body')
-
           {
-            echo "$CURRENT_BODY"
-            echo ""
-            echo "---"
-            echo ""
             echo "### AI-Generated Pull Request Summary"
             echo ""
             echo "${{ steps.ai.outputs.description }}"
