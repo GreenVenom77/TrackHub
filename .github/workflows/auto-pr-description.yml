@@ -51,7 +51,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"openai/gpt-oss-20b:free\",
+              \"model\": \"z-ai/glm-4.5-air:free\",
               \"messages\": [
                 {
                   \"role\": \"system\",
