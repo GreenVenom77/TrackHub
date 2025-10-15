@@ -27,11 +27,11 @@ jobs:
         run: |
           # Generate commits section
           echo "### Commits" > context.txt
-          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "(No commits found)" >> context.txt
+          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No commits found" >> context.txt
 
           # Generate actual code diff (not just stats)
           echo -e "\n\n### Code Changes" >> context.txt
-          git diff origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "(No diff found)" >> context.txt
+          git diff origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt 2>&1 || echo "No diff found" >> context.txt
 
           # Check size and truncate if needed BEFORE setting output
           MAX_BYTES=25000
