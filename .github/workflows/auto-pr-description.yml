@@ -1,0 +1,63 @@
+name: "AI Pull Request Description Generator"
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get commit messages and diff summary
+        id: context
+        run: |
+          echo "### Commits" > context.txt
+          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt
+          echo -e "\n\n### Diff Summary" >> context.txt
+          git diff --stat origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt
+          echo "context<<EOF" >> $GITHUB_OUTPUT
+          cat context.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate AI Pull Request Description
+        id: ai
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"model\": \"gpt-oss-20b\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"Generate a pull request description in Markdown format with the following sections:\\n\\n### Summary\\nA short paragraph summarizing what the PR does and why.\\n\\n### Changes\\nList the main code or feature modifications in bullet points.\\n\\nAvoid unnecessary repetition or filler.\\n\\nHere are the commit messages and diff summary:\\n${{ steps.context.outputs.context }}\"
+                }
+              ]
+            }")
+
+          DESCRIPTION=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "No description generated."')
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Append description to PR body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q '.body')
+          NEW_BODY="${CURRENT_BODY}\n\n---\n\n### AI-Generated Pull Request Summary\n${{ steps.ai.outputs.description }}"
+          gh pr edit ${{ github.event.pull_request.number }} --body "$NEW_BODY"
