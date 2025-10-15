@@ -70,7 +70,7 @@ fun FloatingButton(
     shape: Shape? = null,
     elevation: Dp = 6.dp,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    animateIcon: Boolean = false,
+    animateIcon: Boolean = true,
     rotateOnClick: Boolean = false
 ) {
     // Icon rotation animation

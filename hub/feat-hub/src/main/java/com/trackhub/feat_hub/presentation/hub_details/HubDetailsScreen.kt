@@ -1,26 +1,34 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.FloatingButton
@@ -28,7 +36,9 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
+import com.trackhub.feat_hub.presentation.components.FilterDropdownRow
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemListCard
@@ -66,6 +76,7 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
+    val lazyPagingItems = hubDetailsState.items.collectAsLazyPagingItems()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
@@ -106,7 +117,6 @@ private fun HubDetailsContent(
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             if (hubSheetState) {
                 hubSheetState = false
-                hubDetailsAction(HubDetailsAction.NavigateBack)
             }
         }
         ?.onError { error ->
@@ -159,6 +169,7 @@ private fun HubDetailsContent(
 
     SetScaffold(
         title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
+        showLogo = false,
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
             IconButton(
@@ -190,28 +201,68 @@ private fun HubDetailsContent(
         }
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        hubDetailsState.items.takeIf { it.isNotEmpty() }?.let { hubItems ->
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(
-                    items = hubItems,
-                    key = { hubItem -> hubItem.id }
-                ) { hubItem ->
-                    ItemListCard(
-                        hubItem = hubItem.toHubItemUI(),
-                        onClick = {
-                            isSheetDismissible = true
-                            isItemEdit = true
-                            hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
-                            itemSheetState = true
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Filter Component
+            FilterDropdownRow(
+                categories = hubDetailsState.hub?.categoryList ?: emptyList(),
+                manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
+                defaultCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+                defaultManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+                onCategorySelected = { category ->
+                    hubDetailsAction(HubDetailsAction.FilterItems(
+                        category = category,
+                        manufacturer = hubDetailsState.selectedManufacturer
+                    ))
+                },
+                onManufacturerSelected = { manufacturer ->
+                    hubDetailsAction(HubDetailsAction.FilterItems(
+                        category = hubDetailsState.selectedCategory,
+                        manufacturer = manufacturer
+                    ))
                 }
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            // Items List
+            lazyPagingItems.takeIf { it.itemCount > 0 }?.let { hubItems ->
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    items(
+                        count = hubItems.itemCount,
+                        key = hubItems.itemKey { item -> item.id },
+                        contentType = lazyPagingItems.itemContentType { "Items" }
+                    ) { index ->
+                        val hubItem = lazyPagingItems[index] as Item
+                        ItemListCard(
+                            hubItem = hubItem.toHubItemUI(),
+                            onClick = {
+                                isSheetDismissible = true
+                                isItemEdit = true
+                                hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
+                                itemSheetState = true
+                            },
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                                .animateItem()
+                        )
+                    }
+                }
+            } ?: Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.no_items_found),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -276,7 +327,7 @@ private fun HubDetailsContent(
                 onAddManufacturer = { manufacturerName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
                         hubDetailsState.hub?.copy(
-                            manufacturerList = hubDetailsState.hub.manufacturerList?.plus(
+                            manufacturerList = hubDetailsState.hub.manufacturerList.plus(
                                 manufacturerName
                             )
                         ) as Hub
@@ -285,7 +336,7 @@ private fun HubDetailsContent(
                 onAddCategory = { categoryName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
                         hubDetailsState.hub?.copy(
-                            categoryList = hubDetailsState.hub.categoryList?.plus(
+                            categoryList = hubDetailsState.hub.categoryList.plus(
                                 categoryName
                             )
                         ) as Hub

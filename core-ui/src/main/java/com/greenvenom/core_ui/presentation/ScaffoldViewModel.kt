@@ -14,12 +14,14 @@ class ScaffoldViewModel: ViewModel() {
 
     fun updateScaffold(
         title: String = "",
+        showLogo: Boolean = true,
         navigateBackAction: (() -> Unit)? = null,
         topBarActions: @Composable RowScope.() -> Unit = {},
         floatingActionButton: @Composable () -> Unit = {},
     ) {
         _scaffoldState.value = ScaffoldState(
             title = title,
+            showLogo = showLogo,
             navigateBackAction = navigateBackAction,
             topBarActions = topBarActions,
             floatingActionButton = floatingActionButton,

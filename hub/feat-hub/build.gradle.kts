@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.bundles.dependency.injection)
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

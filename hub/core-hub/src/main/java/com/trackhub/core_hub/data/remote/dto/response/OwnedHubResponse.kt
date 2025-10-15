@@ -9,6 +9,6 @@ data class OwnedHubResponse(
     val name: String,
     val description: String?,
     val createdAt: String,
-    val manufacturerList: List<String>?,
-    val categoryList: List<String>?
+    val manufacturerList: List<String>,
+    val categoryList: List<String>
 )

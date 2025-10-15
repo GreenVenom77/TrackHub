@@ -35,8 +35,11 @@ class HubSupabaseDataSource(
         hubInsertRequest: HubInsertRequest
     ): NetworkResult<OwnedHubResponse, NetworkError> {
         val userId = supabaseClient.auth.currentUserOrNull()?.id as String
+
         return supabaseCall {
-            supabaseClient.from("hubs").insert(hubInsertRequest.addUserId(userId)) {
+            supabaseClient.from("hubs").insert(hubInsertRequest.apply {
+                addUserId(userId)
+            }) {
                 select()
             }.decodeSingle<OwnedHubResponse>()
         }

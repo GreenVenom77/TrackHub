@@ -10,6 +10,6 @@ data class SharedHubResponse(
     val description: String?,
     val hubRole: String,
     val createdAt: String,
-    val manufacturerList: List<String>?,
-    val categoryList: List<String>?
+    val manufacturerList: List<String>,
+    val categoryList: List<String>
 )

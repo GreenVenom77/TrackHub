@@ -1,5 +1,9 @@
 package com.trackhub.feat_hub.data.repo
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
@@ -19,23 +23,29 @@ import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
 import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
 import com.trackhub.feat_hub.domain.repo.HubRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 
 class HubRepositoryImpl(
     private val remoteDataSource: HubRemoteDataSource,
     private val cacheDataSource: HubCacheDataSource
 ): HubRepository {
     private val refreshHubsTrigger = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-
+    private val hubSyncFlows = mutableMapOf<String, Flow<EmptyResult<NetworkError>>>()
     private val ownedHubs: MutableSet<Hub> = mutableSetOf()
     private val sharedHubs: MutableSet<Hub> = mutableSetOf()
-    private val currentItems: MutableSet<Item> = mutableSetOf()
 
     override fun refreshHubs() {
         refreshHubsTrigger.tryEmit(Unit)
@@ -45,20 +55,20 @@ class HubRepositoryImpl(
         hubInsertRequest: HubInsertRequest
     ): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.addHub(hubInsertRequest)
-        remoteResult.onSuccess { returnedHub ->
-            cacheDataSource.addHub(returnedHub.extractHub().toHubEntity())
+        remoteResult.onSuccess { hubDto ->
+            cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
         }
         return remoteResult.map {  }
     }
 
     override suspend fun updateHub(
         hubUpdateRequest: HubUpdateRequest
-    ): EmptyResult<NetworkError> {
+    ): NetworkResult<Hub, NetworkError> {
         val remoteResult = remoteDataSource.updateHub(hubUpdateRequest)
-        remoteResult.onSuccess { returnedHub ->
-            cacheDataSource.updateHub(returnedHub.extractHub().toHubEntity())
+        remoteResult.onSuccess { hubDto ->
+            cacheDataSource.updateHub(hubDto.extractHub().toHubEntity())
         }
-        return remoteResult.map {  }
+        return remoteResult.map { it.extractHub() }
     }
 
     override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {
@@ -74,9 +84,17 @@ class HubRepositoryImpl(
     override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
         return channelFlow {
             val cachedHubsFlow = if (isOwned) {
-                cacheDataSource.getOwnHubs()
+                cacheDataSource.getOwnHubs().map {
+                    it.map { hubEntity ->
+                        hubEntity.extractHub()
+                    }
+                }
             } else {
-                cacheDataSource.getSharedHubs()
+                cacheDataSource.getSharedHubs().map {
+                    it.map { hubEntity ->
+                        hubEntity.extractHub()
+                    }
+                }
             }
 
             cachedHubsFlow
@@ -180,50 +198,84 @@ class HubRepositoryImpl(
         return remoteDataSource.deleteItem(hubItemId)
     }
 
-    override fun getItemsFromHub(hubId: String): Flow<NetworkResult<List<Item>, NetworkError>> {
+    private fun startHubSync(hubId: String): Flow<EmptyResult<NetworkError>> {
+        return hubSyncFlows.getOrPut(hubId) {
+            channelFlow {
+                // Continuous remote sync
+                remoteDataSource.getItemsFromHub(hubId)
+                    .onEach { remoteItems ->
+                        remoteItems.map { items -> items.map { it.extractItem() } }
+                            .onSuccess { fetchedItems ->
+                                // Compare the new items to the cached items
+                                val newItems = fetchedItems.filter { item ->
+                                    item !in cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                                        entities.extractItem()
+                                    }
+                                }
+                                val deletedItems = cacheDataSource.getItemsFromHub(hubId).map { entities ->
+                                    entities.extractItem()
+                                }.filter { currentItem ->
+                                    currentItem.id !in fetchedItems.map { it.id }
+                                }
+
+                                if (newItems.isNotEmpty()) {
+                                    cacheDataSource.updateHubItems(
+                                        newItems.map { it.toItemEntity() }
+                                    )
+                                }
+
+                                if (deletedItems.isNotEmpty()) {
+                                    cacheDataSource.deleteItems(
+                                        deletedItems.map { it.toItemEntity() }
+                                    )
+                                }
+                            }
+                            .onError { error ->
+                                send(NetworkResult.Error(error))
+                            }
+                    }.launchIn(this)
+            }.onCompletion {
+                hubSyncFlows.remove(hubId) // Clean up when sync stops
+            }.shareIn(
+                scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+                started = SharingStarted.WhileSubscribed(5000), // Keep alive for 5 seconds after last subscriber
+                replay = 1
+            )
+        }
+    }
+
+    /**
+     * Main function - lightweight and only handles filtering
+     */
+    override fun getItemsFromHub(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
         return channelFlow {
-            val cachedItemsFlow = cacheDataSource.getItemsFromHub(hubId)
-
-            // First emit from cache immediately
-            cachedItemsFlow
-                .onEach { cachedItems ->
-                    currentItems.removeIf { currentItem ->
-                        currentItem.id in cachedItems.map { it.id }
+            // Start hub sync (or get existing one) - this doesn't restart on filter changes
+            val syncJob = startHubSync(hubId)
+                .onEach { result ->
+                    if (result is NetworkResult.Error) {
+                        send(result) // Report all errors
                     }
-                    currentItems.addAll(cachedItems)
-                    send(NetworkResult.Success(cachedItems))
                 }
                 .launchIn(this)
 
-            // Start fetching remote data
-            remoteDataSource.getItemsFromHub(hubId)
-                .onEach { remoteItems ->
-                    remoteItems.map { items -> items.map { it.extractItem() } }
-                        .onSuccess { fetchedItems ->
-                            // Compare the new items to the cached items
-                            val newItems = fetchedItems.filter { item -> item !in currentItems }
-                            val deletedItems = currentItems.filter { currentItem ->
-                                currentItem.id !in fetchedItems.map { it.id }
-                            }
+            // Create paging flow with current filters
+            val pagedItems: Flow<PagingData<Item>> = Pager(
+                PagingConfig(
+                    pageSize = 10,
+                    prefetchDistance = 15
+                )
+            ) {
+                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer)
+            }.flow.map { pagingData ->
+                pagingData.map { it.extractItem() }
+            }
 
-                            if (newItems.isNotEmpty()) {
-                                cacheDataSource.updateHubItems(
-                                    newItems.map { it.toItemEntity() }
-                                )
-                            }
-
-                            if (deletedItems.isNotEmpty()) {
-                                cacheDataSource.deleteItems(
-                                    deletedItems.map { it.toItemEntity() }
-                                )
-                                currentItems.removeAll(deletedItems.toSet())
-                            }
-                        }
-                        .onError { error ->
-                            send(NetworkResult.Error(error))
-                        }
-                }
-                .launchIn(this)
-        }.onCompletion { currentItems.clear() }
+            send(NetworkResult.Success(pagedItems))
+            awaitClose { syncJob.cancel() }
+        }
     }
 }

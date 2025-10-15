@@ -18,7 +18,10 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
-        Index("hub_id")
+        Index("hub_id"),
+        Index("name"),
+        Index("manufacturer"),
+        Index("category"),
     ]
 )
 data class ItemEntity(

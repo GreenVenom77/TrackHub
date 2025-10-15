@@ -2,6 +2,8 @@ package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
+import com.greenvenom.core_network.data.NetworkResult
 import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
@@ -31,16 +33,36 @@ class HubDetailsViewModel(
         HubDetailsState()
     )
 
-    private var itemsCollectionJob: Job? = null
+    private lateinit var itemsCollectionJob: Job
 
     init {
         savedStateHandle.get<String>("hubId")?.let { hubId ->
-            itemsCollectionJob = getHubItems(hubId)
+            viewModelScope.launch {
+                val fetchedHub = hubRepository.getHub(hubId)
+
+                withContext(Dispatchers.Main) {
+                    _hubDetailsState.update {
+                        it.copy(
+                            hub = fetchedHub
+                        )
+                    }
+                }
+            }
+            itemsCollectionJob = getHubItems(hubId, null, null)
         }
     }
 
     fun hubDetailsAction(action: HubDetailsAction) {
         when (action) {
+            is HubDetailsAction.FilterItems -> {
+                if (itemsCollectionJob.isActive) itemsCollectionJob.cancel()
+
+                itemsCollectionJob = getHubItems(
+                    _hubDetailsState.value.hub?.id ?: "",
+                    action.category,
+                    action.manufacturer
+                )
+            }
             is HubDetailsAction.UpdateHub -> updateHub(
                 action.updatedHub
             )
@@ -61,6 +83,7 @@ class HubDetailsViewModel(
     private fun updateHub(
         updatedHub: Hub
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateHubResult = withContext(Dispatchers.IO) {
                 hubRepository.updateHub(
@@ -70,13 +93,23 @@ class HubDetailsViewModel(
 
             _hubDetailsState.update {
                 it.copy(
-                    hubUpdateResult = updateHubResult
+                    hubUpdateResult = updateHubResult.map {  }
                 )
             }
+            if (updateHubResult is NetworkResult.Success) {
+                _hubDetailsState.update {
+                    it.copy(
+                        hub = updateHubResult.data
+                    )
+                }
+            }
+
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun deleteHub(hubId: String) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteHubResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHub(hubId)
@@ -87,12 +120,14 @@ class HubDetailsViewModel(
                     hubDeletionResult = deleteHubResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun addItemToHub(
         newItem: Item
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val addItemResult = withContext(Dispatchers.IO) {
                 hubRepository.addItemToHub(
@@ -107,12 +142,14 @@ class HubDetailsViewModel(
                     operationResult = addItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun updateItem(
         updatedItem: Item
     ) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val updateItemResult = withContext(Dispatchers.IO) {
                 hubRepository.updateItem(
@@ -125,10 +162,12 @@ class HubDetailsViewModel(
                     operationResult = updateItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
     private fun deleteItem(itemId: Int) {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteItemResult = withContext(Dispatchers.IO) {
                 hubRepository.deleteHubItem(itemId)
@@ -139,6 +178,7 @@ class HubDetailsViewModel(
                     itemDeletionResult = deleteItemResult
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 
@@ -150,34 +190,32 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun getHubItems(hubId: String): Job {
+    private fun getHubItems(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): Job {
         baseAction(BaseAction.ShowLoading)
         return viewModelScope.launch(Dispatchers.IO) {
-           val fetchedHub = hubRepository.getHub(hubId)
-
-            withContext(Dispatchers.Main) {
-                _hubDetailsState.update {
-                    it.copy(
-                        hub = fetchedHub
-                    )
-                }
-            }.also {
-                baseAction(BaseAction.HideLoading)
-                hubRepository.getItemsFromHub(fetchedHub.id).collect { itemsResult ->
-                    withContext(Dispatchers.Main) {
-                        itemsResult.onSuccess { items ->
-                            _hubDetailsState.update {
-                                it.copy(
-                                    items = items
-                                )
-                            }
-                        }
-
+            baseAction(BaseAction.HideLoading)
+            hubRepository.getItemsFromHub(
+                hubId,
+                category,
+                manufacturer
+            ).collect { itemsResult ->
+                withContext(Dispatchers.Main) {
+                    itemsResult.onSuccess { items ->
                         _hubDetailsState.update {
                             it.copy(
-                                hubItemsResult = itemsResult.map {  }
+                                items = items.cachedIn(viewModelScope)
                             )
                         }
+                    }
+
+                    _hubDetailsState.update {
+                        it.copy(
+                            hubItemsResult = itemsResult.map {  }
+                        )
                     }
                 }
             }
@@ -203,8 +241,7 @@ class HubDetailsViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        itemsCollectionJob?.cancel()
-        itemsCollectionJob = null
+        itemsCollectionJob.cancel()
         clearState()
     }
 }

@@ -23,7 +23,7 @@ data class HubEntity(
     @ColumnInfo(name = "hub_role")
     val hubRole: HubRole,
     @ColumnInfo(name = "manufacturer_list")
-    val manufacturerList: List<String>?,
+    val manufacturerList: List<String>,
     @ColumnInfo(name = "category_list")
-    val categoryList: List<String>?
+    val categoryList: List<String>
 )

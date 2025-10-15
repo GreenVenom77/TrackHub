@@ -15,20 +15,24 @@
     <string name="select_category">اختر فئة</string>
     <string name="add_category">إضافة فئة</string>
     <string name="category_name">اسم الفئة</string>
+    <string name="all_categories">جميع الفئات</string>
 
     <!-- Manufacturer related strings -->
     <string name="manufacturer">الشركة المصنعة</string>
     <string name="select_manufacturer">اختر شركة مصنعة</string>
     <string name="add_manufacturer">إضافة شركة مصنعة</string>
     <string name="manufacturer_name">اسم الشركة المصنعة</string>
+    <string name="all_manufacturers">جميع الشركات المصنعة</string>
 
     <!-- General action strings -->
     <string name="add_new">إضافة جديد</string>
     <string name="add">إضافة</string>
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
+    <string name="all">الجميع</string>
 
     <!-- Item form strings -->
+    <string name="no_items_found">لا يوجد عناصر</string>
     <string name="item_name">اسم العنصر</string>
     <string name="item_stock">مخزون العنصر</string>
     <string name="item_unit">وحدة العنصر</string>

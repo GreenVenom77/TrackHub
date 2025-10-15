@@ -1,0 +1,135 @@
+name: "AI Pull Request Description Generator"
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for proper diffs
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+
+      - name: Get commit messages and code changes
+        id: context
+        run: |
+          # Create context content in a file first
+          {
+            echo "### Commits"
+            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits found)"
+
+            echo -e "\n\n### Diff Summary (Added & Modified Files Only)"
+            git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff found)"
+
+            echo -e "\n\n### Actual Code Changes (Added & Modified Files)"
+
+            # Get list of added and modified files
+            ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
+            MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
+
+            # Show actual code changes for each added file
+            if [ -n "$ADDED_FILES" ]; then
+              echo -e "\n#### 🆕 New Files:"
+              while IFS= read -r file; do
+                [ -z "$file" ] && continue
+                echo -e "\n**$file**:"
+                git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No content to show)"
+              done <<< "$ADDED_FILES"
+            fi
+
+            # Show actual code changes for each modified file
+            if [ -n "$MODIFIED_FILES" ]; then
+              echo -e "\n#### ✏️ Modified Files:"
+              while IFS= read -r file; do
+                [ -z "$file" ] && continue
+                echo -e "\n**$file**:"
+                git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No changes to show)"
+              done <<< "$MODIFIED_FILES"
+            fi
+
+            # If no added or modified files found
+            if [ -z "$ADDED_FILES" ] && [ -z "$MODIFIED_FILES" ]; then
+              echo "No added or modified files found in this PR."
+            fi
+          } > context.txt
+
+          # Truncate context if too large (>25KB) to avoid hitting API limits
+          MAX_BYTES=25000
+          ACTUAL_BYTES=$(wc -c < context.txt | awk '{print $1}')
+          if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
+            echo -e "\n\n[Note: diff truncated for size]" >> context.txt
+            head -c $MAX_BYTES context.txt > truncated.txt
+            mv truncated.txt context.txt
+          fi
+
+          # Set output using the proper format
+          CONTENT=$(cat context.txt)
+          {
+            echo "context<<EOF"
+            echo "$CONTENT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Generate AI Pull Request Description
+        id: ai
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          # Create the prompt with context
+          {
+            echo -n "Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified.\n\n## Summary\n2-3 sentences describing the main technical changes and why they were made.\n\n## Technical Changes\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\n\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\n\nCRITICAL RULES:\n1. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\n2. Focus on features and architecture, not file names\n3. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\n4. Prioritize: major features > refactors > minor changes\n5. Skip: gradle configs, string resources, minor tweaks\n\nGOOD EXAMPLES:\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\n\nBAD EXAMPLES (DON'T DO THIS):\n❌ HubRepository — Updated repository interface\n❌ HubMapper — Updated data transformation\n❌ HubDetailsScreen — Added filter component\n❌ ItemDao — Implemented new queries\n(These are too vague and file-focused)\n\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\n\nContext:\n"
+            cat context.txt
+          } > prompt_template.txt
+
+          # Create the JSON payload using jq with rawfile to read from file
+          PAYLOAD=$(jq -n \
+            --arg model "z-ai/glm-4.5-air:free" \
+            --arg system_content "You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions." \
+            --rawfile user_content prompt_template.txt \
+            '{
+              model: $model,
+              messages: [
+                {
+                  role: "system",
+                  content: $system_content
+                },
+                {
+                  role: "user",
+                  content: $user_content
+                }
+              ]
+            }')
+
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          DESCRIPTION=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "No description generated."')
+
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Overwrite PR body completely
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "### AI-Generated Pull Request Summary"
+            echo ""
+            echo "${{ steps.ai.outputs.description }}"
+          } > new_body.txt
+
+          gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt

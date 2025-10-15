@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.domain.repo
 
+import androidx.paging.PagingData
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
@@ -16,7 +17,7 @@ interface HubRepository {
 
     suspend fun addHub(hubInsertRequest: HubInsertRequest): EmptyResult<NetworkError>
 
-    suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): EmptyResult<NetworkError>
+    suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): NetworkResult<Hub, NetworkError>
 
     suspend fun deleteHub(hubId: String): EmptyResult<NetworkError>
 
@@ -30,5 +31,9 @@ interface HubRepository {
 
     suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError>
 
-    fun getItemsFromHub(hubId: String): Flow<NetworkResult<List<Item>, NetworkError>>
+    fun getItemsFromHub(
+        hubId: String,
+        category: String?,
+        manufacturer: String?
+    ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>>
 }

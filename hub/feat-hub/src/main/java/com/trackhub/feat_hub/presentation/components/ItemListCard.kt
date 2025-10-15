@@ -73,7 +73,7 @@ fun ItemListCard(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = hubItem.updatedAt ?: hubItem.createdAt ?: "",
+                        text = hubItem.updatedAt ?: hubItem.createdAt,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     )
                 }
