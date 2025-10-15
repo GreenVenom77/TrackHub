@@ -25,52 +25,60 @@ jobs:
       - name: Get commit messages and code changes
         id: context
         run: |
-          echo "### Commits" > context.txt
-          git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No commits found)" >> context.txt
+          # Create context content in a file first
+          {
+            echo "### Commits"
+            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits found)"
 
-          echo -e "\n\n### Diff Summary (Added & Modified Files Only)" >> context.txt
-          git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD >> context.txt || echo "(No diff found)" >> context.txt
+            echo -e "\n\n### Diff Summary (Added & Modified Files Only)"
+            git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff found)"
 
-          echo -e "\n\n### Actual Code Changes (Added & Modified Files)" >> context.txt
+            echo -e "\n\n### Actual Code Changes (Added & Modified Files)"
 
-          # Get list of added and modified files
-          ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD)
-          MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD)
+            # Get list of added and modified files
+            ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
+            MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
 
-          # Show actual code changes for each added file
-          if [ -n "$ADDED_FILES" ]; then
-            echo -e "\n#### 🆕 New Files:" >> context.txt
-            for file in $ADDED_FILES; do
-              echo -e "\n**$file**:" >> context.txt
-              git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" | grep -E "^\+" | grep -v "^\+\+\+" >> context.txt || echo "  (No content to show)" >> context.txt
-            done
-          fi
+            # Show actual code changes for each added file
+            if [ -n "$ADDED_FILES" ]; then
+              echo -e "\n#### 🆕 New Files:"
+              for file in $ADDED_FILES; do
+                echo -e "\n**$file**:"
+                git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null | grep -E "^\+" | grep -v "^\+\+\+" || echo "  (No content to show)"
+              done
+            fi
 
-          # Show actual code changes for each modified file
-          if [ -n "$MODIFIED_FILES" ]; then
-            echo -e "\n#### ✏️ Modified Files:" >> context.txt
-            for file in $MODIFIED_FILES; do
-              echo -e "\n**$file**:" >> context.txt
-              git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" >> context.txt || echo "  (No changes to show)" >> context.txt
-            done
-          fi
+            # Show actual code changes for each modified file
+            if [ -n "$MODIFIED_FILES" ]; then
+              echo -e "\n#### ✏️ Modified Files:"
+              for file in $MODIFIED_FILES; do
+                echo -e "\n**$file**:"
+                git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo "  (No changes to show)"
+              done
+            fi
 
-          # If no added or modified files found
-          if [ -z "$ADDED_FILES$MODIFIED_FILES" ]; then
-            echo "No added or modified files found in this PR." >> context.txt
-          fi
+            # If no added or modified files found
+            if [ -z "$ADDED_FILES" ] && [ -z "$MODIFIED_FILES" ]; then
+              echo "No added or modified files found in this PR."
+            fi
+          } > context.txt
 
           # Truncate context if too large (>25KB) to avoid hitting API limits
           MAX_BYTES=25000
-          ACTUAL_BYTES=$(wc -c < context.txt)
+          ACTUAL_BYTES=$(wc -c < context.txt | awk '{print $1}')
           if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
             echo -e "\n\n[Note: diff truncated for size]" >> context.txt
-            head -c $MAX_BYTES context.txt > truncated.txt && mv truncated.txt context.txt
+            head -c $MAX_BYTES context.txt > truncated.txt
+            mv truncated.txt context.txt
           fi
 
-          echo "context<<EOF" >> $GITHUB_OUTPUT
-          cat context.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Set output using the proper format
+          CONTENT=$(cat context.txt)
+          {
+            echo "context<<EOF"
+            echo "$CONTENT"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Generate AI Pull Request Description
         id: ai
