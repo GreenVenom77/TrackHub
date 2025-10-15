@@ -51,7 +51,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"z-ai/glm-4.5-air:free\",
+              \"model\": \"nvidia/nemotron-nano-9b-v2:free\",
               \"messages\": [
                 {
                   \"role\": \"system\",
