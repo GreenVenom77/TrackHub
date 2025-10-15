@@ -47,7 +47,9 @@ class HubListViewModel(
                         hubRepository.addHub(
                             HubInsertRequest(
                                 name = hubName,
-                                description = hubDescription
+                                description = hubDescription,
+                                manufacturerList = emptyList(),
+                                categoryList = emptyList()
                             )
                         )
                     }

@@ -7,7 +7,7 @@ import io.github.jan.supabase.SupabaseClient
 import org.koin.dsl.module
 
 val networkFeatureModule = module {
-    single<SupabaseClient> { ClientFactory.createSupabaseClient() }
+    single<SupabaseClient> { ClientFactory.buildSupabaseClient() }
 
     single<SessionRepository>(createdAtStart = true) {
         SupabaseSessionRepository(supabaseClient = get())

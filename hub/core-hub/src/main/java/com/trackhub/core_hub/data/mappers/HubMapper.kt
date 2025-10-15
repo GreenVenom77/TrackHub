@@ -64,7 +64,9 @@ fun HubEntity.extractHub(): Hub {
 fun Hub.toInsertRequest(): HubInsertRequest {
     return HubInsertRequest(
         name = this.name,
-        description = this.description
+        description = this.description,
+        manufacturerList = this.manufacturerList,
+        categoryList = this.categoryList
     )
 }
 

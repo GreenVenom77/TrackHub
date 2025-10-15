@@ -29,7 +29,7 @@ fun buildNetworkError(
             message.trim().isNotEmpty()
 
     val messageId = if (shouldCheckCustomMessage) {
-        getCustomMessageId(errorType, message?.trim() ?: "")
+        getCustomMessageId(errorType, message.trim())
     } else {
         errorType.getDefaultMessageId()
     }
