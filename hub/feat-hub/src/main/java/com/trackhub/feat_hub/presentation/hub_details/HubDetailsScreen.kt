@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -169,7 +170,12 @@ private fun HubDetailsContent(
 
     SetScaffold(
         title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
-        showLogo = false,
+        showLogo = true,
+        showSearchBar = true,
+        onSearchQueryChange = {
+            // ViewModel Action For Search Logic Here
+            Log.d("HubDetailsScreen", "Search Query: $it")
+        },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
             IconButton(
@@ -177,13 +183,11 @@ private fun HubDetailsContent(
                     hubSheetState = true
                 },
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.edit_ic),
+                    painter = painterResource(R.drawable.settings_ic),
                     contentDescription = stringResource(R.string.edit_hub_Details),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(32.dp)
                 )
             }
         },
@@ -200,6 +204,7 @@ private fun HubDetailsContent(
             )
         }
     )
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

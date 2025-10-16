@@ -15,6 +15,8 @@ class ScaffoldViewModel: ViewModel() {
     fun updateScaffold(
         title: String = "",
         showLogo: Boolean = true,
+        showSearchBar: Boolean = false,
+        onSearchQueryChange: (String) -> Unit = {},
         navigateBackAction: (() -> Unit)? = null,
         topBarActions: @Composable RowScope.() -> Unit = {},
         floatingActionButton: @Composable () -> Unit = {},
@@ -22,6 +24,8 @@ class ScaffoldViewModel: ViewModel() {
         _scaffoldState.value = ScaffoldState(
             title = title,
             showLogo = showLogo,
+            showSearchBar = showSearchBar,
+            onSearchQueryChange = onSearchQueryChange,
             navigateBackAction = navigateBackAction,
             topBarActions = topBarActions,
             floatingActionButton = floatingActionButton,

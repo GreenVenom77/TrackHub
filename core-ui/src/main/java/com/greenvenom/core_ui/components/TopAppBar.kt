@@ -6,6 +6,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +43,8 @@ fun TopAppBar(
     showLogo: Boolean = true,
     logo: Painter = painterResource(R.drawable.logo),
     title: String = "",
+    showSearchBar: Boolean = false,
+    onSearchQueryChange: (String) -> Unit = {},
     action: @Composable (RowScope.() -> Unit) = {}
 ) {
     AnimatedVisibility(
@@ -48,14 +52,18 @@ fun TopAppBar(
         enter = slideInVertically(initialOffsetY = { -it }),
         exit = slideOutVertically(targetOffsetY = { -it }),
         content = {
-            TopBarContent(
-                navigateBack = navigateBack,
-                showLogo = showLogo,
-                logo = logo,
-                title = title.ifEmpty { stringResource(R.string.app_name) },
-                modifier = modifier,
-                action = action
-            )
+            Column {
+                TopBarContent(
+                    navigateBack = navigateBack,
+                    showLogo = showLogo,
+                    showSearchBar = showSearchBar,
+                    onSearchQueryChange = onSearchQueryChange,
+                    logo = logo,
+                    title = title.ifEmpty { stringResource(R.string.app_name) },
+                    modifier = modifier,
+                    action = action
+                )
+            }
         }
     )
 }
@@ -65,10 +73,12 @@ fun TopAppBar(
 private fun TopBarContent(
     navigateBack: (() -> Unit)?,
     showLogo: Boolean,
+    showSearchBar: Boolean,
     logo: Painter,
     title: String,
     modifier: Modifier = Modifier,
-    action: @Composable (RowScope.() -> Unit)
+    action: @Composable (RowScope.() -> Unit),
+    onSearchQueryChange: (String) -> Unit = {}
 ) {
     val bowlbyFontFamily = FontFamily(
         Font(R.font.bowlby_one_sc, weight = FontWeight.Normal)
@@ -76,55 +86,66 @@ private fun TopBarContent(
 
     val colorScheme = MaterialTheme.colorScheme
 
-    TopAppBar(
-        navigationIcon = {
-            AnimatedVisibility(
-                visible = navigateBack != null,
-                content = {
-                    IconButton(onClick = { navigateBack?.invoke() }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.short_back_arrow),
-                            contentDescription = stringResource(R.string.back_button),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.fillMaxSize()
-                        )
+    Column {
+        TopAppBar(
+            navigationIcon = {
+                AnimatedVisibility(
+                    visible = navigateBack != null,
+                    content = {
+                        IconButton(onClick = { navigateBack?.invoke() }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.short_back_arrow),
+                                contentDescription = stringResource(R.string.back_button),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
-                }
-            )
-        },
-        actions = {
-            action()
-        },
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Logo
-                if (showLogo) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                    ) {
-                        Image(
-                            painter = logo,
-                            contentDescription = "Logo",
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
-                // Title
-                Text(
-                    text = title,
-                    fontFamily = bowlbyFontFamily,
-                    color = colorScheme.primaryContainer
                 )
-            }
-        },
-        modifier = modifier
-    )
+            },
+            actions = {
+                action()
+            },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Logo
+                    if (showLogo) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                        ) {
+                            Image(
+                                painter = logo,
+                                contentDescription = "Logo",
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    // Title
+                    Text(
+                        text = title,
+                        fontFamily = bowlbyFontFamily,
+                        color = colorScheme.primaryContainer
+                    )
+                }
+            },
+            modifier = modifier,
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
+        if (showSearchBar) {
+            AppBarSearchBar(
+                onSearchQueryChange = onSearchQueryChange,
+            )
+        }
+    }
 }
 
 @Preview(showSystemUi = true)
@@ -134,6 +155,8 @@ private fun TopAppBarPreview() {
         TopBarContent(
             navigateBack = {  },
             showLogo = false,
+            showSearchBar = true,
+            onSearchQueryChange = {  },
             logo = painterResource(R.drawable.logo),
             title = "Testsdgd",
             action = {
