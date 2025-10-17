@@ -1,6 +1,5 @@
 package com.trackhub.feat_hub.data.repo
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -270,8 +269,6 @@ class HubRepositoryImpl(
                 searchQuery == "**" -> searchQuery
                 else -> "*$searchQuery*"
             }
-
-            Log.d("HubRepositoryImpl", "getItemsFromHub: $category, $manufacturer, $formattedSearchQuery")
 
             // Create paging flow with current filters
             val pagedItems: Flow<PagingData<Item>> = Pager(
