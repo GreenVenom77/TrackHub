@@ -14,25 +14,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.components.FilterDropdown
-import com.trackhub.feat_hub.R
 
 @Composable
 fun FilterDropdownRow(
-    categories: List<String> = emptyList(),
-    manufacturers: List<String> = emptyList(),
-    defaultCategory: String = stringResource(R.string.all_categories),
-    defaultManufacturer: String = stringResource(R.string.all_manufacturers),
-    onCategorySelected: (String?) -> Unit = {},
-    onManufacturerSelected: (String?) -> Unit = {},
+    categories: List<String>,
+    manufacturers: List<String>,
+    defaultCategory: String,
+    selectedCategory: String,
+    defaultManufacturer: String,
+    selectedManufacturer: String,
+    onCategorySelected: (String?) -> Unit,
+    onManufacturerSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
     showCategory: Boolean = true,
     showManufacturer: Boolean = true
 ) {
-    var selectedCategory by rememberSaveable { mutableStateOf(defaultCategory) }
-    var selectedManufacturer by rememberSaveable { mutableStateOf(defaultManufacturer) }
+    var selectedCategory by rememberSaveable { mutableStateOf(selectedCategory) }
+    var selectedManufacturer by rememberSaveable { mutableStateOf(selectedManufacturer) }
 
     Row(
         modifier = modifier

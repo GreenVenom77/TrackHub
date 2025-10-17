@@ -48,19 +48,30 @@ class HubDetailsViewModel(
                     }
                 }
             }
-            itemsCollectionJob = getHubItems(hubId, null, null)
+            itemsCollectionJob = getHubItems(hubId, null, null, null)
         }
     }
 
     fun hubDetailsAction(action: HubDetailsAction) {
         when (action) {
+            is HubDetailsAction.SearchItems -> {
+                if (itemsCollectionJob.isActive) itemsCollectionJob.cancel()
+
+                itemsCollectionJob = getHubItems(
+                    _hubDetailsState.value.hub?.id ?: "",
+                    _hubDetailsState.value.selectedCategory,
+                    _hubDetailsState.value.selectedManufacturer,
+                    action.searchQuery
+                )
+            }
             is HubDetailsAction.FilterItems -> {
                 if (itemsCollectionJob.isActive) itemsCollectionJob.cancel()
 
                 itemsCollectionJob = getHubItems(
                     _hubDetailsState.value.hub?.id ?: "",
                     action.category,
-                    action.manufacturer
+                    action.manufacturer,
+                    _hubDetailsState.value.currentSearchQuery
                 )
             }
             is HubDetailsAction.UpdateHub -> updateHub(
@@ -193,15 +204,25 @@ class HubDetailsViewModel(
     private fun getHubItems(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): Job {
         baseAction(BaseAction.ShowLoading)
+        _hubDetailsState.update {
+            it.copy(
+                selectedCategory = category,
+                selectedManufacturer = manufacturer,
+                currentSearchQuery = searchQuery
+            )
+        }
+
         return viewModelScope.launch(Dispatchers.IO) {
             baseAction(BaseAction.HideLoading)
             hubRepository.getItemsFromHub(
                 hubId,
                 category,
-                manufacturer
+                manufacturer,
+                searchQuery
             ).collect { itemsResult ->
                 withContext(Dispatchers.Main) {
                     itemsResult.onSuccess { items ->

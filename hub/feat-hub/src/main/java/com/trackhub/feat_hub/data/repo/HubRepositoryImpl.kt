@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.data.repo
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -250,7 +251,8 @@ class HubRepositoryImpl(
     override fun getItemsFromHub(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
         return channelFlow {
             // Start hub sync (or get existing one) - this doesn't restart on filter changes
@@ -262,6 +264,15 @@ class HubRepositoryImpl(
                 }
                 .launchIn(this)
 
+            // Format search query for FTS
+            val formattedSearchQuery = when {
+                searchQuery.isNullOrEmpty() -> "**"
+                searchQuery == "**" -> searchQuery
+                else -> "*$searchQuery*"
+            }
+
+            Log.d("HubRepositoryImpl", "getItemsFromHub: $category, $manufacturer, $formattedSearchQuery")
+
             // Create paging flow with current filters
             val pagedItems: Flow<PagingData<Item>> = Pager(
                 PagingConfig(
@@ -269,7 +280,7 @@ class HubRepositoryImpl(
                     prefetchDistance = 15
                 )
             ) {
-                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer)
+                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer, formattedSearchQuery)
             }.flow.map { pagingData ->
                 pagingData.map { it.extractItem() }
             }

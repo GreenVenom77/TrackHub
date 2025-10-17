@@ -1,6 +1,5 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -172,9 +171,10 @@ private fun HubDetailsContent(
         title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
         showLogo = true,
         showSearchBar = true,
-        onSearchQueryChange = {
-            // ViewModel Action For Search Logic Here
-            Log.d("HubDetailsScreen", "Search Query: $it")
+        onSearchQueryChange = { searchQuery ->
+            hubDetailsAction(HubDetailsAction.SearchItems(
+                searchQuery = searchQuery
+            ))
         },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
@@ -212,18 +212,20 @@ private fun HubDetailsContent(
             FilterDropdownRow(
                 categories = hubDetailsState.hub?.categoryList ?: emptyList(),
                 manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                defaultCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
-                defaultManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+                defaultCategory = stringResource(R.string.all_categories),
+                selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+                defaultManufacturer = stringResource(R.string.all_manufacturers),
+                selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
                 onCategorySelected = { category ->
                     hubDetailsAction(HubDetailsAction.FilterItems(
                         category = category,
-                        manufacturer = hubDetailsState.selectedManufacturer
+                        manufacturer = hubDetailsState.selectedManufacturer,
                     ))
                 },
                 onManufacturerSelected = { manufacturer ->
                     hubDetailsAction(HubDetailsAction.FilterItems(
                         category = hubDetailsState.selectedCategory,
-                        manufacturer = manufacturer
+                        manufacturer = manufacturer,
                     ))
                 }
             )

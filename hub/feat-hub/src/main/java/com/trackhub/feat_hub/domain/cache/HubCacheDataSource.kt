@@ -35,6 +35,7 @@ interface HubCacheDataSource {
     fun getItemsWithFiltersPaged(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): PagingSource<Int, ItemEntity>
 }

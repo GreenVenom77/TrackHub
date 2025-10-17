@@ -4,6 +4,10 @@ import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 
 interface HubDetailsAction {
+    data class SearchItems(
+        val searchQuery: String?
+    ): HubDetailsAction
+
     data class FilterItems(
         val category: String?,
         val manufacturer: String?

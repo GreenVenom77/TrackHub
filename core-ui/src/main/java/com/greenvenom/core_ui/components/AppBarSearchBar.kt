@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun AppBarSearchBar(
     onSearchQueryChange: (String) -> Unit,
-    debounceDelay: Long = 400L
+    debounceDelay: Long = 100L
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
