@@ -44,5 +44,4 @@
     <string name="select_an_item">اختر عنصراً</string>
     <string name="select_items">اختر عناصر</string>
     <string name="selected_items">تم اختيار %d عناصر</string>
-    <string name="search">بحث</string>
 </resources>

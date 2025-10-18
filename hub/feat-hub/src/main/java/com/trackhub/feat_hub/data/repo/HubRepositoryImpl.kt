@@ -250,7 +250,8 @@ class HubRepositoryImpl(
     override fun getItemsFromHub(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
         return channelFlow {
             // Start hub sync (or get existing one) - this doesn't restart on filter changes
@@ -262,6 +263,13 @@ class HubRepositoryImpl(
                 }
                 .launchIn(this)
 
+            // Format search query for FTS
+            val formattedSearchQuery = when {
+                searchQuery.isNullOrEmpty() -> "**"
+                searchQuery == "**" -> searchQuery
+                else -> "*$searchQuery*"
+            }
+
             // Create paging flow with current filters
             val pagedItems: Flow<PagingData<Item>> = Pager(
                 PagingConfig(
@@ -269,7 +277,7 @@ class HubRepositoryImpl(
                     prefetchDistance = 15
                 )
             ) {
-                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer)
+                cacheDataSource.getItemsWithFiltersPaged(hubId, category, manufacturer, formattedSearchQuery)
             }.flow.map { pagingData ->
                 pagingData.map { it.extractItem() }
             }

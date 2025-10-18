@@ -34,6 +34,7 @@ interface HubRepository {
     fun getItemsFromHub(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>>
 }

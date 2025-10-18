@@ -11,7 +11,6 @@
     <string name="select_an_item">اختر من القائمة</string>
     <string name="cancel">إغلاق</string>
     <string name="ok">تأكيد</string>
-    <string name="search">ابحث...</string>
     <string name="selected_items">العناصر المحددة: %1$d</string>
     <string name="oops">عذراً!</string>
     <string name="close_menu">إغلاق القائمة</string>
@@ -34,4 +33,10 @@
     <string name="calendar">التقويم</string>
     <string name="loading">جارٍ التحميل...</string>
     <string name="loading_2">جارٍ التحميل</string>
+
+    <!-- Search string -->
+    <string name="search">بحث</string>
+    <string name="clear_search">مسح البحث</string>
+    <string name="search_holder">بحث...</string>
+    <string name="close_search">إغلاق البحث</string>
 </resources>

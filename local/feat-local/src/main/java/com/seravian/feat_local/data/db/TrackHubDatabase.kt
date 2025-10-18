@@ -8,10 +8,11 @@ import com.trackhub.core_hub.data.cache.dao.HubDao
 import com.trackhub.core_hub.data.cache.dao.ItemDao
 import com.trackhub.core_hub.data.cache.entities.HubEntity
 import com.trackhub.core_hub.data.cache.entities.ItemEntity
+import com.trackhub.core_hub.data.cache.entities.ItemFts
 
 @Database(
-    entities = [HubEntity::class, ItemEntity::class],
-    version = 1,
+    entities = [HubEntity::class, ItemEntity::class, ItemFts::class],
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(ListStringConverters::class)

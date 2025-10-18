@@ -19,15 +19,24 @@ interface ItemDao {
     fun getItemsFromHub(hubId: String): List<ItemEntity>
 
     @Query("""
-        SELECT * FROM items 
-        WHERE hub_id = :hubId 
-        AND (:category IS NULL OR category = :category)
-        AND (:manufacturer IS NULL OR manufacturer = :manufacturer)
-        ORDER BY name ASC
+        SELECT * FROM items
+        WHERE items.hub_id = :hubId
+        AND (:category IS NULL OR TRIM(:category) = '' OR items.category = :category)
+        AND (:manufacturer IS NULL OR TRIM(:manufacturer) = '' OR items.manufacturer = :manufacturer)
+        AND (
+            :searchQuery IS NULL
+            OR TRIM(:searchQuery) = ''
+            OR :searchQuery = '**'
+            OR items.rowid IN (
+                SELECT rowid FROM items_fts WHERE items_fts MATCH :searchQuery
+            )
+        )
+        ORDER BY items.name ASC
     """)
     fun getItemsWithFiltersPaged(
         hubId: String,
         category: String?,
-        manufacturer: String?
+        manufacturer: String?,
+        searchQuery: String?
     ): PagingSource<Int, ItemEntity>
 }

@@ -169,7 +169,13 @@ private fun HubDetailsContent(
 
     SetScaffold(
         title = hubDetailsState.hub?.name ?: stringResource(com.greenvenom.core_ui.R.string.app_name),
-        showLogo = false,
+        showLogo = true,
+        showSearchBar = true,
+        onSearchQueryChange = { searchQuery ->
+            hubDetailsAction(HubDetailsAction.SearchItems(
+                searchQuery = searchQuery
+            ))
+        },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
             IconButton(
@@ -177,13 +183,11 @@ private fun HubDetailsContent(
                     hubSheetState = true
                 },
                 modifier = Modifier
-                    .size(48.dp)
-                    .padding(8.dp)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.edit_ic),
+                    painter = painterResource(R.drawable.settings_ic),
                     contentDescription = stringResource(R.string.edit_hub_Details),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(32.dp)
                 )
             }
         },
@@ -201,24 +205,27 @@ private fun HubDetailsContent(
         }
     )
 
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Filter Component
             FilterDropdownRow(
                 categories = hubDetailsState.hub?.categoryList ?: emptyList(),
                 manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                defaultCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
-                defaultManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+                defaultCategory = stringResource(R.string.all_categories),
+                selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+                defaultManufacturer = stringResource(R.string.all_manufacturers),
+                selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
                 onCategorySelected = { category ->
                     hubDetailsAction(HubDetailsAction.FilterItems(
                         category = category,
-                        manufacturer = hubDetailsState.selectedManufacturer
+                        manufacturer = hubDetailsState.selectedManufacturer,
                     ))
                 },
                 onManufacturerSelected = { manufacturer ->
                     hubDetailsAction(HubDetailsAction.FilterItems(
                         category = hubDetailsState.selectedCategory,
-                        manufacturer = manufacturer
+                        manufacturer = manufacturer,
                     ))
                 }
             )

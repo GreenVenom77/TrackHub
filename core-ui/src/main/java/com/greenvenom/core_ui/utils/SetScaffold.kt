@@ -17,6 +17,8 @@ val LocalScaffoldViewModel = compositionLocalOf<ScaffoldViewModel> {
 fun SetScaffold(
     title: String = "",
     showLogo: Boolean = true,
+    showSearchBar: Boolean = false,
+    onSearchQueryChange: (String) -> Unit = {},
     navigateBackAction: (() -> Unit)? = null,
     topBarActions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -34,6 +36,8 @@ fun SetScaffold(
             scaffoldViewModel.updateScaffold(
                 title = title,
                 showLogo = showLogo,
+                showSearchBar = showSearchBar,
+                onSearchQueryChange = onSearchQueryChange,
                 navigateBackAction = navigateBackAction,
                 topBarActions = stableTopBarActions,
                 floatingActionButton = stableFloatingActionButton,

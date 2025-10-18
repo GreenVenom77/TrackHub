@@ -1,10 +1,15 @@
 package com.greenvenom.core_ui.presentation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -15,6 +20,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 inline fun<reified VM: BaseViewModel> BaseScreen(
+    modifier: Modifier = Modifier,
     crossinline onCreateAction: (viewModel: VM) -> Unit = {},
     crossinline onStartAction: (viewModel: VM) -> Unit = {},
     crossinline onResumeAction: (viewModel: VM) -> Unit = {},
@@ -22,12 +28,13 @@ inline fun<reified VM: BaseViewModel> BaseScreen(
     crossinline onStopAction: (viewModel: VM) -> Unit = {},
     crossinline onDestroyAction: (viewModel: VM) -> Unit = {},
     crossinline onPhysicalBack: (viewModel: VM) -> Unit = {},
-    modifier: Modifier = Modifier,
     enableCustomBack: Boolean = true,
     enableLifecycleObservation: Boolean = false,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     content: @Composable (viewModel: VM) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     val viewModel: VM = koinViewModel()
     val baseState = viewModel.baseState.collectAsState()
 
@@ -71,12 +78,21 @@ inline fun<reified VM: BaseViewModel> BaseScreen(
         }
     }
 
-    content(viewModel)
-    LoadingDialog(
-        isLoading = baseState.value.isLoading
-    )
-    ErrorDialog(
-        errorMessage = baseState.value.errorMessage,
-        dismissAction = viewModel::hideErrorMessage
-    )
+    Box(modifier = modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }
+    ) {
+        content(viewModel)
+        LoadingDialog(
+            isLoading = baseState.value.isLoading
+        )
+        ErrorDialog(
+            errorMessage = baseState.value.errorMessage,
+            dismissAction = viewModel::hideErrorMessage
+        )
+    }
 }

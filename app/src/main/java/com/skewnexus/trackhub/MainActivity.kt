@@ -45,6 +45,8 @@ class MainActivity : AppCompatActivity() {
                                 isVisible = navigationState.topBarState,
                                 title = scaffoldState.title,
                                 showLogo = scaffoldState.showLogo,
+                                showSearchBar = scaffoldState.showSearchBar,
+                                onSearchQueryChange = scaffoldState.onSearchQueryChange,
                                 navigateBack = scaffoldState.navigateBackAction,
                                 action = scaffoldState.topBarActions
                             )

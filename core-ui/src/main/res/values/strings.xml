@@ -12,7 +12,6 @@
     <string name="select_an_item">Select an item</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
-    <string name="search">Search...</string>
     <string name="selected_items">Selected items: %1$d</string>
     <string name="oops">Oops!</string>
     <string name="close_menu">Close menu</string>
@@ -35,4 +34,10 @@
     <string name="calendar">Calendar</string>
     <string name="loading">Loading...</string>
     <string name="loading_2">loading</string>
+
+    <!-- Search string -->
+    <string name="search">Search</string>
+    <string name="clear_search">Clear search</string>
+    <string name="search_holder">Search...</string>
+    <string name="close_search">Close search</string>
 </resources>
