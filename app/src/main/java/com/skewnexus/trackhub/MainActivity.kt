@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_ui.components.TopAppBar
 import com.greenvenom.core_ui.presentation.ScaffoldViewModel
@@ -22,6 +24,7 @@ import com.seravian.core_local.domain.AppPrefsDataSource
 import com.skewnexus.trackhub.navigation.AppNavHost
 import com.trackhub.feat_navigation.components.BottomNavigationBar
 import com.trackhub.feat_navigation.routes.Screen
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 class MainActivity : AppCompatActivity() {
@@ -36,6 +39,12 @@ class MainActivity : AppCompatActivity() {
             val navigationState by navigationRepository.navigationState.collectAsStateWithLifecycle()
             val scaffoldViewModel: ScaffoldViewModel = koinInject()
             val scaffoldState by scaffoldViewModel.scaffoldState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit)  {
+                lifecycleScope.launch {
+                    appPrefsRepository.getThemePreference()
+                }
+            }
 
             CompositionLocalProvider(LocalScaffoldViewModel provides scaffoldViewModel) {
                 AppTheme(darkTheme = appPrefState.isDarkTheme ?: isSystemInDarkTheme()) {
