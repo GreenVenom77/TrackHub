@@ -8,9 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.seravian.core_local.data.AppPrefsState
 import com.seravian.core_local.domain.AppPrefsDataSource
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.util.Locale
@@ -42,10 +42,15 @@ class DataStoreAppPrefs(private val context: Context): AppPrefsDataSource {
         }
     }
 
-    override fun getThemePreference(): Flow<Boolean?> =
-        context.themeDataStore.data.map { preferences ->
-            preferences[darkThemeKey]
+    override suspend fun getThemePreference() {
+        _appPrefsState.update {
+            it.copy(
+                isDarkTheme = context.themeDataStore.data.map { preferences ->
+                    preferences[darkThemeKey]
+                }.first()
+            )
         }
+    }
 
     override fun changeLanguage(languageTag: String) {
         val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(languageTag)

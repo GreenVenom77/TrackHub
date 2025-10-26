@@ -1,7 +1,6 @@
 package com.seravian.core_local.domain
 
 import com.seravian.core_local.data.AppPrefsState
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface AppPrefsDataSource {
@@ -9,7 +8,7 @@ interface AppPrefsDataSource {
 
     suspend fun changeTheme(isDarkTheme: Boolean)
 
-    fun getThemePreference(): Flow<Boolean?>
+    suspend fun getThemePreference()
 
     fun changeLanguage(languageTag: String)
 
