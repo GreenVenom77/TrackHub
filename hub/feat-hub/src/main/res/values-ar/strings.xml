@@ -32,6 +32,7 @@
     <string name="all">الجميع</string>
 
     <!-- Item form strings -->
+    <string name="item_details">تفاصيل العنصر</string>
     <string name="no_items_found">لا يوجد عناصر</string>
     <string name="item_name">اسم العنصر</string>
     <string name="item_stock">مخزون العنصر</string>
@@ -44,4 +45,7 @@
     <string name="select_an_item">اختر عنصراً</string>
     <string name="select_items">اختر عناصر</string>
     <string name="selected_items">تم اختيار %d عناصر</string>
+    <string name="close">إغلاق</string>
+    <string name="in_stock">متوفر</string>
+    <string name="out_of_stock">غير متوفر</string>
 </resources>

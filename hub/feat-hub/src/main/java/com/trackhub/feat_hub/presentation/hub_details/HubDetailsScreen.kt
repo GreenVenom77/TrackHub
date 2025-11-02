@@ -35,15 +35,17 @@ import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
-import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.FilterDropdownRow
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
+import com.trackhub.feat_hub.presentation.components.ItemDetailsDialog
 import com.trackhub.feat_hub.presentation.components.ItemListCard
 import com.trackhub.feat_hub.presentation.mappers.toHubItemUI
 import com.trackhub.feat_hub.presentation.mappers.toHubUI
+import com.trackhub.feat_hub.presentation.models.ItemUI
 
 @Composable
 fun HubDetailsScreen(
@@ -80,7 +82,7 @@ private fun HubDetailsContent(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
-    var itemSheetState by rememberSaveable { mutableStateOf(false) }
+    var itemDetailsState by rememberSaveable { mutableStateOf(false) }
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubDetailsState.hubItemsResult
@@ -97,7 +99,7 @@ private fun HubDetailsContent(
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
             isSheetDismissible = true
-            itemSheetState = false
+            itemDetailsState = false
             isItemEdit = false
         }
         ?.onError { error ->
@@ -151,7 +153,7 @@ private fun HubDetailsContent(
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
             isSheetDismissible = true
-            itemSheetState = false
+            itemDetailsState = false
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
             isItemEdit = false
@@ -178,30 +180,35 @@ private fun HubDetailsContent(
         },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
-            IconButton(
-                onClick = {
-                    hubSheetState = true
-                },
-                modifier = Modifier
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.settings_ic),
-                    contentDescription = stringResource(R.string.edit_hub_Details),
-                    modifier = Modifier.size(32.dp)
-                )
+            if (hubDetailsState.hub?.role == HubRole.Owner) {
+                IconButton(
+                    onClick = {
+                        hubSheetState = true
+                    },
+                    modifier = Modifier
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.settings_ic),
+                        contentDescription = stringResource(R.string.edit_hub_Details),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
             }
         },
 
         floatingActionButton = {
-            FloatingButton(
-                isVisible = true,
-                onClick = {
-                    isSheetDismissible = true
-                    isItemEdit = false
-                    hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
-                    itemSheetState = true
-                }
-            )
+            if (hubDetailsState.hub?.role == HubRole.Owner
+                || hubDetailsState.hub?.role == HubRole.Editor) {
+                FloatingButton(
+                    isVisible = true,
+                    onClick = {
+                        isSheetDismissible = true
+                        isItemEdit = false
+                        hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
+                        itemDetailsState = true
+                    }
+                )
+            }
         }
     )
 
@@ -253,7 +260,7 @@ private fun HubDetailsContent(
                                 isSheetDismissible = true
                                 isItemEdit = true
                                 hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
-                                itemSheetState = true
+                                itemDetailsState = true
                             },
                             modifier = Modifier
                                 .padding(horizontal = 12.dp, vertical = 4.dp)
@@ -298,16 +305,19 @@ private fun HubDetailsContent(
             }
         }
 
-        if (itemSheetState) {
+        if (hubDetailsState.hub?.role == HubRole.Owner
+            || hubDetailsState.hub?.role == HubRole.Editor
+            && itemDetailsState
+            ) {
             ItemBottomSheet(
                 sheetState = sheetState,
                 isEdit = isItemEdit,
                 isDismissible = isSheetDismissible,
                 hubItem = hubDetailsState.currentItem?.toHubItemUI(),
-                manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                categories = hubDetailsState.hub?.categoryList ?: emptyList(),
+                manufacturers = hubDetailsState.hub.manufacturerList,
+                categories = hubDetailsState.hub.categoryList,
                 onDismiss = {
-                    itemSheetState = false
+                    itemDetailsState = false
                     isItemEdit = false
                     hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                 },
@@ -333,22 +343,29 @@ private fun HubDetailsContent(
                 },
                 onAddManufacturer = { manufacturerName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
-                        hubDetailsState.hub?.copy(
+                        hubDetailsState.hub.copy(
                             manufacturerList = hubDetailsState.hub.manufacturerList.plus(
                                 manufacturerName
                             )
-                        ) as Hub
+                        )
                     ))
                 },
                 onAddCategory = { categoryName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
-                        hubDetailsState.hub?.copy(
+                        hubDetailsState.hub.copy(
                             categoryList = hubDetailsState.hub.categoryList.plus(
                                 categoryName
                             )
-                        ) as Hub
+                        )
                     ))
                 }
+            )
+        } else if (hubDetailsState.hub?.role == HubRole.Viewer && itemDetailsState) {
+            ItemDetailsDialog(
+                onDismiss = {
+                    itemDetailsState = false
+                },
+                item = hubDetailsState.currentItem?.toHubItemUI() as ItemUI
             )
         }
     }

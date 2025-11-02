@@ -32,6 +32,7 @@
     <string name="all">All</string>
 
     <!-- Item form strings -->
+    <string name="item_details">Item Details</string>
     <string name="no_items_found">No items found</string>
     <string name="item_name">Item name</string>
     <string name="item_stock">Item stock</string>
@@ -44,4 +45,7 @@
     <string name="select_an_item">Select an item</string>
     <string name="select_items">Select items</string>
     <string name="selected_items">%d items selected</string>
+    <string name="close">Close</string>
+    <string name="in_stock">In Stock</string>
+    <string name="out_of_stock">Out Of Stock</string>
 </resources>
