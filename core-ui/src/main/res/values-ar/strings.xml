@@ -39,4 +39,5 @@
     <string name="clear_search">مسح البحث</string>
     <string name="search_holder">بحث...</string>
     <string name="close_search">إغلاق البحث</string>
+    <string name="options">اختيارات</string>
 </resources>

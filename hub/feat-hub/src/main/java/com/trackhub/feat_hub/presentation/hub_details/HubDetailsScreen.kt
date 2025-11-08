@@ -5,12 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -23,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,6 +32,7 @@ import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.FloatingButton
+import com.greenvenom.core_ui.components.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
@@ -180,18 +181,48 @@ private fun HubDetailsContent(
         },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
-            if (hubDetailsState.hub?.role == HubRole.Owner) {
-                IconButton(
-                    onClick = {
-                        hubSheetState = true
-                    },
-                    modifier = Modifier
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.settings_ic),
-                        contentDescription = stringResource(R.string.edit_hub_Details),
-                        modifier = Modifier.size(32.dp)
-                    )
+            OptionsDropdownMenu {
+                when (hubDetailsState.hub?.role) {
+                    HubRole.Owner -> {
+                        DropdownMenuItem(
+                            onClick = {
+                                hubSheetState = true
+                            },
+                            text = { Text(
+                                stringResource(R.string.settings),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.settings_ic),
+                                    contentDescription = stringResource(R.string.edit_hub_Details),
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
+                            onClick = {
+
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.invite),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.group_add_ic),
+                                    contentDescription = stringResource(R.string.invite),
+                                )
+                            }
+                        )
+                    }
+                    HubRole.Editor -> {
+
+                    }
+                    else -> {
+
+                    }
                 }
             }
         },
@@ -305,8 +336,8 @@ private fun HubDetailsContent(
             }
         }
 
-        if (hubDetailsState.hub?.role == HubRole.Owner
-            || hubDetailsState.hub?.role == HubRole.Editor
+        if ((hubDetailsState.hub?.role == HubRole.Owner
+            || hubDetailsState.hub?.role == HubRole.Editor)
             && itemDetailsState
             ) {
             ItemBottomSheet(

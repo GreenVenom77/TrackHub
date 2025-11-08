@@ -30,6 +30,8 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="all">All</string>
+    <string name="settings">Settings</string>
+    <string name="invite">Invite</string>
 
     <!-- Item form strings -->
     <string name="item_details">Item Details</string>

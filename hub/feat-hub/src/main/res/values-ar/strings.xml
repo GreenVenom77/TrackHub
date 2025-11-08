@@ -30,6 +30,8 @@
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
     <string name="all">الجميع</string>
+    <string name="settings">الإعدادات</string>
+    <string name="invite">دعوة</string>
 
     <!-- Item form strings -->
     <string name="item_details">تفاصيل العنصر</string>
