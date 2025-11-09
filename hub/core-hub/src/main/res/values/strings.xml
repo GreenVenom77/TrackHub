@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Hub Roles -->
     <string name="owner">Owner</string>
     <string name="editor">Editor</string>
     <string name="viewer">Viewer</string>
+
+    <!-- Member Status -->
+    <string name="member">Member</string>
+    <string name="pending_invitation">Pending Invitation</string>
+    <string name="invitation_declined">Invitation Declined</string>
+    <string name="not_invited">Not Invited</string>
 </resources>

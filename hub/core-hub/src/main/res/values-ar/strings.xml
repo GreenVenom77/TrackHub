@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Hub Roles -->
     <string name="owner">المالك</string>
     <string name="editor">محرر</string>
     <string name="viewer">مشاهد</string>
+
+    <!-- Member Status -->
+    <string name="member">عضو</string>
+    <string name="pending_invitation">دعوة معلقة</string>
+    <string name="invitation_declined">دعوة مرفوضة</string>
+    <string name="not_invited">غير مدعو</string>
 </resources>

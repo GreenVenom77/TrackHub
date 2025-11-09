@@ -31,7 +31,6 @@
     <string name="ok">موافق</string>
     <string name="all">الجميع</string>
     <string name="settings">الإعدادات</string>
-    <string name="invite">دعوة</string>
 
     <!-- Item form strings -->
     <string name="item_details">تفاصيل العنصر</string>
@@ -50,4 +49,21 @@
     <string name="close">إغلاق</string>
     <string name="in_stock">متوفر</string>
     <string name="out_of_stock">غير متوفر</string>
+
+    <!-- Members & Invitations -->
+    <string name="members">الأعضاء</string>
+    <string name="invite">دعوة</string>
+    <string name="invite_user">دعوة مستخدم</string>
+    <string name="send_invite">إرسال الدعوة</string>
+    <string name="no_members_yet">لا يوجد أعضاء بعد</string>
+    <string name="remove_member">إزالة العضو</string>
+    <string name="search_by_name_or_email">البحث بالاسم أو البريد الإلكتروني</string>
+    <string name="no_users_found">لم يتم العثور على مستخدمين</string>
+    <string name="select_role">اختر الدور</string>
+    <string name="clear_selection">مسح الاختيار</string>
+
+    <!-- Role Descriptions -->
+    <string name="role_owner_desc">وصول كامل لكل شيء</string>
+    <string name="role_editor_desc">يمكنه إضافة وتعديل العناصر</string>
+    <string name="role_viewer_desc">يمكنه مشاهدة العناصر فقط</string>
 </resources>

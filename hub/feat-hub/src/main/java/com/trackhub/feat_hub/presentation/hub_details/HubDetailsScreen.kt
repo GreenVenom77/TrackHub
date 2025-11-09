@@ -243,7 +243,6 @@ private fun HubDetailsContent(
         }
     )
 
-
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Filter Component
