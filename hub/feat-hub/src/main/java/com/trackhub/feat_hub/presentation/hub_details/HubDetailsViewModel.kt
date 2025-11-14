@@ -10,8 +10,13 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.trackhub.core_hub.data.mappers.toInsertRequest
 import com.trackhub.core_hub.data.mappers.toUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
+import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
+import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
+import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
+import com.trackhub.feat_hub.domain.repo.HubInvitationsRepository
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,6 +29,7 @@ import kotlinx.coroutines.withContext
 
 class HubDetailsViewModel(
     private val hubRepository: HubRepository,
+    private val invitationsRepository: HubInvitationsRepository,
     private val savedStateHandle: SavedStateHandle
 ): BaseViewModel() {
     private val _hubDetailsState = MutableStateFlow(HubDetailsState())
@@ -38,17 +44,18 @@ class HubDetailsViewModel(
     init {
         savedStateHandle.get<String>("hubId")?.let { hubId ->
             viewModelScope.launch {
-                val fetchedHub = hubRepository.getHub(hubId)
+                val fetchedHub = withContext(Dispatchers.IO) {
+                    hubRepository.getHub(hubId)
+                }
 
-                withContext(Dispatchers.Main) {
-                    _hubDetailsState.update {
-                        it.copy(
-                            hub = fetchedHub
-                        )
-                    }
+                _hubDetailsState.update {
+                    it.copy(
+                        hub = fetchedHub
+                    )
                 }
             }
             itemsCollectionJob = getHubItems(hubId, null, null, null)
+            //getAllInvitations()
         }
     }
 
@@ -85,6 +92,9 @@ class HubDetailsViewModel(
                 action.updatedItem
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
+            is HubDetailsAction.GetAllInvitations -> getAllInvitations()
+            is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchQuery)
+            is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.roleName)
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
@@ -240,6 +250,69 @@ class HubDetailsViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private fun getAllInvitations() {
+        viewModelScope.launch {
+            val getAllInvitationsResult = withContext(Dispatchers.IO) {
+                invitationsRepository.getAllHubInvitations(
+                    HubInvitationsRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: ""
+                    )
+                )
+            }
+
+            getAllInvitationsResult.onSuccess { invitations ->
+                _hubDetailsState.update {
+                    it.copy(
+                        invitationsList = invitations
+                    )
+                }
+            }
+        }
+    }
+
+    private fun searchForUsers(searchQuery: String) {
+        viewModelScope.launch {
+            val searchForUsersResult = withContext(Dispatchers.IO) {
+                invitationsRepository.searchForUsers(
+                    UserSearchRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        searchQuery = searchQuery
+                    )
+                )
+            }
+
+            searchForUsersResult.onSuccess { users ->
+                _hubDetailsState.update {
+                    it.copy(
+                        usersList = users
+                    )
+                }
+            }
+        }
+    }
+
+    private fun inviteUser(userId: String, roleName: HubRole) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val inviteUserResult = withContext(Dispatchers.IO) {
+                invitationsRepository.inviteUser(
+                    UserInviteRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId,
+                        roleName = roleName
+                    )
+                )
+            }
+
+            _hubDetailsState.update {
+                it.copy(
+                    invitationProcessResult = inviteUserResult
+                )
+            }
+            baseAction(BaseAction.HideLoading)
         }
     }
 

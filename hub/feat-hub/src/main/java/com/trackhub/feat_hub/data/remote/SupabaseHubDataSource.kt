@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 
-class HubSupabaseDataSource(
+class SupabaseHubDataSource(
     private val supabaseClient: SupabaseClient
 ): HubRemoteDataSource {
     override suspend fun addHub(

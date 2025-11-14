@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
+import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 
@@ -28,6 +29,17 @@ interface HubDetailsAction {
     ): HubDetailsAction
 
     data class DeleteItem(val itemId: Int): HubDetailsAction
+
+    data object GetAllInvitations: HubDetailsAction
+
+    data class SearchForUsers(
+        val searchQuery: String
+    ): HubDetailsAction
+
+    data class InviteUser(
+        val userId: String,
+        val roleName: HubRole
+    ): HubDetailsAction
 
     data class ChangeCurrentItem(val item: Item?): HubDetailsAction
 
