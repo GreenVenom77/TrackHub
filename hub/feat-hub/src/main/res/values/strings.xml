@@ -9,6 +9,7 @@
     <string name="hub_id">Hub ID</string>
     <string name="update_hub">Update Hub</string>
     <string name="unknown_hub">Unknown Hub</string>
+    <string name="hub_description_hint">Enter hub description</string>
 
     <!-- Category related strings -->
     <string name="category">Category</string>

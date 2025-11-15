@@ -389,38 +389,6 @@ private fun ItemSheetContent(
 }
 
 @Composable
-private fun FormFieldWithIcon(
-    label: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Column(modifier = modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        content()
-    }
-}
-
-@Composable
 private fun AddItemDialog(
     title: String,
     placeholder: String,

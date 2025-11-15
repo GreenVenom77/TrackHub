@@ -1,10 +1,16 @@
 package com.trackhub.feat_hub.presentation.mappers
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.greenvenom.core_ui.utils.formatDateTime
+import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
+import com.trackhub.core_hub.domain.models.UserSearch
 import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
+import com.trackhub.feat_hub.presentation.models.UserSearchUI
 
 fun Hub.toHubUI(): HubUI {
     return HubUI(
@@ -43,5 +49,25 @@ fun Item.toHubItemUI(): ItemUI {
         manufacturer = this.manufacturer ?: "",
         category = this.category ?: "",
         inStock = inStock
+    )
+}
+
+@Composable
+fun UserSearch.toUI(): UserSearchUI {
+    val context = LocalContext.current
+    val statusText = context.getString(this.currentStatus.value)
+    val statusColor = when (this.currentStatus) {
+        MemberStatus.Member -> MaterialTheme.colorScheme.primary
+        MemberStatus.PendingInvitation -> MaterialTheme.colorScheme.tertiary
+        MemberStatus.InvitationDeclined -> MaterialTheme.colorScheme.error
+        MemberStatus.NotInvited -> MaterialTheme.colorScheme.secondary
+    }
+
+    return UserSearchUI(
+        userId = this.userId,
+        displayName = this.displayName,
+        email = this.email,
+        statusText = statusText,
+        statusColor = statusColor
     )
 }
