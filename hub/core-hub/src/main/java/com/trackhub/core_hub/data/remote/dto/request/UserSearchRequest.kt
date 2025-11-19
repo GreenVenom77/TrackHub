@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserSearchRequest(
     val hubId: String,
-    val searchQuery: String
+    val searchTerm: String
 )

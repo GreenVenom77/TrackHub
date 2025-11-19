@@ -33,12 +33,12 @@ interface HubDetailsAction {
     data object GetAllInvitations: HubDetailsAction
 
     data class SearchForUsers(
-        val searchQuery: String
+        val searchTerm: String
     ): HubDetailsAction
 
     data class InviteUser(
         val userId: String,
-        val roleName: HubRole
+        val role: HubRole
     ): HubDetailsAction
 
     data class ChangeCurrentItem(val item: Item?): HubDetailsAction

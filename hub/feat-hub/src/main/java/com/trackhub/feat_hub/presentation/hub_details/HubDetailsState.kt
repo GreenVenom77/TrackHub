@@ -3,8 +3,10 @@ package com.trackhub.feat_hub.presentation.hub_details
 import androidx.paging.PagingData
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
+import com.greenvenom.core_network.data.NetworkResult
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.HubMember
+import com.trackhub.core_hub.domain.models.InvitationResult
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.core_hub.domain.models.UserSearch
 import kotlinx.coroutines.flow.Flow
@@ -24,5 +26,5 @@ data class HubDetailsState(
     val operationResult: EmptyResult<NetworkError>? = null,
     val itemDeletionResult: EmptyResult<NetworkError>? = null,
     val hubItemsResult: EmptyResult<NetworkError>? = null,
-    val invitationProcessResult: EmptyResult<NetworkError>? = null
+    val invitationProcessResult: NetworkResult<InvitationResult, NetworkError>? = null
 )

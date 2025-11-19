@@ -67,4 +67,20 @@
     <string name="role_owner_desc">Full access to everything</string>
     <string name="role_editor_desc">Can add and edit items</string>
     <string name="role_viewer_desc">Can only view items</string>
+
+    <!-- Success messages -->
+    <string name="invitation_role_updated">Member role updated successfully</string>
+    <string name="invitation_updated">Pending invitation updated with new role</string>
+    <string name="invitation_resent">Invitation resent successfully</string>
+    <string name="invitation_sent">Invitation sent successfully</string>
+
+    <!-- Error messages -->
+    <string name="error_hub_id_null">Hub ID is required</string>
+    <string name="error_user_id_null">User ID is required</string>
+    <string name="error_role_name_empty">Please select a role</string>
+    <string name="error_no_permission">You don\'t have permission to invite users to this hub</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_cannot_invite_self">You cannot invite yourself</string>
+    <string name="error_invalid_role_name">Invalid role selected. Please choose Owner, Editor, or Viewer</string>
+    <string name="error_generic">An error occurred. Please try again</string>
 </resources>

@@ -31,6 +31,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
+import com.greenvenom.core_ui.components.DeletionDialog
 import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.components.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
@@ -85,6 +86,9 @@ private fun HubDetailsContent(
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemDetailsState by rememberSaveable { mutableStateOf(false) }
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
+    var showDeletionDialog by rememberSaveable { mutableStateOf(false) }
+    var deletionAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
+    var deletionMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     hubDetailsState.hubItemsResult
         ?.onError { error ->
@@ -329,7 +333,8 @@ private fun HubDetailsContent(
                     },
                     onDelete = { hubId ->
                         isSheetDismissible = false
-                        hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
+                        deletionAction = { hubDetailsAction(HubDetailsAction.DeleteHub(hubId)) }
+                        showDeletionDialog = true
                     }
                 )
             }
@@ -369,7 +374,8 @@ private fun HubDetailsContent(
                 },
                 onDelete = { itemId ->
                     isSheetDismissible = false
-                    hubDetailsAction(HubDetailsAction.DeleteItem(itemId))
+                    deletionAction = { hubDetailsAction(HubDetailsAction.DeleteItem(itemId)) }
+                    showDeletionDialog = true
                 },
                 onAddManufacturer = { manufacturerName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
@@ -399,6 +405,17 @@ private fun HubDetailsContent(
             )
         }
     }
+
+    DeletionDialog(
+        showDialog = showDeletionDialog,
+        deletionMessage = deletionMessage,
+        onDismiss = { showDeletionDialog = false },
+        onConfirm = {
+            deletionAction?.invoke()
+            deletionAction = null
+            deletionMessage = null
+        }
+    )
 }
 
 @Preview(showBackground = true)

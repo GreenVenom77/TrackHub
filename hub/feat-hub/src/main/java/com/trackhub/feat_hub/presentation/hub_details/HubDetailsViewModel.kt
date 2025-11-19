@@ -93,8 +93,8 @@ class HubDetailsViewModel(
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
             is HubDetailsAction.GetAllInvitations -> getAllInvitations()
-            is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchQuery)
-            is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.roleName)
+            is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchTerm)
+            is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.role)
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
@@ -273,13 +273,13 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun searchForUsers(searchQuery: String) {
+    private fun searchForUsers(searchTerm: String) {
         viewModelScope.launch {
             val searchForUsersResult = withContext(Dispatchers.IO) {
                 invitationsRepository.searchForUsers(
                     UserSearchRequest(
                         hubId = _hubDetailsState.value.hub?.id ?: "",
-                        searchQuery = searchQuery
+                        searchTerm = searchTerm
                     )
                 )
             }
@@ -294,7 +294,7 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun inviteUser(userId: String, roleName: HubRole) {
+    private fun inviteUser(userId: String, role: HubRole) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val inviteUserResult = withContext(Dispatchers.IO) {
@@ -302,7 +302,7 @@ class HubDetailsViewModel(
                     UserInviteRequest(
                         hubId = _hubDetailsState.value.hub?.id ?: "",
                         userId = userId,
-                        roleName = roleName
+                        roleName = role.name
                     )
                 )
             }

@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -187,29 +188,15 @@ fun InviteUserDialog(
                                     Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { selectedUser = user },
+                                            .clickable(
+                                                enabled = user.currentStatus == MemberStatus.Member
+                                            ) { selectedUser = user },
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surface
                                         )
                                     ) {
-                                        val userUI = user.toUI()
-
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(12.dp)
-                                        ) {
-                                            Text(
-                                                text = userUI.displayName,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                            Text(
-                                                text = userUI.email,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
+                                        UserSearchItem(userUI = user.toUI())
+                                        HorizontalDivider()
                                     }
                                 }
                             }
