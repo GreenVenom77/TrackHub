@@ -10,7 +10,7 @@
     <string name="select_items">اختر من القائمة</string>
     <string name="select_an_item">اختر من القائمة</string>
     <string name="cancel">إلغاء</string>
-    <string name="ok">تأكيد</string>
+    <string name="ok">حسناً</string>
     <string name="selected_items">العناصر المحددة: %1$d</string>
     <string name="oops">عذراً!</string>
     <string name="close_menu">إغلاق القائمة</string>
@@ -44,4 +44,9 @@
     <string name="search_holder">بحث...</string>
     <string name="close_search">إغلاق البحث</string>
     <string name="options">اختيارات</string>
+
+    <!-- Success Dialog Strings -->
+    <string name="success_icon_description">أيقونة النجاح</string>
+    <string name="success_title">نجح!</string>
+    <string name="success_message">تمت العملية بنجاح</string>
 </resources>

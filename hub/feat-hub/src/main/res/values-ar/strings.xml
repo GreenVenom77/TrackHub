@@ -10,6 +10,12 @@
     <string name="update_hub">تحديث المركز</string>
     <string name="unknown_hub">مخزن غير معلوم</string>
     <string name="hub_description_hint">أدخل وصف المركز</string>
+    <string name="about_hub">حول المركز</string>
+    <string name="created_at">تاريخ الإنشاء</string>
+    <string name="no_description">لا يوجد وصف</string>
+    <string name="unknown">غير معروف</string>
+    <string name="leave_hub">ترك المركز</string>
+    <string name="leave_hub_message">هل أنت متأكد من أنك تريد ترك هذا المركز؟</string>
 
     <!-- Category related strings -->
     <string name="category">الفئة</string>

@@ -44,7 +44,8 @@ fun MemberItem(
     member: HubMember,
     onRemove: () -> Unit,
     onChangeRole: (HubRole) -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
+    viewerMode: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -53,7 +54,8 @@ fun MemberItem(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
             modifier = Modifier
@@ -62,98 +64,133 @@ fun MemberItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Left side: Member info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = member.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                Text(
-                    text = member.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
 
-                // Status badge
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Badge(
-                        containerColor = if (member.status == MemberStatus.Member) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.secondaryContainer
-                        }
+                if (viewerMode) {
+                    // In viewer mode, show email on one line and role badge on the side
+                    Text(
+                        text = member.email,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                } else {
+                    // Non-viewer mode: show email on separate line
+                    Text(
+                        text = member.email,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Status badge (only in non-viewer mode)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
-                        Text(
-                            text = member.status.name,
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                        Badge(
+                            containerColor = if (member.status == MemberStatus.Member) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            }
+                        ) {
+                            Text(
+                                text = member.status.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
                     }
                 }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Role Dropdown (only for non-owners)
-                if (member.role != HubRole.Owner) {
-                    Box {
-                        OutlinedButton(
-                            onClick = { expanded = true },
-                            enabled = enabled,
-                            modifier = Modifier.width(120.dp)
-                        ) {
-                            Text(
-                                text = stringResource(member.role.value),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            HubRole.entries.filter { it != HubRole.Owner }.forEach { role ->
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(role.value)) },
-                                    onClick = {
-                                        onChangeRole(role)
-                                        expanded = false
-                                    }
+            // Right side: Role badge in viewer mode OR Controls in edit mode
+            if (viewerMode) {
+                // Viewer mode: Show role badge on the right side
+                Badge(
+                    containerColor = when (member.role) {
+                        HubRole.Owner -> MaterialTheme.colorScheme.primary
+                        HubRole.Editor -> MaterialTheme.colorScheme.tertiaryContainer
+                        HubRole.Viewer -> MaterialTheme.colorScheme.secondaryContainer
+                    }
+                ) {
+                    Text(
+                        text = stringResource(member.role.value),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            } else {
+                // Edit mode: Show controls
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Role Dropdown (only for non-owners)
+                    if (member.role != HubRole.Owner) {
+                        Box {
+                            OutlinedButton(
+                                onClick = { expanded = true },
+                                enabled = enabled,
+                                modifier = Modifier.width(120.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(member.role.value),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
-                        }
-                    }
 
-                    // Remove button
-                    IconButton(
-                        onClick = onRemove,
-                        enabled = enabled
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.remove_member),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                } else {
-                    // Owner badge (non-clickable)
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ) {
-                        Text(
-                            text = stringResource(HubRole.Owner.value),
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                HubRole.entries.filter { it != HubRole.Owner }.forEach { role ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(role.value)) },
+                                        onClick = {
+                                            onChangeRole(role)
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Remove button
+                        IconButton(
+                            onClick = onRemove,
+                            enabled = enabled
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = stringResource(R.string.remove_member),
+                                tint = if (enabled) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        // Owner badge (non-clickable)
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = stringResource(HubRole.Owner.value),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -213,7 +250,27 @@ private fun PreviewMemberItemViewerPending() {
             ),
             onRemove = {},
             onChangeRole = {},
-            enabled = true
+            enabled = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Member Item - Viewer Mode")
+@Composable
+private fun PreviewMemberItemViewerMode() {
+    AppTheme {
+        MemberItem(
+            member = HubMember(
+                userId = "user_3",
+                name = "Bob Johnson",
+                email = "bob@example.com",
+                role = HubRole.Editor,
+                status = MemberStatus.PendingInvitation
+            ),
+            onRemove = {},
+            onChangeRole = {},
+            enabled = true,
+            viewerMode = true
         )
     }
 }

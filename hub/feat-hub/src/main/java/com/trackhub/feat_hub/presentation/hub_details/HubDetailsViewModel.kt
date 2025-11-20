@@ -55,7 +55,7 @@ class HubDetailsViewModel(
                 }
             }
             itemsCollectionJob = getHubItems(hubId, null, null, null)
-            //getAllInvitations()
+            getAllInvitations()
         }
     }
 
@@ -327,7 +327,9 @@ class HubDetailsViewModel(
             it.copy(
                 operationResult = null,
                 hubDeletionResult = null,
-                itemDeletionResult = null
+                itemDeletionResult = null,
+                hubUpdateResult = null,
+                invitationProcessResult = null
             )
         }
     }

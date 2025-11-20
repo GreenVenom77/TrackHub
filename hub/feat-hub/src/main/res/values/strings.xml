@@ -10,6 +10,12 @@
     <string name="update_hub">Update Hub</string>
     <string name="unknown_hub">Unknown Hub</string>
     <string name="hub_description_hint">Enter hub description</string>
+    <string name="about_hub">About Hub</string>
+    <string name="created_at">Created At</string>
+    <string name="no_description">No description provided</string>
+    <string name="unknown">Unknown</string>
+    <string name="leave_hub">Leave Hub</string>
+    <string name="leave_hub_message">Are you sure you want to leave this hub?</string>
 
     <!-- Category related strings -->
     <string name="category">Category</string>

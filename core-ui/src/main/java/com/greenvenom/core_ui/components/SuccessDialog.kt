@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
@@ -41,11 +40,11 @@ import com.greenvenom.core_ui.R
 import com.greenvenom.core_ui.theme.AppTheme
 
 @Composable
-fun DeletionDialog(
+fun SuccessDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    deletionMessage: String? = null
+    successMessage: String? = null,
+    successTitle: String? = null
 ) {
     if (showDialog) {
         // Scale animation
@@ -58,11 +57,21 @@ fun DeletionDialog(
             label = "scale"
         )
 
+        // Rotation animation for checkmark
+        val rotation by animateFloatAsState(
+            targetValue = 360f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
+            ),
+            label = "rotation"
+        )
+
         Dialog(
-            onDismissRequest = { /* Prevent dismissal */ },
+            onDismissRequest = onDismiss,
             properties = DialogProperties(
-                dismissOnBackPress = false,
-                dismissOnClickOutside = false
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
             )
         ) {
             Surface(
@@ -85,8 +94,8 @@ fun DeletionDialog(
                             .background(
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
-                                        MaterialTheme.colorScheme.errorContainer,
-                                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                                     )
                                 ),
                                 shape = CircleShape
@@ -94,10 +103,12 @@ fun DeletionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.DeleteOutline,
-                            contentDescription = stringResource(R.string.warning_icon_description),
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(56.dp)
+                            imageVector = Icons.Outlined.CheckCircle,
+                            contentDescription = stringResource(R.string.success_icon_description),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .rotate(rotation)
                         )
                     }
 
@@ -105,7 +116,7 @@ fun DeletionDialog(
 
                     // Title
                     Text(
-                        text = stringResource(R.string.delete_warning_title),
+                        text = successTitle ?: stringResource(R.string.success_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -116,7 +127,7 @@ fun DeletionDialog(
 
                     // Message
                     Text(
-                        text = deletionMessage ?: stringResource(R.string.delete_warning_message),
+                        text = successMessage ?: stringResource(R.string.success_message),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -126,55 +137,27 @@ fun DeletionDialog(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Buttons - Modern stacked layout
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    // OK Button
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 2.dp
+                        )
                     ) {
-                        // Delete Button - Primary action
-                        Button(
-                            onClick = {
-                                onConfirm()
-                                onDismiss()
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            ),
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 0.dp,
-                                pressedElevation = 2.dp
-                            )
-                        ) {
-                            Text(
-                                text = stringResource(R.string.delete),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        // Cancel Button - Secondary action
-                        FilledTonalButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.ok),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
@@ -184,24 +167,24 @@ fun DeletionDialog(
 
 @Preview(showBackground = true)
 @Composable
-fun DeleteDialogPreview() {
+fun SuccessDialogPreview() {
     AppTheme {
-        DeletionDialog(
+        SuccessDialog(
             showDialog = true,
             onDismiss = {},
-            onConfirm = {}
+            successMessage = "Your operation completed successfully!"
         )
     }
 }
 
 @Preview(showBackground = true, locale = "ar")
 @Composable
-fun DeleteDialogPreviewArabic() {
+fun SuccessDialogPreviewArabic() {
     AppTheme {
-        DeletionDialog(
+        SuccessDialog(
             showDialog = true,
             onDismiss = {},
-            onConfirm = {}
+            successMessage = "تمت العملية بنجاح!"
         )
     }
 }

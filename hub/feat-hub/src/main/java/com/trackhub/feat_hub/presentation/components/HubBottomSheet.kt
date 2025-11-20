@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Hub
@@ -65,10 +66,11 @@ fun HubBottomSheet(
     isDismissible: Boolean = true,
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
+    foundUsers: List<UserSearch> = emptyList(),
     onAdd: (String, String) -> Unit = { _, _ -> },
     onEdit: (String, String) -> Unit = { _, _ -> },
     onDelete: (String) -> Unit = {},
-    onSearchUsers: (String) -> List<UserSearch> = { emptyList() },
+    onSearchUsers: (String) -> Unit = {},
     onInviteUser: (String, HubRole) -> Unit = { _, _ -> },
     onRemoveMember: (String) -> Unit = {},
     onChangeRole: (String, HubRole) -> Unit = { _, _ -> },
@@ -81,6 +83,7 @@ fun HubBottomSheet(
         modifier = modifier,
         hub = hub,
         hubMembers = hubMembers,
+        foundUsers = foundUsers,
         onAdd = onAdd,
         onEdit = onEdit,
         onDelete = onDelete,
@@ -101,10 +104,11 @@ private fun HubSheetContent(
     modifier: Modifier = Modifier,
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
+    foundUsers: List<UserSearch> = emptyList(),
     onAdd: (String, String) -> Unit,
     onEdit: (String, String) -> Unit,
     onDelete: (String) -> Unit,
-    onSearchUsers: (String) -> List<UserSearch>,
+    onSearchUsers: (String) -> Unit,
     onInviteUser: (String, HubRole) -> Unit,
     onRemoveMember: (String) -> Unit,
     onChangeRole: (String, HubRole) -> Unit,
@@ -202,6 +206,22 @@ private fun HubSheetContent(
                                 .background(MaterialTheme.colorScheme.surface)
                                 .padding(12.dp)
                         )
+                    }
+
+                    if (isEdit && hub?.createdAt != null) {
+                        FormFieldWithIcon(
+                            label = stringResource(R.string.created_at),
+                            icon = Icons.Default.CalendarToday
+                        ) {
+                            CustomTextField(
+                                value = hub.createdAt,
+                                label = null,
+                                onValueChange = { },
+                                readOnly = true,
+                                enabled = false,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -326,6 +346,7 @@ private fun HubSheetContent(
     // Invite User Dialog
     if (showInviteDialog) {
         InviteUserDialog(
+            foundUsers = foundUsers,
             onDismiss = { showInviteDialog = false },
             onSearchUsers = onSearchUsers,
             onInvite = { userId, role ->
@@ -351,7 +372,7 @@ private fun PreviewAddHub() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = { emptyList() },
+            onSearchUsers = {},
             onInviteUser = { _, _ -> },
             onRemoveMember = {},
             onChangeRole = { _, _ -> }
@@ -381,7 +402,7 @@ private fun PreviewEditHubNoMembers() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = { emptyList() },
+            onSearchUsers = {},
             onInviteUser = { _, _ -> },
             onRemoveMember = {},
             onChangeRole = { _, _ -> }
@@ -433,7 +454,7 @@ private fun PreviewEditHubWithMembers() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = { emptyList() },
+            onSearchUsers = {},
             onInviteUser = { _, _ -> },
             onRemoveMember = {},
             onChangeRole = { _, _ -> }

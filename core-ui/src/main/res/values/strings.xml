@@ -45,4 +45,9 @@
     <string name="search_holder">Search...</string>
     <string name="close_search">Close search</string>
     <string name="options">Options</string>
+
+    <!-- Success Dialog Strings -->
+    <string name="success_icon_description">Success Icon</string>
+    <string name="success_title">Success!</string>
+    <string name="success_message">Operation completed successfully</string>
 </resources>

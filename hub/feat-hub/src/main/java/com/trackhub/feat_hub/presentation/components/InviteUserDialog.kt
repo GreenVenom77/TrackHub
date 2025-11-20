@@ -53,12 +53,13 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun InviteUserDialog(
+    foundUsers: List<UserSearch> = emptyList(),
     onDismiss: () -> Unit,
-    onSearchUsers: (String) -> List<UserSearch>,
+    onSearchUsers: (String) -> Unit,
     onInvite: (String, HubRole) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var searchResults by remember { mutableStateOf<List<UserSearch>>(emptyList()) }
+    var searchResults by remember { mutableStateOf(foundUsers) }
     var selectedUser by remember { mutableStateOf<UserSearch?>(null) }
     var selectedRole by remember { mutableStateOf(HubRole.Viewer) }
     var isRoleDropdownExpanded by remember { mutableStateOf(false) }
@@ -68,7 +69,7 @@ fun InviteUserDialog(
         if (searchQuery.length >= 2) {
             isSearching = true
             delay(500) // Debounce delay
-            searchResults = onSearchUsers(searchQuery)
+            onSearchUsers(searchQuery)
             isSearching = false
         } else {
             searchResults = emptyList()
@@ -296,7 +297,7 @@ private fun PreviewInviteDialogInitial() {
     AppTheme {
         InviteUserDialog(
             onDismiss = {},
-            onSearchUsers = { emptyList() },
+            onSearchUsers = {  },
             onInvite = { _, _ -> }
         )
     }

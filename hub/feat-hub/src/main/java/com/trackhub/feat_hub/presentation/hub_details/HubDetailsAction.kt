@@ -41,6 +41,17 @@ interface HubDetailsAction {
         val role: HubRole
     ): HubDetailsAction
 
+    data class RemoveMember(
+        val userId: String
+    ): HubDetailsAction
+
+    data class ChangeMemberRole(
+        val userId: String,
+        val role: HubRole
+    ): HubDetailsAction
+
+    data object LeaveHub: HubDetailsAction
+
     data class ChangeCurrentItem(val item: Item?): HubDetailsAction
 
     data object ClearNetworkOperations: HubDetailsAction

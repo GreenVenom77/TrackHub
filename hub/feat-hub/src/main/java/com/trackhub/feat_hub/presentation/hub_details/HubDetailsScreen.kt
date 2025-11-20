@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -20,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,12 +38,14 @@ import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.components.DeletionDialog
 import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.components.OptionsDropdownMenu
+import com.greenvenom.core_ui.components.SuccessDialog
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
+import com.trackhub.feat_hub.presentation.components.AboutHubSheet
 import com.trackhub.feat_hub.presentation.components.FilterDropdownRow
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
@@ -47,6 +53,8 @@ import com.trackhub.feat_hub.presentation.components.ItemDetailsDialog
 import com.trackhub.feat_hub.presentation.components.ItemListCard
 import com.trackhub.feat_hub.presentation.mappers.toHubItemUI
 import com.trackhub.feat_hub.presentation.mappers.toHubUI
+import com.trackhub.feat_hub.presentation.mappers.toUI
+import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
 
 @Composable
@@ -80,15 +88,20 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
+    val context = LocalContext.current
+
     val lazyPagingItems = hubDetailsState.items.collectAsLazyPagingItems()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isItemEdit by rememberSaveable { mutableStateOf(false) }
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
+    var aboutHubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemDetailsState by rememberSaveable { mutableStateOf(false) }
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
     var showDeletionDialog by rememberSaveable { mutableStateOf(false) }
     var deletionAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
     var deletionMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var showSuccessDialog by rememberSaveable { mutableStateOf(false) }
+    var successMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     hubDetailsState.hubItemsResult
         ?.onError { error ->
@@ -106,25 +119,7 @@ private fun HubDetailsContent(
             isSheetDismissible = true
             itemDetailsState = false
             isItemEdit = false
-        }
-        ?.onError { error ->
-            baseAction(
-                BaseAction.ShowErrorMessage(
-                errorMessage = stringResource(error.messageId),
-                dismissAction = {
-                    hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                    isSheetDismissible = true
-                }
-            ))
-        }
-
-    hubDetailsState.hubUpdateResult
-        ?.onSuccess {
-            isSheetDismissible = true
-            hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            if (hubSheetState) {
-                hubSheetState = false
-            }
+            showSuccessDialog = true
         }
         ?.onError { error ->
             baseAction(
@@ -134,7 +129,29 @@ private fun HubDetailsContent(
                         hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                         isSheetDismissible = true
                     }
-                ))
+                )
+            )
+        }
+
+    hubDetailsState.hubUpdateResult
+        ?.onSuccess {
+            isSheetDismissible = true
+            hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+            if (hubSheetState) {
+                hubSheetState = false
+            }
+            showSuccessDialog = true
+        }
+        ?.onError { error ->
+            baseAction(
+                BaseAction.ShowErrorMessage(
+                    errorMessage = stringResource(error.messageId),
+                    dismissAction = {
+                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                        isSheetDismissible = true
+                    }
+                )
+            )
         }
 
     hubDetailsState.hubDeletionResult
@@ -147,12 +164,13 @@ private fun HubDetailsContent(
         ?.onError { error ->
             baseAction(
                 BaseAction.ShowErrorMessage(
-                errorMessage = stringResource(error.messageId),
-                dismissAction = {
-                    hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                    isSheetDismissible = true
-                }
-            ))
+                    errorMessage = stringResource(error.messageId),
+                    dismissAction = {
+                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                        isSheetDismissible = true
+                    }
+                )
+            )
         }
 
     hubDetailsState.itemDeletionResult
@@ -162,6 +180,7 @@ private fun HubDetailsContent(
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
             isItemEdit = false
+            showSuccessDialog = true
         }
         ?.onError { error ->
             baseAction(
@@ -172,6 +191,37 @@ private fun HubDetailsContent(
                     isSheetDismissible = true
                 }
             ))
+        }
+
+    hubDetailsState.invitationProcessResult
+        ?.onSuccess { result ->
+            if (result.success) {
+                hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                showSuccessDialog = true
+                successMessage = stringResource(result.toUI().messageResId)
+            } else {
+                baseAction(
+                    BaseAction.ShowErrorMessage(
+                        errorMessage = stringResource(result.toUI().messageResId),
+                        dismissAction = {
+                            hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                            isSheetDismissible = true
+                        }
+                    )
+                )
+            }
+        }
+        ?.onError { error ->
+            baseAction(
+                BaseAction.ShowErrorMessage(
+                    errorMessage = stringResource(error.messageId),
+                    dismissAction = {
+                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+                        isSheetDismissible = true
+                    }
+                )
+            )
         }
 
     SetScaffold(
@@ -190,6 +240,25 @@ private fun HubDetailsContent(
                     HubRole.Owner -> {
                         DropdownMenuItem(
                             onClick = {
+                                hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                aboutHubSheetState = true
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.about_hub),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = stringResource(R.string.about_hub),
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            onClick = {
+                                hubDetailsAction(HubDetailsAction.GetAllInvitations)
                                 hubSheetState = true
                             },
                             text = { Text(
@@ -204,28 +273,90 @@ private fun HubDetailsContent(
                                 )
                             }
                         )
+                    }
+                    HubRole.Editor -> {
                         DropdownMenuItem(
                             onClick = {
-
+                                hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                aboutHubSheetState = true
                             },
                             text = { Text(
-                                text = stringResource(R.string.invite),
+                                text = stringResource(R.string.about_hub),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold
                             ) },
                             leadingIcon = {
                                 Icon(
-                                    painter = painterResource(R.drawable.group_add_ic),
-                                    contentDescription = stringResource(R.string.invite),
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = stringResource(R.string.about_hub),
+                                )
+                            }
+                        )
+
+                        HorizontalDivider()
+
+                        DropdownMenuItem(
+                            onClick = {
+                                deletionMessage = context.getString(R.string.leave_hub_message)
+                                deletionAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
+                                showDeletionDialog = true
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.leave_hub),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.error
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                    contentDescription = stringResource(R.string.leave_hub),
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         )
                     }
-                    HubRole.Editor -> {
-
-                    }
                     else -> {
+                        DropdownMenuItem(
+                            onClick = {
+                                hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                aboutHubSheetState = true
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.about_hub),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = stringResource(R.string.about_hub),
+                                )
+                            }
+                        )
 
+                        HorizontalDivider()
+
+                        DropdownMenuItem(
+                            onClick = {
+                                deletionMessage = context.getString(R.string.leave_hub_message)
+                                deletionAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
+                                showDeletionDialog = true
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.leave_hub),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.error
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                    contentDescription = stringResource(R.string.leave_hub),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -319,6 +450,8 @@ private fun HubDetailsContent(
                 HubBottomSheet(
                     hub = hub.toHubUI(),
                     sheetState = sheetState,
+                    hubMembers = hubDetailsState.invitationsList,
+                    foundUsers = hubDetailsState.usersList,
                     onDismiss = { hubSheetState = false },
                     isEdit = true,
                     isDismissible = isSheetDismissible,
@@ -335,15 +468,35 @@ private fun HubDetailsContent(
                         isSheetDismissible = false
                         deletionAction = { hubDetailsAction(HubDetailsAction.DeleteHub(hubId)) }
                         showDeletionDialog = true
+                    },
+                    onSearchUsers = { searchTerm ->
+                        hubDetailsAction(HubDetailsAction.SearchForUsers(searchTerm))
+                    },
+                    onInviteUser = { userId, role ->
+                        hubDetailsAction(HubDetailsAction.InviteUser(userId, role))
+                    },
+                    onRemoveMember = { userId ->
+                        hubDetailsAction(HubDetailsAction.RemoveMember(userId))
+                    },
+                    onChangeRole = { userId, role ->
+                        hubDetailsAction(HubDetailsAction.ChangeMemberRole(userId, role))
                     }
                 )
             }
         }
 
+        if (aboutHubSheetState) {
+            AboutHubSheet(
+                sheetState = sheetState,
+                onDismiss = { aboutHubSheetState = false },
+                hub = hubDetailsState.hub?.toHubUI() as HubUI,
+                hubMembers = hubDetailsState.invitationsList
+            )
+        }
+
         if ((hubDetailsState.hub?.role == HubRole.Owner
             || hubDetailsState.hub?.role == HubRole.Editor)
-            && itemDetailsState
-            ) {
+            && itemDetailsState) {
             ItemBottomSheet(
                 sheetState = sheetState,
                 isEdit = isItemEdit,
@@ -404,18 +557,24 @@ private fun HubDetailsContent(
                 item = hubDetailsState.currentItem?.toHubItemUI() as ItemUI
             )
         }
-    }
 
-    DeletionDialog(
-        showDialog = showDeletionDialog,
-        deletionMessage = deletionMessage,
-        onDismiss = { showDeletionDialog = false },
-        onConfirm = {
-            deletionAction?.invoke()
-            deletionAction = null
-            deletionMessage = null
-        }
-    )
+        DeletionDialog(
+            showDialog = showDeletionDialog,
+            deletionMessage = deletionMessage,
+            onDismiss = { showDeletionDialog = false },
+            onConfirm = {
+                deletionAction?.invoke()
+                deletionAction = null
+                deletionMessage = null
+            }
+        )
+
+        SuccessDialog(
+            showDialog = showSuccessDialog,
+            successMessage = successMessage,
+            onDismiss = { showSuccessDialog = false }
+        )
+    }
 }
 
 @Preview(showBackground = true)
