@@ -15,7 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -41,11 +42,12 @@ import com.greenvenom.core_ui.R
 import com.greenvenom.core_ui.theme.AppTheme
 
 @Composable
-fun DeletionDialog(
+fun WarningDialog(
     showDialog: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    deletionMessage: String? = null
+    warningMessage: String? = null,
+    isDeletion: Boolean = false
 ) {
     if (showDialog) {
         // Scale animation
@@ -94,9 +96,10 @@ fun DeletionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.DeleteOutline,
+                            imageVector = if (isDeletion) Icons.Default.Delete
+                            else Icons.Default.Warning,
                             contentDescription = stringResource(R.string.warning_icon_description),
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(56.dp)
                         )
                     }
@@ -116,7 +119,7 @@ fun DeletionDialog(
 
                     // Message
                     Text(
-                        text = deletionMessage ?: stringResource(R.string.delete_warning_message),
+                        text = warningMessage ?: stringResource(R.string.delete_warning_message),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -126,7 +129,7 @@ fun DeletionDialog(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Buttons - Modern stacked layout
+                    // Buttons
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -146,12 +149,15 @@ fun DeletionDialog(
                             ),
                             shape = RoundedCornerShape(16.dp),
                             elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 0.dp,
-                                pressedElevation = 2.dp
+                                defaultElevation = 2.dp,
+                                pressedElevation = 4.dp
                             )
                         ) {
                             Text(
-                                text = stringResource(R.string.delete),
+                                text = stringResource(
+                                    if (isDeletion) R.string.delete
+                                    else R.string.confirm
+                                ),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -167,7 +173,11 @@ fun DeletionDialog(
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = ButtonDefaults.filledTonalButtonElevation(
+                                defaultElevation = 2.dp,
+                                pressedElevation = 4.dp
+                            )
                         ) {
                             Text(
                                 text = stringResource(R.string.cancel),
@@ -186,7 +196,7 @@ fun DeletionDialog(
 @Composable
 fun DeleteDialogPreview() {
     AppTheme {
-        DeletionDialog(
+        WarningDialog(
             showDialog = true,
             onDismiss = {},
             onConfirm = {}
@@ -198,7 +208,7 @@ fun DeleteDialogPreview() {
 @Composable
 fun DeleteDialogPreviewArabic() {
     AppTheme {
-        DeletionDialog(
+        WarningDialog(
             showDialog = true,
             onDismiss = {},
             onConfirm = {}

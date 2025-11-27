@@ -1,6 +1,7 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
 import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 
@@ -42,12 +43,14 @@ interface HubDetailsAction {
     ): HubDetailsAction
 
     data class RemoveMember(
-        val userId: String
+        val userId: String,
+        val status: MemberStatus
     ): HubDetailsAction
 
     data class ChangeMemberRole(
         val userId: String,
-        val role: HubRole
+        val role: HubRole,
+        val status: MemberStatus
     ): HubDetailsAction
 
     data object LeaveHub: HubDetailsAction

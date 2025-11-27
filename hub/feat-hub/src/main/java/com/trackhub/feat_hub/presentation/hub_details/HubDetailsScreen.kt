@@ -35,10 +35,10 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.DeletionDialog
 import com.greenvenom.core_ui.components.FloatingButton
 import com.greenvenom.core_ui.components.OptionsDropdownMenu
 import com.greenvenom.core_ui.components.SuccessDialog
+import com.greenvenom.core_ui.components.WarningDialog
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
@@ -97,9 +97,10 @@ private fun HubDetailsContent(
     var aboutHubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemDetailsState by rememberSaveable { mutableStateOf(false) }
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
-    var showDeletionDialog by rememberSaveable { mutableStateOf(false) }
-    var deletionAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
-    var deletionMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var showWarningDialog by rememberSaveable { mutableStateOf(false) }
+    var isDeletionDialog by rememberSaveable { mutableStateOf(false) }
+    var warningAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
+    var warningMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var showSuccessDialog by rememberSaveable { mutableStateOf(false) }
     var successMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -196,7 +197,6 @@ private fun HubDetailsContent(
     hubDetailsState.invitationProcessResult
         ?.onSuccess { result ->
             if (result.success) {
-                hubDetailsAction(HubDetailsAction.GetAllInvitations)
                 hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                 showSuccessDialog = true
                 successMessage = stringResource(result.toUI().messageResId)
@@ -297,9 +297,10 @@ private fun HubDetailsContent(
 
                         DropdownMenuItem(
                             onClick = {
-                                deletionMessage = context.getString(R.string.leave_hub_message)
-                                deletionAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
-                                showDeletionDialog = true
+                                warningMessage = context.getString(R.string.leave_hub_message)
+                                warningAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
+                                isDeletionDialog = false
+                                showWarningDialog = true
                             },
                             text = { Text(
                                 text = stringResource(R.string.leave_hub),
@@ -339,9 +340,10 @@ private fun HubDetailsContent(
 
                         DropdownMenuItem(
                             onClick = {
-                                deletionMessage = context.getString(R.string.leave_hub_message)
-                                deletionAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
-                                showDeletionDialog = true
+                                warningMessage = context.getString(R.string.leave_hub_message)
+                                warningAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
+                                isDeletionDialog = false
+                                showWarningDialog = true
                             },
                             text = { Text(
                                 text = stringResource(R.string.leave_hub),
@@ -466,8 +468,9 @@ private fun HubDetailsContent(
                     },
                     onDelete = { hubId ->
                         isSheetDismissible = false
-                        deletionAction = { hubDetailsAction(HubDetailsAction.DeleteHub(hubId)) }
-                        showDeletionDialog = true
+                        warningAction = { hubDetailsAction(HubDetailsAction.DeleteHub(hubId)) }
+                        isDeletionDialog = true
+                        showWarningDialog = true
                     },
                     onSearchUsers = { searchTerm ->
                         hubDetailsAction(HubDetailsAction.SearchForUsers(searchTerm))
@@ -475,11 +478,16 @@ private fun HubDetailsContent(
                     onInviteUser = { userId, role ->
                         hubDetailsAction(HubDetailsAction.InviteUser(userId, role))
                     },
-                    onRemoveMember = { userId ->
-                        hubDetailsAction(HubDetailsAction.RemoveMember(userId))
+                    onRemoveMember = { userId, userStatus ->
+                        warningMessage = context.getString(R.string.remove_member_message)
+                        warningAction = {
+                            hubDetailsAction(HubDetailsAction.RemoveMember(userId, userStatus))
+                        }
+                        isDeletionDialog = false
+                        showWarningDialog = true
                     },
-                    onChangeRole = { userId, role ->
-                        hubDetailsAction(HubDetailsAction.ChangeMemberRole(userId, role))
+                    onChangeRole = { userId, role, userStatus ->
+                        hubDetailsAction(HubDetailsAction.ChangeMemberRole(userId, role, userStatus))
                     }
                 )
             }
@@ -527,8 +535,9 @@ private fun HubDetailsContent(
                 },
                 onDelete = { itemId ->
                     isSheetDismissible = false
-                    deletionAction = { hubDetailsAction(HubDetailsAction.DeleteItem(itemId)) }
-                    showDeletionDialog = true
+                    warningAction = { hubDetailsAction(HubDetailsAction.DeleteItem(itemId)) }
+                    isDeletionDialog = true
+                    showWarningDialog = true
                 },
                 onAddManufacturer = { manufacturerName ->
                     hubDetailsAction(HubDetailsAction.UpdateHub(
@@ -558,15 +567,17 @@ private fun HubDetailsContent(
             )
         }
 
-        DeletionDialog(
-            showDialog = showDeletionDialog,
-            deletionMessage = deletionMessage,
-            onDismiss = { showDeletionDialog = false },
+        WarningDialog(
+            showDialog = showWarningDialog,
+            warningMessage = warningMessage,
+            onDismiss = { showWarningDialog = false },
             onConfirm = {
-                deletionAction?.invoke()
-                deletionAction = null
-                deletionMessage = null
-            }
+                warningAction?.invoke()
+                warningAction = null
+                warningMessage = null
+                isDeletionDialog = false
+            },
+            isDeletion = isDeletionDialog
         )
 
         SuccessDialog(

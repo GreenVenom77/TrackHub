@@ -10,7 +10,10 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.trackhub.core_hub.data.mappers.toInsertRequest
 import com.trackhub.core_hub.data.mappers.toUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.ChangeMemberRoleRequest
 import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
+import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
 import com.trackhub.core_hub.domain.HubRole
@@ -20,6 +23,7 @@ import com.trackhub.feat_hub.domain.repo.HubInvitationsRepository
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -95,6 +99,9 @@ class HubDetailsViewModel(
             is HubDetailsAction.GetAllInvitations -> getAllInvitations()
             is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchTerm)
             is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.role)
+            is HubDetailsAction.RemoveMember -> removeMemberFromHub(action.userId)
+            is HubDetailsAction.ChangeMemberRole -> changeMemberRole(action.userId, action.role)
+            is HubDetailsAction.LeaveHub -> leaveHub()
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
@@ -307,11 +314,87 @@ class HubDetailsViewModel(
                 )
             }
 
+            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            updateMembersDeferred.await()
+
             _hubDetailsState.update {
                 it.copy(
                     invitationProcessResult = inviteUserResult
                 )
             }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun removeMemberFromHub(userId: String) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val removeUserResult = withContext(Dispatchers.IO) {
+                invitationsRepository.removeUserFromHub(
+                    RemoveMemberRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId
+                    )
+                )
+            }
+
+            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            updateMembersDeferred.await()
+
+            _hubDetailsState.update {
+                it.copy(
+                    operationResult = removeUserResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun changeMemberRole(userId: String, role: HubRole) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val changeUserRoleResult = withContext(Dispatchers.IO) {
+                invitationsRepository.changeUserRole(
+                    ChangeMemberRoleRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId,
+                        role = role.name
+                    )
+                )
+            }
+
+            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            updateMembersDeferred.await()
+
+            _hubDetailsState.update {
+                it.copy(
+                    operationResult = changeUserRoleResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun leaveHub() {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val leaveHubResult = withContext(Dispatchers.IO) {
+                hubRepository.leaveHub(
+                    LeaveHubRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: ""
+                    )
+                )
+            }
+
+            _hubDetailsState.update {
+                it.copy(
+                    hubDeletionResult = leaveHubResult
+                )
+            }
+
             baseAction(BaseAction.HideLoading)
         }
     }

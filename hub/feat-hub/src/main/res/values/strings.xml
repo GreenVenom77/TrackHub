@@ -68,6 +68,7 @@
     <string name="no_users_found">No users found</string>
     <string name="select_role">Select Role</string>
     <string name="clear_selection">Clear Selection</string>
+    <string name="remove_member_message">Are you sure you want to remove this member from the hub?</string>
 
     <!-- Role Descriptions -->
     <string name="role_owner_desc">Full access to everything</string>

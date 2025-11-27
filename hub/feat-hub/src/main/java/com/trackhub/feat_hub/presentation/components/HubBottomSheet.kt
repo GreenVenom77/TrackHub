@@ -72,8 +72,8 @@ fun HubBottomSheet(
     onDelete: (String) -> Unit = {},
     onSearchUsers: (String) -> Unit = {},
     onInviteUser: (String, HubRole) -> Unit = { _, _ -> },
-    onRemoveMember: (String) -> Unit = {},
-    onChangeRole: (String, HubRole) -> Unit = { _, _ -> },
+    onRemoveMember: (String, MemberStatus) -> Unit = { _, _ -> },
+    onChangeRole: (String, HubRole, MemberStatus) -> Unit = { _, _, _ -> },
 ) {
     HubSheetContent(
         sheetState = sheetState,
@@ -110,8 +110,8 @@ private fun HubSheetContent(
     onDelete: (String) -> Unit,
     onSearchUsers: (String) -> Unit,
     onInviteUser: (String, HubRole) -> Unit,
-    onRemoveMember: (String) -> Unit,
-    onChangeRole: (String, HubRole) -> Unit,
+    onRemoveMember: (String, MemberStatus) -> Unit,
+    onChangeRole: (String, HubRole, MemberStatus) -> Unit,
 ) {
     var newHubName by remember { mutableStateOf(hub?.name ?: "") }
     var newHubDescription by remember { mutableStateOf(hub?.description ?: "") }
@@ -291,8 +291,12 @@ private fun HubSheetContent(
                             hubMembers.forEach { member ->
                                 MemberItem(
                                     member = member,
-                                    onRemove = { onRemoveMember(member.userId) },
-                                    onChangeRole = { newRole -> onChangeRole(member.userId, newRole) },
+                                    onRemove = {
+                                        onRemoveMember(member.userId, member.status)
+                                    },
+                                    onChangeRole = {
+                                        newRole -> onChangeRole(member.userId, newRole, member.status)
+                                    },
                                     enabled = !isDeletePressed && !isEditPressed
                                 )
                             }
@@ -374,8 +378,8 @@ private fun PreviewAddHub() {
             onDelete = {},
             onSearchUsers = {},
             onInviteUser = { _, _ -> },
-            onRemoveMember = {},
-            onChangeRole = { _, _ -> }
+            onRemoveMember = { _, _ -> },
+            onChangeRole = { _, _, _ -> }
         )
     }
 }
@@ -404,8 +408,8 @@ private fun PreviewEditHubNoMembers() {
             onDelete = {},
             onSearchUsers = {},
             onInviteUser = { _, _ -> },
-            onRemoveMember = {},
-            onChangeRole = { _, _ -> }
+            onRemoveMember = { _, _ -> },
+            onChangeRole = { _, _, _ -> }
         )
     }
 }
@@ -456,8 +460,8 @@ private fun PreviewEditHubWithMembers() {
             onDelete = {},
             onSearchUsers = {},
             onInviteUser = { _, _ -> },
-            onRemoveMember = {},
-            onChangeRole = { _, _ -> }
+            onRemoveMember = { _, _ -> },
+            onChangeRole = { _, _, _ -> }
         )
     }
 }

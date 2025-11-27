@@ -8,6 +8,7 @@ import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,8 @@ interface HubRepository {
     suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): NetworkResult<Hub, NetworkError>
 
     suspend fun deleteHub(hubId: String): EmptyResult<NetworkError>
+
+    suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError>
 
     suspend fun getHub(hubId: String): Hub
 

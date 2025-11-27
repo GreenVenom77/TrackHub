@@ -149,8 +149,8 @@ fun SuccessDialog(
                         ),
                         shape = RoundedCornerShape(16.dp),
                         elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 0.dp,
-                            pressedElevation = 2.dp
+                            defaultElevation = 2.dp,
+                            pressedElevation = 4.dp
                         )
                     ) {
                         Text(
