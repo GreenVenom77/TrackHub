@@ -95,11 +95,12 @@ jobs:
 
           # Try multiple models in priority order (best free models for code analysis)
           MODELS=(
-            "google/gemini-2.5-flash:free"           # Best: fast, 1M context, great at summaries
-            "deepseek/deepseek-chat-v3-0324:free"    # Excellent for code tasks
-            "meta-llama/llama-3.3-70b-instruct:free" # Strong instruction following
-            "google/gemini-2.0-flash-exp:free"       # Experimental, cutting-edge
-            "nvidia/llama-3.1-nemotron-ultra-253b-v1:free" # Most powerful fallback
+            "google/gemini-2.0-flash-exp:free"
+            "z-ai/glm-4.5-air:free"
+            "tngtech/tng-r1t-chimera:free"
+            "openai/gpt-oss-20b:free"
+            "x-ai/grok-4.1-fast:free"
+            "meta-llama/llama-3.3-70b-instruct:free"
           )
           
           for MODEL in "${MODELS[@]}"; do
