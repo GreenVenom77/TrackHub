@@ -74,7 +74,7 @@ jobs:
 
           # Create JSON payload
           jq -n \
-            --arg model "x-ai/grok-2-1212" \
+            --arg model "x-ai/grok-4.1-fast:free" \
             --arg system "You are a technical writer creating concise GitHub PR descriptions." \
             --rawfile prompt prompt.txt \
             '{
