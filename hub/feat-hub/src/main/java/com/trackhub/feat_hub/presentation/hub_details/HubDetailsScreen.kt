@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -48,6 +49,7 @@ import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.AboutHubSheet
 import com.trackhub.feat_hub.presentation.components.FilterDropdownRow
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
+import com.trackhub.feat_hub.presentation.components.InviteUserDialog
 import com.trackhub.feat_hub.presentation.components.ItemBottomSheet
 import com.trackhub.feat_hub.presentation.components.ItemDetailsDialog
 import com.trackhub.feat_hub.presentation.components.ItemListCard
@@ -97,6 +99,7 @@ private fun HubDetailsContent(
     var aboutHubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemDetailsState by rememberSaveable { mutableStateOf(false) }
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
+    var showInviteDialog by rememberSaveable { mutableStateOf(false) }
     var showWarningDialog by rememberSaveable { mutableStateOf(false) }
     var isDeletionDialog by rememberSaveable { mutableStateOf(false) }
     var warningAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
@@ -198,8 +201,9 @@ private fun HubDetailsContent(
         ?.onSuccess { result ->
             if (result.success) {
                 hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                showSuccessDialog = true
                 successMessage = stringResource(result.toUI().messageResId)
+                showInviteDialog = false
+                showSuccessDialog = true
             } else {
                 baseAction(
                     BaseAction.ShowErrorMessage(
@@ -235,12 +239,13 @@ private fun HubDetailsContent(
         },
         navigateBackAction = { hubDetailsAction(HubDetailsAction.NavigateBack) },
         topBarActions = {
-            OptionsDropdownMenu {
+            OptionsDropdownMenu { onDismiss ->
                 when (hubDetailsState.hub?.role) {
                     HubRole.Owner -> {
                         DropdownMenuItem(
                             onClick = {
                                 hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                onDismiss()
                                 aboutHubSheetState = true
                             },
                             text = { Text(
@@ -258,7 +263,26 @@ private fun HubDetailsContent(
 
                         DropdownMenuItem(
                             onClick = {
+                                onDismiss()
+                                showInviteDialog = true
+                            },
+                            text = { Text(
+                                text = stringResource(R.string.invite),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            ) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.PersonAdd,
+                                    contentDescription = stringResource(R.string.invite),
+                                )
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            onClick = {
                                 hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                onDismiss()
                                 hubSheetState = true
                             },
                             text = { Text(
@@ -278,6 +302,7 @@ private fun HubDetailsContent(
                         DropdownMenuItem(
                             onClick = {
                                 hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                onDismiss()
                                 aboutHubSheetState = true
                             },
                             text = { Text(
@@ -297,6 +322,7 @@ private fun HubDetailsContent(
 
                         DropdownMenuItem(
                             onClick = {
+                                onDismiss()
                                 warningMessage = context.getString(R.string.leave_hub_message)
                                 warningAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
                                 isDeletionDialog = false
@@ -321,6 +347,7 @@ private fun HubDetailsContent(
                         DropdownMenuItem(
                             onClick = {
                                 hubDetailsAction(HubDetailsAction.GetAllInvitations)
+                                onDismiss()
                                 aboutHubSheetState = true
                             },
                             text = { Text(
@@ -340,6 +367,7 @@ private fun HubDetailsContent(
 
                         DropdownMenuItem(
                             onClick = {
+                                onDismiss()
                                 warningMessage = context.getString(R.string.leave_hub_message)
                                 warningAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
                                 isDeletionDialog = false
@@ -453,7 +481,6 @@ private fun HubDetailsContent(
                     hub = hub.toHubUI(),
                     sheetState = sheetState,
                     hubMembers = hubDetailsState.invitationsList,
-                    foundUsers = hubDetailsState.usersList,
                     onDismiss = { hubSheetState = false },
                     isEdit = true,
                     isDismissible = isSheetDismissible,
@@ -472,12 +499,7 @@ private fun HubDetailsContent(
                         isDeletionDialog = true
                         showWarningDialog = true
                     },
-                    onSearchUsers = { searchTerm ->
-                        hubDetailsAction(HubDetailsAction.SearchForUsers(searchTerm))
-                    },
-                    onInviteUser = { userId, role ->
-                        hubDetailsAction(HubDetailsAction.InviteUser(userId, role))
-                    },
+                    onShowInviteDialog = { showInviteDialog = true },
                     onRemoveMember = { userId, userStatus ->
                         warningMessage = context.getString(R.string.remove_member_message)
                         warningAction = {
@@ -564,6 +586,21 @@ private fun HubDetailsContent(
                     itemDetailsState = false
                 },
                 item = hubDetailsState.currentItem?.toHubItemUI() as ItemUI
+            )
+        }
+
+        // Invite User Dialog
+        if (showInviteDialog) {
+            InviteUserDialog(
+                foundUsers = hubDetailsState.usersList,
+                onDismiss = { showInviteDialog = false },
+                onClearList = { hubDetailsAction(HubDetailsAction.ClearUserSearch) },
+                onSearchUsers = { searchTerm ->
+                    hubDetailsAction(HubDetailsAction.SearchForUsers(searchTerm))
+                },
+                onInvite = { userId, role ->
+                    hubDetailsAction(HubDetailsAction.InviteUser(userId, role))
+                }
             )
         }
 

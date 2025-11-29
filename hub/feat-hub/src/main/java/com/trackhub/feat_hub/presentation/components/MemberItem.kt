@@ -72,22 +72,7 @@ fun MemberItem(
                     fontWeight = FontWeight.Medium
                 )
 
-                if (viewerMode) {
-                    // In viewer mode, show email on one line and role badge on the side
-                    Text(
-                        text = member.email,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                } else {
-                    // Non-viewer mode: show email on separate line
-                    Text(
-                        text = member.email,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
+                if (!viewerMode) {
                     // Status badge (only in non-viewer mode)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -102,7 +87,7 @@ fun MemberItem(
                             }
                         ) {
                             Text(
-                                text = member.status.name,
+                                text = stringResource(member.status.value),
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(4.dp)
                             )
@@ -139,7 +124,7 @@ fun MemberItem(
                             OutlinedButton(
                                 onClick = { expanded = true },
                                 enabled = enabled,
-                                modifier = Modifier.width(120.dp)
+                                modifier = Modifier.width(105.dp)
                             ) {
                                 Text(
                                     text = stringResource(member.role.value),

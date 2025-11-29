@@ -52,7 +52,6 @@ import com.greenvenom.core_ui.components.CustomTextField
 import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
-import com.trackhub.core_hub.domain.models.UserSearch
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.HubUI
 
@@ -66,12 +65,10 @@ fun HubBottomSheet(
     isDismissible: Boolean = true,
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
-    foundUsers: List<UserSearch> = emptyList(),
     onAdd: (String, String) -> Unit = { _, _ -> },
     onEdit: (String, String) -> Unit = { _, _ -> },
     onDelete: (String) -> Unit = {},
-    onSearchUsers: (String) -> Unit = {},
-    onInviteUser: (String, HubRole) -> Unit = { _, _ -> },
+    onShowInviteDialog: () -> Unit = {},
     onRemoveMember: (String, MemberStatus) -> Unit = { _, _ -> },
     onChangeRole: (String, HubRole, MemberStatus) -> Unit = { _, _, _ -> },
 ) {
@@ -83,12 +80,10 @@ fun HubBottomSheet(
         modifier = modifier,
         hub = hub,
         hubMembers = hubMembers,
-        foundUsers = foundUsers,
         onAdd = onAdd,
         onEdit = onEdit,
         onDelete = onDelete,
-        onSearchUsers = onSearchUsers,
-        onInviteUser = onInviteUser,
+        onShowInviteDialog = onShowInviteDialog,
         onRemoveMember = onRemoveMember,
         onChangeRole = onChangeRole
     )
@@ -104,12 +99,10 @@ private fun HubSheetContent(
     modifier: Modifier = Modifier,
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
-    foundUsers: List<UserSearch> = emptyList(),
     onAdd: (String, String) -> Unit,
     onEdit: (String, String) -> Unit,
     onDelete: (String) -> Unit,
-    onSearchUsers: (String) -> Unit,
-    onInviteUser: (String, HubRole) -> Unit,
+    onShowInviteDialog: () -> Unit,
     onRemoveMember: (String, MemberStatus) -> Unit,
     onChangeRole: (String, HubRole, MemberStatus) -> Unit,
 ) {
@@ -117,7 +110,6 @@ private fun HubSheetContent(
     var newHubDescription by remember { mutableStateOf(hub?.description ?: "") }
     var isDeletePressed by remember { mutableStateOf(false) }
     var isEditPressed by remember { mutableStateOf(false) }
-    var showInviteDialog by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -266,7 +258,7 @@ private fun HubSheetContent(
                             }
 
                             TextButton(
-                                onClick = { showInviteDialog = true },
+                                onClick = onShowInviteDialog,
                                 enabled = !isDeletePressed && !isEditPressed
                             ) {
                                 Icon(
@@ -346,19 +338,6 @@ private fun HubSheetContent(
             }
         }
     }
-
-    // Invite User Dialog
-    if (showInviteDialog) {
-        InviteUserDialog(
-            foundUsers = foundUsers,
-            onDismiss = { showInviteDialog = false },
-            onSearchUsers = onSearchUsers,
-            onInvite = { userId, role ->
-                onInviteUser(userId, role)
-                showInviteDialog = false
-            }
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -376,8 +355,7 @@ private fun PreviewAddHub() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = {},
-            onInviteUser = { _, _ -> },
+            onShowInviteDialog = {},
             onRemoveMember = { _, _ -> },
             onChangeRole = { _, _, _ -> }
         )
@@ -406,8 +384,7 @@ private fun PreviewEditHubNoMembers() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = {},
-            onInviteUser = { _, _ -> },
+            onShowInviteDialog = {},
             onRemoveMember = { _, _ -> },
             onChangeRole = { _, _, _ -> }
         )
@@ -458,8 +435,7 @@ private fun PreviewEditHubWithMembers() {
             onAdd = { _, _ -> },
             onEdit = { _, _ -> },
             onDelete = {},
-            onSearchUsers = {},
-            onInviteUser = { _, _ -> },
+            onShowInviteDialog = {},
             onRemoveMember = { _, _ -> },
             onChangeRole = { _, _, _ -> }
         )

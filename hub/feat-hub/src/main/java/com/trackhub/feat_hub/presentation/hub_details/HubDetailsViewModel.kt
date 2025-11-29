@@ -17,6 +17,7 @@ import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
 import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.repo.HubInvitationsRepository
@@ -59,7 +60,6 @@ class HubDetailsViewModel(
                 }
             }
             itemsCollectionJob = getHubItems(hubId, null, null, null)
-            getAllInvitations()
         }
     }
 
@@ -99,10 +99,15 @@ class HubDetailsViewModel(
             is HubDetailsAction.GetAllInvitations -> getAllInvitations()
             is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchTerm)
             is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.role)
-            is HubDetailsAction.RemoveMember -> removeMemberFromHub(action.userId)
-            is HubDetailsAction.ChangeMemberRole -> changeMemberRole(action.userId, action.role)
+            is HubDetailsAction.RemoveMember -> removeMemberFromHub(action.userId, action.status)
+            is HubDetailsAction.ChangeMemberRole -> changeMemberRole(
+                action.userId,
+                action.role,
+                action.status
+            )
             is HubDetailsAction.LeaveHub -> leaveHub()
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
+            is HubDetailsAction.ClearUserSearch -> clearUserSearch()
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
         }
@@ -314,7 +319,10 @@ class HubDetailsViewModel(
                 )
             }
 
-            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            val updateMembersDeferred = viewModelScope.async {
+                getAllInvitations()
+                clearUserSearch()
+            }
             updateMembersDeferred.await()
 
             _hubDetailsState.update {
@@ -327,14 +335,18 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun removeMemberFromHub(userId: String) {
+    private fun removeMemberFromHub(
+        userId: String,
+        status: MemberStatus
+    ) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val removeUserResult = withContext(Dispatchers.IO) {
                 invitationsRepository.removeUserFromHub(
                     RemoveMemberRequest(
                         hubId = _hubDetailsState.value.hub?.id ?: "",
-                        userId = userId
+                        userId = userId,
+                        status = status
                     )
                 )
             }
@@ -352,7 +364,11 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun changeMemberRole(userId: String, role: HubRole) {
+    private fun changeMemberRole(
+        userId: String,
+        role: HubRole,
+        status: MemberStatus
+    ) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val changeUserRoleResult = withContext(Dispatchers.IO) {
@@ -360,7 +376,8 @@ class HubDetailsViewModel(
                     ChangeMemberRoleRequest(
                         hubId = _hubDetailsState.value.hub?.id ?: "",
                         userId = userId,
-                        role = role.name
+                        hubRole = role.name,
+                        status = status
                     )
                 )
             }
@@ -396,6 +413,14 @@ class HubDetailsViewModel(
             }
 
             baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun clearUserSearch() {
+        _hubDetailsState.update {
+            it.copy(
+                usersList = emptyList()
+            )
         }
     }
 

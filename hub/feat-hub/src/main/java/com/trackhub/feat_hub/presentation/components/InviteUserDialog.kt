@@ -55,6 +55,7 @@ import kotlinx.coroutines.delay
 fun InviteUserDialog(
     foundUsers: List<UserSearch> = emptyList(),
     onDismiss: () -> Unit,
+    onClearList: () -> Unit,
     onSearchUsers: (String) -> Unit,
     onInvite: (String, HubRole) -> Unit
 ) {
@@ -68,12 +69,19 @@ fun InviteUserDialog(
     LaunchedEffect(searchQuery) {
         if (searchQuery.length >= 2) {
             isSearching = true
-            delay(500) // Debounce delay
+            onClearList()
+            delay(600) // Debounce delay
             onSearchUsers(searchQuery)
-            isSearching = false
         } else {
             searchResults = emptyList()
             isSearching = false
+        }
+    }
+
+    LaunchedEffect(foundUsers) {
+        if (foundUsers.isNotEmpty()) {
+            isSearching = false
+            searchResults = foundUsers
         }
     }
 
@@ -120,10 +128,6 @@ fun InviteUserDialog(
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.Medium
                                 )
-                                Text(
-                                    text = selectedUser?.email ?: "",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
                             }
                             IconButton(onClick = { selectedUser = null }) {
                                 Icon(
@@ -148,14 +152,6 @@ fun InviteUserDialog(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null
                             )
-                        },
-                        trailingIcon = {
-                            if (isSearching) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
                         }
                     )
 
@@ -196,7 +192,12 @@ fun InviteUserDialog(
                                             containerColor = MaterialTheme.colorScheme.surface
                                         )
                                     ) {
-                                        UserSearchItem(userUI = user.toUI())
+                                        UserSearchItem(
+                                            userUI = user.toUI(),
+                                            modifier = Modifier.clickable {
+                                                selectedUser = user
+                                            }
+                                        )
                                         HorizontalDivider()
                                     }
                                 }
@@ -297,6 +298,7 @@ private fun PreviewInviteDialogInitial() {
     AppTheme {
         InviteUserDialog(
             onDismiss = {},
+            onClearList = {},
             onSearchUsers = {  },
             onInvite = { _, _ -> }
         )
@@ -309,6 +311,7 @@ private fun PreviewInviteDialogSearchResults() {
     AppTheme {
         InviteUserDialog(
             onDismiss = {},
+            onClearList = {},
             onSearchUsers = { query ->
                 listOf(
                     UserSearch(

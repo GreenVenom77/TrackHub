@@ -1,8 +1,10 @@
 package com.trackhub.feat_hub.presentation.utils
 
+import android.util.Log
 import com.trackhub.feat_hub.R
 
 fun getErrorMessageResId(errorMessage: String): Int {
+    Log.d("NetworkError", "errorMessage: $errorMessage")
     return when {
         errorMessage.contains("Hub ID cannot be null", ignoreCase = true) ->
             R.string.error_hub_id_null

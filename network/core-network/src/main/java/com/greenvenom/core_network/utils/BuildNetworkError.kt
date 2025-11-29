@@ -1,5 +1,6 @@
 package com.greenvenom.core_network.utils
 
+import android.util.Log
 import com.greenvenom.core_network.R
 import com.greenvenom.core_network.data.ErrorType
 import com.greenvenom.core_network.data.NetworkError
@@ -33,6 +34,8 @@ fun buildNetworkError(
     } else {
         errorType.getDefaultMessageId()
     }
+
+    Log.d("NetworkError", "messageId: $messageId, message: $message")
 
     return NetworkError(
         errorType = errorType,

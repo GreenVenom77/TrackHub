@@ -13,7 +13,7 @@ fun HubMemberResponse.toDomain(): HubMember {
         role = HubRole.valueOf(this.role),
         status = when (this.currentStatus) {
             "member" -> MemberStatus.Member
-            "pending_invitation" -> MemberStatus.PendingInvitation
+            "pending" -> MemberStatus.PendingInvitation
             "invitation_declined" -> MemberStatus.InvitationDeclined
             "not_invited" -> MemberStatus.NotInvited
             else -> MemberStatus.NotInvited

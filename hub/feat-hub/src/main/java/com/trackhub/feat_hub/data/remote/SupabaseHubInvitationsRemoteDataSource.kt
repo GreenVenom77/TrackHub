@@ -83,7 +83,7 @@ class SupabaseHubInvitationsRemoteDataSource(
         return supabaseCall {
             if (changeRoleRequest.status == MemberStatus.Member) {
                 supabaseClient.from("shared_hubs").update(
-                    { ChangeMemberRoleRequest::role setTo changeRoleRequest.role }
+                    { ChangeMemberRoleRequest::hubRole setTo changeRoleRequest.hubRole }
                 ) {
                     filter {
                         ChangeMemberRoleRequest::hubId eq changeRoleRequest.hubId
@@ -92,7 +92,7 @@ class SupabaseHubInvitationsRemoteDataSource(
                 }
             } else {
                 supabaseClient.from("invitations").update(
-                    { set("hub_role", changeRoleRequest.role) }
+                    { set("hub_role", changeRoleRequest.hubRole) }
                 ) {
                     filter {
                         ChangeMemberRoleRequest::hubId eq changeRoleRequest.hubId

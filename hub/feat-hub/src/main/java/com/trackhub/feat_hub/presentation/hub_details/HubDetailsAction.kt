@@ -57,6 +57,8 @@ interface HubDetailsAction {
 
     data class ChangeCurrentItem(val item: Item?): HubDetailsAction
 
+    data object ClearUserSearch: HubDetailsAction
+
     data object ClearNetworkOperations: HubDetailsAction
 
     data object NavigateBack: HubDetailsAction

@@ -29,7 +29,7 @@ import com.greenvenom.core_ui.R
 @Composable
 fun OptionsDropdownMenu(
     modifier: Modifier = Modifier,
-    optionsContent: @Composable ColumnScope.() -> Unit,
+    optionsContent: @Composable ColumnScope.(onDismiss: () -> Unit) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -49,7 +49,7 @@ fun OptionsDropdownMenu(
             onDismissRequest = { expanded = false },
             modifier = Modifier.width(180.dp)
         ) {
-            optionsContent()
+            optionsContent { expanded = false }
         }
     }
 }
