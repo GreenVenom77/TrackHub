@@ -18,6 +18,7 @@ import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
@@ -74,6 +75,12 @@ class HubRepositoryImpl(
     override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {
         val remoteResult = remoteDataSource.deleteHub(hubId)
         remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
+        return remoteResult
+    }
+
+    override suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError> {
+        val remoteResult = remoteDataSource.leaveHub(leaveHubRequest)
+        remoteResult.onSuccess { cacheDataSource.deleteHub(leaveHubRequest.hubId) }
         return remoteResult
     }
 

@@ -1,10 +1,17 @@
 package com.trackhub.feat_hub.presentation.mappers
 
 import com.greenvenom.core_ui.utils.formatDateTime
+import com.trackhub.core_hub.domain.InvitationStatus
 import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.domain.models.InvitationResult
 import com.trackhub.core_hub.domain.models.Item
+import com.trackhub.core_hub.domain.models.UserSearch
+import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
+import com.trackhub.feat_hub.presentation.models.LocalizedInvitationResult
+import com.trackhub.feat_hub.presentation.models.UserSearchUI
+import com.trackhub.feat_hub.presentation.utils.getErrorMessageResId
 
 fun Hub.toHubUI(): HubUI {
     return HubUI(
@@ -43,5 +50,29 @@ fun Item.toHubItemUI(): ItemUI {
         manufacturer = this.manufacturer ?: "",
         category = this.category ?: "",
         inStock = inStock
+    )
+}
+
+fun UserSearch.toUI(): UserSearchUI {
+    return UserSearchUI(
+        userId = this.userId,
+        displayName = this.displayName,
+        email = this.email,
+        statusTextResId = currentStatus.value,
+        currentStatus = this.currentStatus
+    )
+}
+
+fun InvitationResult.toUI(): LocalizedInvitationResult {
+    return LocalizedInvitationResult(
+        success = this.success,
+        messageResId = when (this.invitationStatus) {
+            InvitationStatus.ROLE_UPDATED -> R.string.invitation_role_updated
+            InvitationStatus.INVITATION_UPDATED -> R.string.invitation_updated
+            InvitationStatus.INVITATION_RESENT -> R.string.invitation_resent
+            InvitationStatus.INVITATION_SENT -> R.string.invitation_sent
+            InvitationStatus.ERROR -> getErrorMessageResId(message)
+        },
+        status = this.invitationStatus
     )
 }

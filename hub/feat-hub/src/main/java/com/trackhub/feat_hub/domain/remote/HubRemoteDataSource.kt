@@ -7,6 +7,7 @@ import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
 import com.trackhub.core_hub.data.remote.dto.response.SharedHubResponse
@@ -22,6 +23,8 @@ interface HubRemoteDataSource {
     suspend fun getOwnHubs(): NetworkResult<List<OwnedHubResponse>, NetworkError>
 
     suspend fun getSharedHubs(): NetworkResult<List<SharedHubResponse>, NetworkError>
+
+    suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError>
 
     suspend fun addItemToHub(itemInsertRequest: ItemInsertRequest): EmptyResult<NetworkError>
 

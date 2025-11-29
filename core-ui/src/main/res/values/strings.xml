@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name" translatable="false">Track Hub</string>
     <string name="dismiss">Dismiss</string>
+    <string name="confirm">Confirm</string>
     <string name="add">Add New</string>
     <string name="dark_mode">Dark Mode</string>
     <string name="light_mode">Light Mode</string>
@@ -34,10 +35,20 @@
     <string name="calendar">Calendar</string>
     <string name="loading">Loading...</string>
     <string name="loading_2">loading</string>
+    <string name="warning_icon_description">Warning</string>
+    <string name="delete_warning_title">Warning!</string>
+    <string name="delete_warning_message">This action will delete important data and cannot be undone. Are you sure you want to proceed?</string>
+    <string name="delete">Delete</string>
 
     <!-- Search string -->
     <string name="search">Search</string>
     <string name="clear_search">Clear search</string>
     <string name="search_holder">Search...</string>
     <string name="close_search">Close search</string>
+    <string name="options">Options</string>
+
+    <!-- Success Dialog Strings -->
+    <string name="success_icon_description">Success Icon</string>
+    <string name="success_title">Success!</string>
+    <string name="success_message">Operation completed successfully</string>
 </resources>

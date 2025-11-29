@@ -9,6 +9,7 @@ import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
 import com.trackhub.core_hub.data.remote.dto.response.SharedHubResponse
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 
-class HubSupabaseDataSource(
+class SupabaseHubDataSource(
     private val supabaseClient: SupabaseClient
 ): HubRemoteDataSource {
     override suspend fun addHub(
@@ -73,6 +74,14 @@ class HubSupabaseDataSource(
     override suspend fun getSharedHubs(): NetworkResult<List<SharedHubResponse>, NetworkError> {
         return supabaseCall {
             supabaseClient.postgrest.rpc("get_shared_hubs").decodeList<SharedHubResponse>()
+        }
+    }
+
+    override suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError> {
+        return supabaseCall {
+            supabaseClient.from("shared_hubs").delete {
+                filter { SharedHubResponse::hubId eq leaveHubRequest.hubId }
+            }
         }
     }
 

@@ -10,11 +10,21 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.trackhub.core_hub.data.mappers.toInsertRequest
 import com.trackhub.core_hub.data.mappers.toUpdateRequest
+import com.trackhub.core_hub.data.remote.dto.request.ChangeMemberRoleRequest
+import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
+import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
+import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
+import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
+import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
+import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
+import com.trackhub.feat_hub.domain.repo.HubInvitationsRepository
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -24,6 +34,7 @@ import kotlinx.coroutines.withContext
 
 class HubDetailsViewModel(
     private val hubRepository: HubRepository,
+    private val invitationsRepository: HubInvitationsRepository,
     private val savedStateHandle: SavedStateHandle
 ): BaseViewModel() {
     private val _hubDetailsState = MutableStateFlow(HubDetailsState())
@@ -38,14 +49,14 @@ class HubDetailsViewModel(
     init {
         savedStateHandle.get<String>("hubId")?.let { hubId ->
             viewModelScope.launch {
-                val fetchedHub = hubRepository.getHub(hubId)
+                val fetchedHub = withContext(Dispatchers.IO) {
+                    hubRepository.getHub(hubId)
+                }
 
-                withContext(Dispatchers.Main) {
-                    _hubDetailsState.update {
-                        it.copy(
-                            hub = fetchedHub
-                        )
-                    }
+                _hubDetailsState.update {
+                    it.copy(
+                        hub = fetchedHub
+                    )
                 }
             }
             itemsCollectionJob = getHubItems(hubId, null, null, null)
@@ -85,7 +96,18 @@ class HubDetailsViewModel(
                 action.updatedItem
             )
             is HubDetailsAction.DeleteItem -> deleteItem(action.itemId)
+            is HubDetailsAction.GetAllInvitations -> getAllInvitations()
+            is HubDetailsAction.SearchForUsers -> searchForUsers(action.searchTerm)
+            is HubDetailsAction.InviteUser -> inviteUser(action.userId, action.role)
+            is HubDetailsAction.RemoveMember -> removeMemberFromHub(action.userId, action.status)
+            is HubDetailsAction.ChangeMemberRole -> changeMemberRole(
+                action.userId,
+                action.role,
+                action.status
+            )
+            is HubDetailsAction.LeaveHub -> leaveHub()
             is HubDetailsAction.ChangeCurrentItem -> updateCurrentItem(action.item)
+            is HubDetailsAction.ClearUserSearch -> clearUserSearch()
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
         }
@@ -243,6 +265,165 @@ class HubDetailsViewModel(
         }
     }
 
+    private fun getAllInvitations() {
+        viewModelScope.launch {
+            val getAllInvitationsResult = withContext(Dispatchers.IO) {
+                invitationsRepository.getAllHubInvitations(
+                    HubInvitationsRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: ""
+                    )
+                )
+            }
+
+            getAllInvitationsResult.onSuccess { invitations ->
+                _hubDetailsState.update {
+                    it.copy(
+                        invitationsList = invitations
+                    )
+                }
+            }
+        }
+    }
+
+    private fun searchForUsers(searchTerm: String) {
+        viewModelScope.launch {
+            val searchForUsersResult = withContext(Dispatchers.IO) {
+                invitationsRepository.searchForUsers(
+                    UserSearchRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        searchTerm = searchTerm
+                    )
+                )
+            }
+
+            searchForUsersResult.onSuccess { users ->
+                _hubDetailsState.update {
+                    it.copy(
+                        usersList = users
+                    )
+                }
+            }
+        }
+    }
+
+    private fun inviteUser(userId: String, role: HubRole) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val inviteUserResult = withContext(Dispatchers.IO) {
+                invitationsRepository.inviteUser(
+                    UserInviteRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId,
+                        roleName = role.name
+                    )
+                )
+            }
+
+            val updateMembersDeferred = viewModelScope.async {
+                getAllInvitations()
+                clearUserSearch()
+            }
+            updateMembersDeferred.await()
+
+            _hubDetailsState.update {
+                it.copy(
+                    invitationProcessResult = inviteUserResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun removeMemberFromHub(
+        userId: String,
+        status: MemberStatus
+    ) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val removeUserResult = withContext(Dispatchers.IO) {
+                invitationsRepository.removeUserFromHub(
+                    RemoveMemberRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId,
+                        status = status
+                    )
+                )
+            }
+
+            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            updateMembersDeferred.await()
+
+            _hubDetailsState.update {
+                it.copy(
+                    operationResult = removeUserResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun changeMemberRole(
+        userId: String,
+        role: HubRole,
+        status: MemberStatus
+    ) {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val changeUserRoleResult = withContext(Dispatchers.IO) {
+                invitationsRepository.changeUserRole(
+                    ChangeMemberRoleRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: "",
+                        userId = userId,
+                        hubRole = role.name,
+                        status = status
+                    )
+                )
+            }
+
+            val updateMembersDeferred = viewModelScope.async { getAllInvitations() }
+            updateMembersDeferred.await()
+
+            _hubDetailsState.update {
+                it.copy(
+                    operationResult = changeUserRoleResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun leaveHub() {
+        baseAction(BaseAction.ShowLoading)
+        viewModelScope.launch {
+            val leaveHubResult = withContext(Dispatchers.IO) {
+                hubRepository.leaveHub(
+                    LeaveHubRequest(
+                        hubId = _hubDetailsState.value.hub?.id ?: ""
+                    )
+                )
+            }
+
+            _hubDetailsState.update {
+                it.copy(
+                    hubDeletionResult = leaveHubResult
+                )
+            }
+
+            baseAction(BaseAction.HideLoading)
+        }
+    }
+
+    private fun clearUserSearch() {
+        _hubDetailsState.update {
+            it.copy(
+                usersList = emptyList()
+            )
+        }
+    }
+
     private fun clearState() {
         _hubDetailsState.update {
             HubDetailsState()
@@ -254,7 +435,9 @@ class HubDetailsViewModel(
             it.copy(
                 operationResult = null,
                 hubDeletionResult = null,
-                itemDeletionResult = null
+                itemDeletionResult = null,
+                hubUpdateResult = null,
+                invitationProcessResult = null
             )
         }
     }

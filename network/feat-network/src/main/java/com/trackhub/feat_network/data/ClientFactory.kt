@@ -29,7 +29,7 @@ object ClientFactory {
                 encodeDefaults = true
                 ignoreUnknownKeys = true
                 prettyPrint = true
-                namingStrategy = JsonNamingStrategy.Builtins.SnakeCase
+                namingStrategy = JsonNamingStrategy.SnakeCase
             })
         }
     }

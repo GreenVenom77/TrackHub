@@ -85,7 +85,7 @@ fun <T> DialogSearchableDropdown(
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
     ),
     drawItem: @Composable (T, Boolean, Boolean, () -> Unit) -> Unit = { item, selected, itemEnabled, onClick ->
-        DropdownMenuItem(
+        DialogDropdownMenuItem(
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
@@ -318,7 +318,7 @@ fun <T> DialogSearchableDropdown(
 }
 
 @Composable
-fun DropdownMenuItem(
+fun DialogDropdownMenuItem(
     text: String,
     textStyle: TextStyle,
     selected: Boolean,

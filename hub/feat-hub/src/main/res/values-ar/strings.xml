@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="something_went_wrong">حدث شيء غير متوقع</string>
-    <string name="hub_name">اسم المخزن</string>
-    <string name="hub_description">وصف المخزن</string>
-    <string name="add_hub">أضف المخزن</string>
-    <string name="delete_hub">حذف المخزن</string>
-    <string name="edit_hub_Details">تعديل معلومات المخزن</string>
-    <string name="hub_id">كود المخزن</string>
-    <string name="update_hub">حدث المخزن</string>
+    <string name="hub_name">اسم المركز</string>
+    <string name="hub_description">وصف المركز</string>
+    <string name="add_hub">إضافة مركز</string>
+    <string name="delete_hub">حذف المركز</string>
+    <string name="edit_hub_Details">تعديل معلومات المركز</string>
+    <string name="hub_id">كود المركز</string>
+    <string name="update_hub">تحديث المركز</string>
     <string name="unknown_hub">مخزن غير معلوم</string>
+    <string name="hub_description_hint">أدخل وصف المركز</string>
+    <string name="about_hub">حول المركز</string>
+    <string name="created_at">تاريخ الإنشاء</string>
+    <string name="no_description">لا يوجد وصف</string>
+    <string name="unknown">غير معروف</string>
+    <string name="leave_hub">ترك المركز</string>
+    <string name="leave_hub_message">هل أنت متأكد من أنك تريد ترك هذا المركز؟</string>
 
     <!-- Category related strings -->
     <string name="category">الفئة</string>
@@ -30,8 +37,10 @@
     <string name="cancel">إلغاء</string>
     <string name="ok">موافق</string>
     <string name="all">الجميع</string>
+    <string name="settings">الإعدادات</string>
 
     <!-- Item form strings -->
+    <string name="item_details">تفاصيل العنصر</string>
     <string name="no_items_found">لا يوجد عناصر</string>
     <string name="item_name">اسم العنصر</string>
     <string name="item_stock">مخزون العنصر</string>
@@ -44,4 +53,41 @@
     <string name="select_an_item">اختر عنصراً</string>
     <string name="select_items">اختر عناصر</string>
     <string name="selected_items">تم اختيار %d عناصر</string>
+    <string name="close">إغلاق</string>
+    <string name="in_stock">متوفر</string>
+    <string name="out_of_stock">غير متوفر</string>
+
+    <!-- Members & Invitations -->
+    <string name="members">الأعضاء</string>
+    <string name="invite">دعوة</string>
+    <string name="invite_user">دعوة مستخدم</string>
+    <string name="send_invite">إرسال الدعوة</string>
+    <string name="no_members_yet">لا يوجد أعضاء بعد</string>
+    <string name="remove_member">إزالة العضو</string>
+    <string name="search_by_name_or_email">البحث بالاسم أو البريد الإلكتروني</string>
+    <string name="no_users_found">لم يتم العثور على مستخدمين</string>
+    <string name="select_role">اختر الدور</string>
+    <string name="clear_selection">مسح الاختيار</string>
+    <string name="remove_member_message">هل أنت متأكد أنك تريد إزالة هذا العضو من المركز؟</string>
+
+    <!-- Role Descriptions -->
+    <string name="role_owner_desc">وصول كامل لكل شيء</string>
+    <string name="role_editor_desc">يمكنه إضافة وتعديل العناصر</string>
+    <string name="role_viewer_desc">يمكنه مشاهدة العناصر فقط</string>
+
+    <!-- Success messages -->
+    <string name="invitation_role_updated">تم تحديث دور العضو بنجاح</string>
+    <string name="invitation_updated">تم تحديث الدعوة المعلقة بدور جديد</string>
+    <string name="invitation_resent">تم إعادة إرسال الدعوة بنجاح</string>
+    <string name="invitation_sent">تم إرسال الدعوة بنجاح</string>
+
+    <!-- Error messages -->
+    <string name="error_hub_id_null">معرف المركز مطلوب</string>
+    <string name="error_user_id_null">معرف المستخدم مطلوب</string>
+    <string name="error_role_name_empty">يرجى اختيار دور</string>
+    <string name="error_no_permission">ليس لديك صلاحية لدعوة مستخدمين إلى هذا المركز</string>
+    <string name="error_user_not_found">المستخدم غير موجود</string>
+    <string name="error_cannot_invite_self">لا يمكنك دعوة نفسك</string>
+    <string name="error_invalid_role_name">دور غير صالح. يرجى اختيار مالك أو محرر أو مشاهد</string>
+    <string name="error_generic">حدث خطأ. يرجى المحاولة مرة أخرى</string>
 </resources>
