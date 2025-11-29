@@ -24,32 +24,26 @@ jobs:
       - name: Get commit messages and code changes
         id: context
         run: |
-          # Create context content
           {
             echo "### Commits"
             git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits)"
-
             echo -e "\n\n### File Changes"
             git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff)"
-
             echo -e "\n\n### Code Changes"
-            # Limit diff context and size
             git diff --unified=2 --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No changes)"
           } > context.txt
-
-          # Aggressively truncate to 15KB to ensure it fits
+          
           MAX_BYTES=15000
           if [ $(wc -c < context.txt) -gt "$MAX_BYTES" ]; then
             head -c $MAX_BYTES context.txt > truncated.txt
             echo -e "\n\n[Diff truncated for size]" >> truncated.txt
             mv truncated.txt context.txt
           fi
-
-          # Output the context
+          
           {
-            echo "context<<EOF"
+            echo "context<<CONTEXTEOF"
             cat context.txt
-            echo "EOF"
+            echo "CONTEXTEOF"
           } >> $GITHUB_OUTPUT
 
       - name: Generate AI Pull Request Description
@@ -57,33 +51,30 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Create concise prompt
-          cat > prompt.txt << 'EOF'
-            Write a technical PR description for developers.
+          # Create prompt without heredoc
+          echo "Write a technical PR description for developers.
 
-            ## Summary
-            2-3 sentences describing the main changes and why.
+          ## Summary
+          2-3 sentences describing the main changes and why.
 
-            ## Technical Changes
-            4-6 bullet points maximum. Focus on WHAT changed functionally.
+          ## Technical Changes
+          4-6 bullet points maximum. Focus on WHAT changed functionally.
 
-            Format: **Feature** — Implementation details (methods, types, architecture)
+          Format: **Feature** — Implementation details (methods, types, architecture)
 
-            Rules:
-            - Group related changes together
-            - Focus on features/architecture, not file names
-            - Include specifics: method signatures, patterns, libraries
-            - Skip minor tweaks and config changes
+          Rules:
+          - Group related changes together
+          - Focus on features/architecture, not file names
+          - Include specifics: method signatures, patterns, libraries
+          - Skip minor tweaks and config changes
 
-            Context:
-            EOF
-
-          # Append context
+          Context:" > prompt.txt
+          
           cat context.txt >> prompt.txt
 
-          # Create JSON payload with proper escaping
+          # Create JSON payload
           jq -n \
-            --arg model "x-ai/grok-4.1-fast:free" \
+            --arg model "x-ai/grok-2-1212" \
             --arg system "You are a technical writer creating concise GitHub PR descriptions." \
             --rawfile prompt prompt.txt \
             '{
@@ -96,7 +87,7 @@ jobs:
               temperature: 0.7
             }' > payload.json
 
-          # Make API call with error handling
+          # Make API call
           HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
             https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
@@ -105,44 +96,44 @@ jobs:
             -H "X-Title: PR Description Generator" \
             -d @payload.json)
 
-          # Debug output
           echo "HTTP Status: $HTTP_CODE"
-          echo "Response:"
           cat response.json
 
-          # Check if request succeeded
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "API request failed with status $HTTP_CODE"
             ERROR_MSG=$(jq -r '.error.message // "Unknown error"' response.json)
-            echo "Error: $ERROR_MSG"
-            echo "description=⚠️ Failed to generate description. API returned: $ERROR_MSG" >> $GITHUB_OUTPUT
-            exit 0  # Don't fail the workflow
-          fi
-
-          # Extract description
-          DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
-
-          if [ -z "$DESCRIPTION" ]; then
-            echo "No content in API response"
-            echo "description=⚠️ API returned empty response. Please check workflow logs." >> $GITHUB_OUTPUT
+            echo "API Error: $ERROR_MSG"
+            {
+              echo "description<<DESCEOF"
+              echo "⚠️ Failed to generate description. API returned: $ERROR_MSG"
+              echo "DESCEOF"
+            } >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Save description
+          DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
+
+          if [ -z "$DESCRIPTION" ]; then
+            echo "Empty API response"
+            {
+              echo "description<<DESCEOF"
+              echo "⚠️ API returned empty response. Check workflow logs."
+              echo "DESCEOF"
+            } >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           {
-            echo "description<<EOF"
+            echo "description<<DESCEOF"
             echo "$DESCRIPTION"
-            echo "EOF"
+            echo "DESCEOF"
           } >> $GITHUB_OUTPUT
 
       - name: Update PR body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          {
-            echo "### AI-Generated Pull Request Summary"
-            echo ""
-            echo "${{ steps.ai.outputs.description }}"
-          } > new_body.txt
-
+          echo "### AI-Generated Pull Request Summary" > new_body.txt
+          echo "" >> new_body.txt
+          echo "${{ steps.ai.outputs.description }}" >> new_body.txt
+          
           gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt
