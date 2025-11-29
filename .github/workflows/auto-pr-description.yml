@@ -51,42 +51,53 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           # Create a STRICT prompt that prevents hallucination
-          echo "You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
+          echo "You are writing a COMPREHENSIVE technical GitHub Pull Request description for experienced Android/Kotlin developers.
 
           ⚠️ CRITICAL ANTI-HALLUCINATION RULES ⚠️
           1. ONLY describe changes you can SEE in the provided diff/commits
           2. NEVER EVER use placeholder commas like: 'Added functions , , , and'
-          3. If you see a function name like 'inviteUser()', COPY IT EXACTLY: 'inviteUser()'
+          3. If you see a function name like 'inviteUser()', COPY IT EXACTLY with full signature: 'inviteUser(userId: String, role: HubRole): Result<Unit>'
           4. If you cannot see a function name clearly, DO NOT mention functions at all - describe the feature generically
-          5. REAL EXAMPLE FROM DIFF: If you see '+    suspend fun getMemberList(): Flow<Result<List<HubMember>>>'
-             Then write: 'getMemberList(): Flow<Result<List<HubMember>>>'
-          6. NEVER write: 'Added functions , , , and' - THIS IS FORBIDDEN
-          7. Include technical specifics ONLY when you can see them in the diff
+          5. Include as many technical details as you can extract from the diff
 
-          Write a technical PR description with:
+          Write a DETAILED technical PR description with:
 
           ## Summary
-          2-3 sentences about what changed technically and the architectural approach
+          3-4 sentences about what changed technically, the architectural approach, and key implementation patterns used
 
           ## Technical Changes
-          4-6 bullet points with implementation details. Format:
-          **Component/Layer**: Technical description with ACTUAL function/class names you see, or generic description if names aren't visible
+          6-10 bullet points with COMPREHENSIVE implementation details. Be thorough and specific.
 
-          GOOD examples (with actual names from diff):
-          - **HubMemberRepository**: Added getMemberList(): Flow<Result<List<HubMember>>>, updateMemberRole(memberId: String, role: HubRole), and removeMember(memberId: String) for reactive member management
-          - **User invitation flow**: Implemented InvitationViewModel with StateFlow<List<InvitableUser>>, searchUsers(query: String) with 600ms debouncing
-          - **Domain models**: Created HubMember data class with userId/role/status fields, HubRole enum (OWNER/EDITOR/VIEWER)
+          For each bullet, include:
+          - Exact function signatures with parameter types and return types
+          - State management patterns (StateFlow, MutableStateFlow, State, remember{})
+          - Data structures (data classes with all fields you can see)
+          - UI patterns (Composables, modifiers, LazyColumn specifics)
+          - Error handling approaches (Result<T>, try-catch, sealed classes)
+          - Reactive patterns (Flow, collect, debounce timing)
+          - Navigation and dialog state management
+          - Any DTOs, mappers, or data transformations
+          - Network/database operations (RPC calls, queries, endpoints)
+          - Validation logic or business rules
 
-          ACCEPTABLE generic examples (when you can't see names):
-          - **Data source layer**: Implemented Supabase RPC integration for member operations with proper status filtering
-          - **UI Components**: Added Composable screens for member management with lazy loading and debounced search
+          Format: **Component/Layer - Specific Feature**: Detailed technical description with multiple function signatures, patterns, and implementation details
+
+          GOOD examples (comprehensive with details):
+          - **HubInvitationsRepository - Member Operations**: Implemented inviteUser(userId: String, role: HubRole): Flow<Result<InvitationResult>>, removeUserFromHub(userId: String): Flow<Result<Unit>>, changeUserRole(userId: String, newRole: HubRole): Flow<Result<Unit>>, and getAllMembers(): Flow<Result<List<HubMember>>> using Supabase RPC calls with proper error wrapping and Result type handling
+          - **HubDetailsViewModel - State Management**: Added StateFlow<List<HubMember>> for membersList, StateFlow<List<UserSearch>> for searchResults, StateFlow<Boolean> for loading states, MutableStateFlow<String> for searchQuery with 600ms debounce via searchQuery.debounce(600).collectLatest{}, handles SearchForUsers/InviteUser/ChangeMemberRole/RemoveMember actions with proper error state updates
+          - **Domain Models - Data Structures**: Created HubMember(userId: String, name: String, email: String, role: HubRole, status: MemberStatus, joinedAt: LocalDateTime), InvitationResult(success: Boolean, message: String, invitationStatus: InvitationStatus), UserSearch(userId: String, displayName: String, email: String, currentStatus: MemberStatus?) with proper nullable handling
+          - **InviteUserDialog Composable - UI Implementation**: Built with Column(Modifier.fillMaxWidth().padding(24.dp)), SearchTextField with OutlinedTextField(value, onValueChange, leadingIcon = Icon(Icons.Search)), LazyColumn for search results showing UserSearchItem composables, RoleSelectionDropdown with DropdownMenu containing HubRole.entries.map{}, AnimatedVisibility for loading/error states, confirmation Button with enabled state tied to selected user and role
+
+          ACCEPTABLE generic examples (when specific names aren't visible):
+          - **Data Source Layer - Supabase Integration**: Implemented RPC client wrapper with error handling, request/response DTOs, and Result type mapping for all hub member operations
+          - **UI Components - Dialog System**: Created reusable dialog composables with Material3 styling, gradient backgrounds, animated state transitions, and proper dismissal handling
 
           FORBIDDEN examples (NEVER DO THIS):
           - **Repository**: Added functions , , , and for member management ❌
-          - **Data source**: Implemented methods , , and ❌
-          - **ViewModel**: Created , , with state flows ❌
+          - **ViewModel**: Implemented state management ❌ (too vague)
+          - **UI**: Created composables ❌ (no specifics)
 
-          REMEMBER: Empty placeholders are WORSE than being generic. If you can't see the name, describe the WHAT not the WHO.
+          IMPORTANT: Aim for 6-10 detailed bullets. More detail is better. Include implementation specifics, not just feature names.
 
           Context:
           " > prompt.txt
@@ -115,7 +126,7 @@ jobs:
                   {role: "system", content: $system},
                   {role: "user", content: $prompt}
                 ],
-                max_tokens: 800,
+                max_tokens: 2000,
                 temperature: 0.3
               }' > payload.json
 
