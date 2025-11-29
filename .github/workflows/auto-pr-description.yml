@@ -25,20 +25,22 @@ jobs:
         id: context
         run: |
           {
-            echo "### Commits"
+            echo "### Commit Messages"
             git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits)"
-            echo -e "\n\n### File Changes"
-            git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff)"
-            echo -e "\n\n### Code Changes"
-            git diff --unified=2 --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No changes)"
+            
+            echo -e "\n\n### Files Changed"
+            git diff --name-status --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No files)"
+            
+            echo -e "\n\n### File Statistics"
+            git diff --stat origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No stats)"
+            
+            echo -e "\n\n### Code Changes (Function/Class Signatures Only)"
+            # Extract only function signatures, class declarations, and important annotations
+            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '^\+.*(fun |class |interface |object |data class |sealed |@Composable|suspend |override )' | head -100 || echo "(No signatures found)"
+            
+            echo -e "\n\n### Full Diff (Limited)"
+            git diff --unified=3 origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff)"
           } > context.txt
-          
-          MAX_BYTES=15000
-          if [ $(wc -c < context.txt) -gt "$MAX_BYTES" ]; then
-            head -c $MAX_BYTES context.txt > truncated.txt
-            echo -e "\n\n[Diff truncated for size]" >> truncated.txt
-            mv truncated.txt context.txt
-          fi
           
           {
             echo "context<<CONTEXTEOF"
@@ -51,80 +53,97 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Create prompt without heredoc
-          echo "Write a technical PR description for developers.
+          # Create a STRICT prompt that prevents hallucination
+          echo "You are writing a GitHub Pull Request description based ONLY on the provided git context.
+
+          CRITICAL RULES:
+          1. ONLY describe changes you can SEE in the provided diff/commits
+          2. NEVER invent method names, class names, or technologies not shown
+          3. If you see incomplete information (like method signatures without bodies), describe them generically
+          4. NEVER use placeholder commas like 'Added , , ,' - skip details you don't have
+          5. When in doubt, be MORE GENERAL rather than making up specifics
+
+          Write a PR description with:
 
           ## Summary
-          2-3 sentences describing the main changes and why.
+          2-3 sentences about what changed and why (based on commit messages and file changes)
 
-          ## Technical Changes
-          4-6 bullet points maximum. Focus on WHAT changed functionally.
+          ## Key Changes
+          3-5 bullet points describing the main changes. Format:
+          - **Area/Feature**: What was added/changed and how it works (only if you can see it in the diff)
 
-          Format: **Feature** — Implementation details (methods, types, architecture)
+          Examples of GOOD bullets:
+          - **Hub member management**: Added member list viewing, role updates, and member removal functionality
+          - **User invitation flow**: Implemented invitation system with user search and status tracking
+          - **UI improvements**: Added options menu, bottom sheets, and management dialogs to Hub Details screen
 
-          Rules:
-          - Group related changes together
-          - Focus on features/architecture, not file names
-          - Include specifics: method signatures, patterns, libraries
-          - Skip minor tweaks and config changes
+          Examples of BAD bullets (DO NOT DO THIS):
+          - **Repository layer**: Added  with functions , ,  (WRONG - has placeholders)
+          - **API integration**: Implemented Retrofit endpoints for hub management (WRONG - inventing tech stack)
 
-          Context:" > prompt.txt
+          If you cannot see specific implementation details, describe the feature generically.
+
+          Context:
+          " > prompt.txt
           
           cat context.txt >> prompt.txt
 
-          # Create JSON payload
-          jq -n \
-            --arg model "x-ai/grok-4.1-fast:free" \
-            --arg system "You are a technical writer creating concise GitHub PR descriptions." \
-            --rawfile prompt prompt.txt \
-            '{
-              model: $model,
-              messages: [
-                {role: "system", content: $system},
-                {role: "user", content: $prompt}
-              ],
-              max_tokens: 1000,
-              temperature: 0.7
-            }' > payload.json
+          # Try multiple models in priority order
+          MODELS=("kwaipilot/kat-coder-pro:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
+          
+          for MODEL in "${MODELS[@]}"; do
+            echo "Trying model: $MODEL"
+            
+            jq -n \
+              --arg model "$MODEL" \
+              --arg system "You write accurate PR descriptions based only on provided context. Never hallucinate details." \
+              --rawfile prompt prompt.txt \
+              '{
+                model: $model,
+                messages: [
+                  {role: "system", content: $system},
+                  {role: "user", content: $prompt}
+                ],
+                max_tokens: 800,
+                temperature: 0.3
+              }' > payload.json
 
-          # Make API call
-          HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
-            https://openrouter.ai/api/v1/chat/completions \
-            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
-            -H "Content-Type: application/json" \
-            -H "HTTP-Referer: https://github.com/${{ github.repository }}" \
-            -H "X-Title: PR Description Generator" \
-            -d @payload.json)
+            HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
+              https://openrouter.ai/api/v1/chat/completions \
+              -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -H "HTTP-Referer: https://github.com/${{ github.repository }}" \
+              -H "X-Title: PR Description Generator" \
+              -d @payload.json)
 
-          echo "HTTP Status: $HTTP_CODE"
-          cat response.json
-
-          if [ "$HTTP_CODE" != "200" ]; then
-            ERROR_MSG=$(jq -r '.error.message // "Unknown error"' response.json)
-            echo "API Error: $ERROR_MSG"
-            {
-              echo "description<<DESCEOF"
-              echo "⚠️ Failed to generate description. API returned: $ERROR_MSG"
-              echo "DESCEOF"
-            } >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
-
-          if [ -z "$DESCRIPTION" ]; then
-            echo "Empty API response"
-            {
-              echo "description<<DESCEOF"
-              echo "⚠️ API returned empty response. Check workflow logs."
-              echo "DESCEOF"
-            } >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
+            echo "HTTP Status: $HTTP_CODE"
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
+              
+              if [ -n "$DESCRIPTION" ]; then
+                echo "Success with model: $MODEL"
+                {
+                  echo "description<<DESCEOF"
+                  echo "$DESCRIPTION"
+                  echo "DESCEOF"
+                } >> $GITHUB_OUTPUT
+                exit 0
+              fi
+            else
+              echo "Failed with $MODEL, trying next..."
+              cat response.json
+            fi
+          done
+          
+          # If all models failed
+          echo "All models failed"
           {
             echo "description<<DESCEOF"
-            echo "$DESCRIPTION"
+            echo "⚠️ Failed to generate AI description. Please check workflow logs for details."
+            echo ""
+            echo "### Manual Summary Needed"
+            echo "Please add a description for this PR."
             echo "DESCEOF"
           } >> $GITHUB_OUTPUT
 
@@ -135,5 +154,8 @@ jobs:
           echo "### AI-Generated Pull Request Summary" > new_body.txt
           echo "" >> new_body.txt
           echo "${{ steps.ai.outputs.description }}" >> new_body.txt
+          echo "" >> new_body.txt
+          echo "---" >> new_body.txt
+          echo "*Generated by AI - please review and edit as needed*" >> new_body.txt
           
           gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt
