@@ -54,34 +54,41 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           # Create a STRICT prompt that prevents hallucination
-          echo "You are writing a GitHub Pull Request description based ONLY on the provided git context.
+          echo "You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
 
           CRITICAL RULES:
           1. ONLY describe changes you can SEE in the provided diff/commits
           2. NEVER invent method names, class names, or technologies not shown
-          3. If you see incomplete information (like method signatures without bodies), describe them generically
+          3. Include technical specifics: function signatures, data types, architectural patterns, state management
           4. NEVER use placeholder commas like 'Added , , ,' - skip details you don't have
-          5. When in doubt, be MORE GENERAL rather than making up specifics
+          5. When describing UI, mention Composable functions, state flows, and UI patterns you can see
+          6. When describing data layer, mention repository patterns, data classes, and API structures you can see
+          7. Focus on HOW things work technically, not just WHAT changed
 
-          Write a PR description with:
+          Write a technical PR description with:
 
           ## Summary
-          2-3 sentences about what changed and why (based on commit messages and file changes)
+          2-3 sentences about what changed technically and the architectural approach
 
-          ## Key Changes
-          3-5 bullet points describing the main changes. Format:
-          - **Area/Feature**: What was added/changed and how it works (only if you can see it in the diff)
+          ## Technical Changes
+          4-6 bullet points with implementation details. Format:
+          **Component/Layer**: Technical description with specifics (function names, types, patterns, state management)
 
-          Examples of GOOD bullets:
-          - **Hub member management**: Added member list viewing, role updates, and member removal functionality
-          - **User invitation flow**: Implemented invitation system with user search and status tracking
-          - **UI improvements**: Added options menu, bottom sheets, and management dialogs to Hub Details screen
+          Examples of GOOD technical bullets:
+          - **HubMemberRepository**: Added \`getMemberList()\`, \`updateMemberRole(memberId: String, role: HubRole)\`, \`removeMember()\` with Flow<Result<T>> return types for reactive state management
+          - **User invitation flow**: Implemented \`InvitationViewModel\` with StateFlow<List<InvitableUser>>, search debouncing via \`searchQuery.debounce(300)\`, role selection with sealed class \`InvitationState\`
+          - **Hub Details UI**: Refactored \`HubDetailsScreen\` Composable with LazyColumn member list, \`MemberListItem\` with role chips, BottomSheet modals for edit/delete actions, remember { mutableStateOf() } for dialog visibility
+          - **Domain models**: Created \`HubMember\` data class with userId/role/status fields, \`HubRole\` enum (OWNER/EDITOR/VIEWER), \`InvitationStatus\` sealed interface for type-safe state
 
           Examples of BAD bullets (DO NOT DO THIS):
-          - **Repository layer**: Added  with functions , ,  (WRONG - has placeholders)
-          - **API integration**: Implemented Retrofit endpoints for hub management (WRONG - inventing tech stack)
+          - **Member management**: Added member features (TOO VAGUE)
+          - **Repository layer**: Updated repository (NO TECHNICAL DETAILS)
+          - **UI improvements**: Made UI better (NO SPECIFICS)
 
-          If you cannot see specific implementation details, describe the feature generically.
+          Include: Composable functions, ViewModel patterns, StateFlow/MutableStateFlow, data classes, sealed classes/interfaces, 
+          repository patterns, Room queries (if present), Retrofit endpoints (if present), navigation flows, state management approaches.
+
+          If you cannot see specific implementation details in the diff, describe the pattern/approach generically but still technically.
 
           Context:
           " > prompt.txt
@@ -89,7 +96,7 @@ jobs:
           cat context.txt >> prompt.txt
 
           # Try multiple models in priority order
-          MODELS=("kwaipilot/kat-coder-pro:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
+          MODELS=("kwaipilot/kat-coder-pro:free" "z-ai/glm-4.5-air:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
           
           for MODEL in "${MODELS[@]}"; do
             echo "Trying model: $MODEL"
