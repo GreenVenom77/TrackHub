@@ -58,7 +58,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           # Create concise prompt
-          cat > prompt.txt << 'PROMPT_EOF'
+          cat > prompt.txt << 'EOF'
             Write a technical PR description for developers.
 
             ## Summary
@@ -76,7 +76,7 @@ jobs:
             - Skip minor tweaks and config changes
 
             Context:
-            PROMPT_EOF
+            EOF
 
           # Append context
           cat context.txt >> prompt.txt
