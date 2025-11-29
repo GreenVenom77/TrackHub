@@ -31,15 +31,12 @@ jobs:
             echo -e "\n\n### Files Changed"
             git diff --name-status --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No files)"
             
-            echo -e "\n\n### File Statistics"
-            git diff --stat origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No stats)"
+            echo -e "\n\n### Added/Modified Code (Key Signatures)"
+            # Show actual added lines with function/class declarations
+            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^+' | grep -v '^+++' | grep -E '(fun |class |interface |object |data class |sealed |@Composable|suspend |override |val |var |enum )' | sed 's/^+//' | head -200 || echo "(No signatures)"
             
-            echo -e "\n\n### Code Changes (Function/Class Signatures Only)"
-            # Extract only function signatures, class declarations, and important annotations
-            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -E '^\+.*(fun |class |interface |object |data class |sealed |@Composable|suspend |override )' | head -100 || echo "(No signatures found)"
-            
-            echo -e "\n\n### Full Diff (Limited)"
-            git diff --unified=3 origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff)"
+            echo -e "\n\n### Full Diff"
+            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD
           } > context.txt
           
           {
@@ -56,14 +53,15 @@ jobs:
           # Create a STRICT prompt that prevents hallucination
           echo "You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
 
-          CRITICAL RULES:
+          ⚠️ CRITICAL ANTI-HALLUCINATION RULES ⚠️
           1. ONLY describe changes you can SEE in the provided diff/commits
-          2. NEVER invent method names, class names, or technologies not shown
-          3. Include technical specifics: function signatures, data types, architectural patterns, state management
-          4. NEVER use placeholder commas like 'Added , , ,' - skip details you don't have
-          5. When describing UI, mention Composable functions, state flows, and UI patterns you can see
-          6. When describing data layer, mention repository patterns, data classes, and API structures you can see
-          7. Focus on HOW things work technically, not just WHAT changed
+          2. NEVER EVER use placeholder commas like: 'Added functions , , , and'
+          3. If you see a function name like 'inviteUser()', COPY IT EXACTLY: 'inviteUser()'
+          4. If you cannot see a function name clearly, DO NOT mention functions at all - describe the feature generically
+          5. REAL EXAMPLE FROM DIFF: If you see '+    suspend fun getMemberList(): Flow<Result<List<HubMember>>>'
+             Then write: 'getMemberList(): Flow<Result<List<HubMember>>>'
+          6. NEVER write: 'Added functions , , , and' - THIS IS FORBIDDEN
+          7. Include technical specifics ONLY when you can see them in the diff
 
           Write a technical PR description with:
 
@@ -72,31 +70,37 @@ jobs:
 
           ## Technical Changes
           4-6 bullet points with implementation details. Format:
-          **Component/Layer**: Technical description with specifics (function names, types, patterns, state management)
+          **Component/Layer**: Technical description with ACTUAL function/class names you see, or generic description if names aren't visible
 
-          Examples of GOOD technical bullets:
-          - **HubMemberRepository**: Added \`getMemberList()\`, \`updateMemberRole(memberId: String, role: HubRole)\`, \`removeMember()\` with Flow<Result<T>> return types for reactive state management
-          - **User invitation flow**: Implemented \`InvitationViewModel\` with StateFlow<List<InvitableUser>>, search debouncing via \`searchQuery.debounce(300)\`, role selection with sealed class \`InvitationState\`
-          - **Hub Details UI**: Refactored \`HubDetailsScreen\` Composable with LazyColumn member list, \`MemberListItem\` with role chips, BottomSheet modals for edit/delete actions, remember { mutableStateOf() } for dialog visibility
-          - **Domain models**: Created \`HubMember\` data class with userId/role/status fields, \`HubRole\` enum (OWNER/EDITOR/VIEWER), \`InvitationStatus\` sealed interface for type-safe state
+          GOOD examples (with actual names from diff):
+          - **HubMemberRepository**: Added getMemberList(): Flow<Result<List<HubMember>>>, updateMemberRole(memberId: String, role: HubRole), and removeMember(memberId: String) for reactive member management
+          - **User invitation flow**: Implemented InvitationViewModel with StateFlow<List<InvitableUser>>, searchUsers(query: String) with 600ms debouncing
+          - **Domain models**: Created HubMember data class with userId/role/status fields, HubRole enum (OWNER/EDITOR/VIEWER)
 
-          Examples of BAD bullets (DO NOT DO THIS):
-          - **Member management**: Added member features (TOO VAGUE)
-          - **Repository layer**: Updated repository (NO TECHNICAL DETAILS)
-          - **UI improvements**: Made UI better (NO SPECIFICS)
+          ACCEPTABLE generic examples (when you can't see names):
+          - **Data source layer**: Implemented Supabase RPC integration for member operations with proper status filtering
+          - **UI Components**: Added Composable screens for member management with lazy loading and debounced search
 
-          Include: Composable functions, ViewModel patterns, StateFlow/MutableStateFlow, data classes, sealed classes/interfaces, 
-          repository patterns, Room queries (if present), Retrofit endpoints (if present), navigation flows, state management approaches.
+          FORBIDDEN examples (NEVER DO THIS):
+          - **Repository**: Added functions , , , and for member management ❌
+          - **Data source**: Implemented methods , , and ❌
+          - **ViewModel**: Created , , with state flows ❌
 
-          If you cannot see specific implementation details in the diff, describe the pattern/approach generically but still technically.
+          REMEMBER: Empty placeholders are WORSE than being generic. If you can't see the name, describe the WHAT not the WHO.
 
           Context:
           " > prompt.txt
           
           cat context.txt >> prompt.txt
 
-          # Try multiple models in priority order
-          MODELS=("kwaipilot/kat-coder-pro:free" "z-ai/glm-4.5-air:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
+          # Try multiple models in priority order (best free models for code analysis)
+          MODELS=(
+            "google/gemini-2.5-flash:free"           # Best: fast, 1M context, great at summaries
+            "deepseek/deepseek-chat-v3-0324:free"    # Excellent for code tasks
+            "meta-llama/llama-3.3-70b-instruct:free" # Strong instruction following
+            "google/gemini-2.0-flash-exp:free"       # Experimental, cutting-edge
+            "nvidia/llama-3.1-nemotron-ultra-253b-v1:free" # Most powerful fallback
+          )
           
           for MODEL in "${MODELS[@]}"; do
             echo "Trying model: $MODEL"
