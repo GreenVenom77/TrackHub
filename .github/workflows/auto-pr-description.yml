@@ -51,53 +51,54 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           # Create a STRICT prompt that prevents hallucination
-          echo "You are writing a COMPREHENSIVE technical GitHub Pull Request description for experienced Android/Kotlin developers.
+          echo "You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
 
-          ⚠️ CRITICAL ANTI-HALLUCINATION RULES ⚠️
-          1. ONLY describe changes you can SEE in the provided diff/commits
-          2. NEVER EVER use placeholder commas like: 'Added functions , , , and'
-          3. If you see a function name like 'inviteUser()', COPY IT EXACTLY with full signature: 'inviteUser(userId: String, role: HubRole): Result<Unit>'
-          4. If you cannot see a function name clearly, DO NOT mention functions at all - describe the feature generically
-          5. Include as many technical details as you can extract from the diff
+          ⚠️ CRITICAL RULES ⚠️
+          1. SUMMARIZE changes - do NOT copy code verbatim
+          2. Describe WHAT was implemented and HOW it works architecturally
+          3. Include function names and types, but write in natural sentences, not code syntax
+          4. NEVER use placeholder commas like: 'Added functions , , , and'
+          5. Focus on the developer's intent and architectural patterns, not line-by-line code
 
-          Write a DETAILED technical PR description with:
+          BAD (copying code):
+          ❌ Added Column(Modifier.fillMaxWidth().padding(24.dp))
+          ❌ Uses filter{ SharedHubResponse::hubId eq leaveHubRequest.hubId }
+          ❌ Implements rememberSaveable{ mutableStateOf(false) }
+
+          GOOD (describing architecture):
+          ✅ Created InviteUserDialog composable with Material3 AlertDialog, search field, lazy-loaded user list, and role selection dropdown
+          ✅ Implemented leave hub functionality with Supabase delete operation and local cache invalidation
+          ✅ Added dialog state management using rememberSaveable for persistence across recompositions
+
+          Write a technical PR description:
 
           ## Summary
-          3-4 sentences about what changed technically, the architectural approach, and key implementation patterns used
+          3-4 sentences explaining the feature, architectural approach, and key technical decisions
 
           ## Technical Changes
-          6-10 bullet points with COMPREHENSIVE implementation details. Be thorough and specific.
+          6-8 bullet points describing major changes. Each bullet should:
+          - Start with **Component Name - Feature**: 
+          - Describe what was added/changed in 1-2 sentences
+          - Include key function names (like inviteUser(), getMemberList()) naturally in sentences
+          - Mention important types (Flow<Result<T>>, StateFlow, sealed classes) in context
+          - Explain HOW things work, not just list code elements
 
-          For each bullet, include:
-          - Exact function signatures with parameter types and return types
-          - State management patterns (StateFlow, MutableStateFlow, State, remember{})
-          - Data structures (data classes with all fields you can see)
-          - UI patterns (Composables, modifiers, LazyColumn specifics)
-          - Error handling approaches (Result<T>, try-catch, sealed classes)
-          - Reactive patterns (Flow, collect, debounce timing)
-          - Navigation and dialog state management
-          - Any DTOs, mappers, or data transformations
-          - Network/database operations (RPC calls, queries, endpoints)
-          - Validation logic or business rules
+          Format Examples:
 
-          Format: **Component/Layer - Specific Feature**: Detailed technical description with multiple function signatures, patterns, and implementation details
+          GOOD - Natural technical description:
+          ✅ **HubInvitationsRepository**: Added member management operations including inviteUser(), removeMember(), and changeUserRole(), all returning Flow<Result<T>> for reactive state handling. Repository implementation delegates to remote data source and maps DTOs to domain models.
 
-          GOOD examples (comprehensive with details):
-          - **HubInvitationsRepository - Member Operations**: Implemented inviteUser(userId: String, role: HubRole): Flow<Result<InvitationResult>>, removeUserFromHub(userId: String): Flow<Result<Unit>>, changeUserRole(userId: String, newRole: HubRole): Flow<Result<Unit>>, and getAllMembers(): Flow<Result<List<HubMember>>> using Supabase RPC calls with proper error wrapping and Result type handling
-          - **HubDetailsViewModel - State Management**: Added StateFlow<List<HubMember>> for membersList, StateFlow<List<UserSearch>> for searchResults, StateFlow<Boolean> for loading states, MutableStateFlow<String> for searchQuery with 600ms debounce via searchQuery.debounce(600).collectLatest{}, handles SearchForUsers/InviteUser/ChangeMemberRole/RemoveMember actions with proper error state updates
-          - **Domain Models - Data Structures**: Created HubMember(userId: String, name: String, email: String, role: HubRole, status: MemberStatus, joinedAt: LocalDateTime), InvitationResult(success: Boolean, message: String, invitationStatus: InvitationStatus), UserSearch(userId: String, displayName: String, email: String, currentStatus: MemberStatus?) with proper nullable handling
-          - **InviteUserDialog Composable - UI Implementation**: Built with Column(Modifier.fillMaxWidth().padding(24.dp)), SearchTextField with OutlinedTextField(value, onValueChange, leadingIcon = Icon(Icons.Search)), LazyColumn for search results showing UserSearchItem composables, RoleSelectionDropdown with DropdownMenu containing HubRole.entries.map{}, AnimatedVisibility for loading/error states, confirmation Button with enabled state tied to selected user and role
+          ✅ **InviteUserDialog Composable**: Implemented user search with 600ms debounced input via LaunchedEffect, displays results in LazyColumn with selectable UserSearchItem components, includes role selection dropdown (Editor/Viewer only), and confirms invitation with selected user and role.
 
-          ACCEPTABLE generic examples (when specific names aren't visible):
-          - **Data Source Layer - Supabase Integration**: Implemented RPC client wrapper with error handling, request/response DTOs, and Result type mapping for all hub member operations
-          - **UI Components - Dialog System**: Created reusable dialog composables with Material3 styling, gradient backgrounds, animated state transitions, and proper dismissal handling
+          ✅ **Domain Layer**: Created data models including HubMember (userId, name, email, role, status), InvitationResult for operation feedback, and UserSearch for search results. Added MemberStatus and InvitationStatus enums with string-to-enum mapping for API compatibility.
 
-          FORBIDDEN examples (NEVER DO THIS):
-          - **Repository**: Added functions , , , and for member management ❌
-          - **ViewModel**: Implemented state management ❌ (too vague)
-          - **UI**: Created composables ❌ (no specifics)
+          BAD - Code copying or too vague:
+          ❌ **Repository**: Added suspend fun inviteUser(request: UserInviteRequest): NetworkResult<InvitationResult, NetworkError>
+          ❌ **Dialog**: Uses Column(Modifier.fillMaxWidth().padding(24.dp)) with remember{ mutableStateOf() }
+          ❌ **ViewModel**: Updated state management
+          ❌ **UI**: Added new components
 
-          IMPORTANT: Aim for 6-10 detailed bullets. More detail is better. Include implementation specifics, not just feature names.
+          Remember: You're writing for developers who need to understand WHAT changed and WHY, not developers who need to see the exact code (they have the diff for that).
 
           Context:
           " > prompt.txt
@@ -116,7 +117,7 @@ jobs:
             
             jq -n \
               --arg model "$MODEL" \
-              --arg system "You write accurate PR descriptions based only on provided context. Never hallucinate details." \
+              --arg system "You are a technical writer who summarizes code changes for developers. Write clear descriptions of WHAT changed and HOW it works architecturally. Do NOT copy code verbatim - summarize it naturally." \
               --rawfile prompt prompt.txt \
               '{
                 model: $model,
