@@ -96,7 +96,7 @@ jobs:
           cat context.txt >> prompt.txt
 
           # Try multiple models in priority order
-          MODELS=("kwaipilot/kat-coder-pro:free" "z-ai/glm-4.5-air:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
+          MODELS=("z-ai/glm-4.5-air:free" "kwaipilot/kat-coder-pro:free" "google/gemini-flash-1.5:free" "meta-llama/llama-3.1-8b-instruct:free")
           
           for MODEL in "${MODELS[@]}"; do
             echo "Trying model: $MODEL"
