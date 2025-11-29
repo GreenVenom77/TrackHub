@@ -107,7 +107,6 @@ jobs:
 
           # Try multiple models in priority order (best free models for code analysis)
           MODELS=(
-            "nvidia/nemotron-nano-12b-v2-vl:free"
             "z-ai/glm-4.5-air:free"
             "openrouter/bert-nebulon-alpha"
             "meta-llama/llama-3.3-70b-instruct:free"
