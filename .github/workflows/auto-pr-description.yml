@@ -107,9 +107,9 @@ jobs:
 
           # Try multiple models in priority order (best free models for code analysis)
           MODELS=(
+            "openrouter/bert-nebulon-alpha"
             "meta-llama/llama-3.3-70b-instruct:free"
             "x-ai/grok-4.1-fast:free"
-            "openai/gpt-oss-20b:free"
           )
           
           for MODEL in "${MODELS[@]}"; do
