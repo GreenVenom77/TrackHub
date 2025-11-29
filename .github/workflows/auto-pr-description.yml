@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history for proper diffs
+          fetch-depth: 0
 
       - name: Fetch base branch
         run: |
@@ -24,60 +24,31 @@ jobs:
       - name: Get commit messages and code changes
         id: context
         run: |
-          # Create context content in a file first
+          # Create context content
           {
             echo "### Commits"
-            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits found)"
+            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits)"
 
-            echo -e "\n\n### Diff Summary (Added & Modified Files Only)"
-            git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff found)"
+            echo -e "\n\n### File Changes"
+            git diff --stat --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No diff)"
 
-            echo -e "\n\n### Actual Code Changes (Added & Modified Files)"
-
-            # Get list of added and modified files
-            ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
-            MODIFIED_FILES=$(git diff --name-only --diff-filter=M origin/${{ github.event.pull_request.base.ref }}..HEAD 2>/dev/null || echo "")
-
-            # Show actual code changes for each added file
-            if [ -n "$ADDED_FILES" ]; then
-              echo -e "\n#### 🆕 New Files:"
-              while IFS= read -r file; do
-                [ -z "$file" ] && continue
-                echo -e "\n**$file**:"
-                git diff --diff-filter=A --unified=0 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No content to show)"
-              done <<< "$ADDED_FILES"
-            fi
-
-            # Show actual code changes for each modified file
-            if [ -n "$MODIFIED_FILES" ]; then
-              echo -e "\n#### ✏️ Modified Files:"
-              while IFS= read -r file; do
-                [ -z "$file" ] && continue
-                echo -e "\n**$file**:"
-                git diff --diff-filter=M --unified=4 origin/${{ github.event.pull_request.base.ref }}..HEAD -- "$file" 2>/dev/null || echo " (No changes to show)"
-              done <<< "$MODIFIED_FILES"
-            fi
-
-            # If no added or modified files found
-            if [ -z "$ADDED_FILES" ] && [ -z "$MODIFIED_FILES" ]; then
-              echo "No added or modified files found in this PR."
-            fi
+            echo -e "\n\n### Code Changes"
+            # Limit diff context and size
+            git diff --unified=2 --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No changes)"
           } > context.txt
 
-          # Truncate context if too large (>25KB) to avoid hitting API limits
-          MAX_BYTES=25000
-          ACTUAL_BYTES=$(wc -c < context.txt | awk '{print $1}')
-          if [ "$ACTUAL_BYTES" -gt "$MAX_BYTES" ]; then
-            echo -e "\n\n[Note: diff truncated for size]" >> context.txt
+          # Aggressively truncate to 15KB to ensure it fits
+          MAX_BYTES=15000
+          if [ $(wc -c < context.txt) -gt "$MAX_BYTES" ]; then
             head -c $MAX_BYTES context.txt > truncated.txt
+            echo -e "\n\n[Diff truncated for size]" >> truncated.txt
             mv truncated.txt context.txt
           fi
 
-          # Set output using the proper format
-          CONTENT=$(cat context.txt)
+          # Output the context
           {
             echo "context<<EOF"
-            echo "$CONTENT"
+            cat context.txt
             echo "EOF"
           } >> $GITHUB_OUTPUT
 
@@ -86,43 +57,85 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Create the prompt with context
-          {
-            echo -n "Write a technical PR description for developers. Focus on WHAT changed functionally, not WHICH files were modified.\n\n## Summary\n2-3 sentences describing the main technical changes and why they were made.\n\n## Technical Changes\n4-6 bullet points maximum. Each bullet = ONE major feature/change with implementation details.\n\nFormat: **Feature/Change** — **Implementation** (methods, types, architecture)\n\nCRITICAL RULES:\n1. GROUP related changes: If 10 files changed to add filtering, write ONE bullet about filtering\n2. Focus on features and architecture, not file names\n3. Include specifics: method signatures, parameters, SQL queries, state patterns, libraries\n4. Prioritize: major features > refactors > minor changes\n5. Skip: gradle configs, string resources, minor tweaks\n\nGOOD EXAMPLES:\n✅ FilterDropdown component — Created reusable Composable with selectedItems: StateFlow<List<T>>, onSelectionChange: (List<T>) -> Unit callbacks, LazyColumn rendering with Checkbox states, keyboard handling\n✅ Repository filtering — Added categoryIds/manufacturerIds parameters to HubRepository.getHubItems(), Room @Query with optional IN clauses, returns Flow<PagingData<HubItem>> via Pager(pageSize=20)\n✅ Database schema update — Modified HubEntity with non-nullable categoryIds: List<String> using TypeConverter, added migration with NOT NULL constraints and indexes on category_id\n\nBAD EXAMPLES (DON'T DO THIS):\n❌ HubRepository — Updated repository interface\n❌ HubMapper — Updated data transformation\n❌ HubDetailsScreen — Added filter component\n❌ ItemDao — Implemented new queries\n(These are too vague and file-focused)\n\nIf you list more than 6 bullets, you're being too granular. Combine related changes.\n\nContext:\n"
-            cat context.txt
-          } > prompt_template.txt
+          # Create concise prompt
+          cat > prompt.txt << 'PROMPT_EOF'
+            Write a technical PR description for developers.
 
-          # Create the JSON payload using jq with rawfile to read from file
-          PAYLOAD=$(jq -n \
-            --arg model "z-ai/glm-4.5-air:free" \
-            --arg system_content "You are an AI assistant that writes clear, concise, and professional GitHub Pull Request descriptions." \
-            --rawfile user_content prompt_template.txt \
+            ## Summary
+            2-3 sentences describing the main changes and why.
+
+            ## Technical Changes
+            4-6 bullet points maximum. Focus on WHAT changed functionally.
+
+            Format: **Feature** — Implementation details (methods, types, architecture)
+
+            Rules:
+            - Group related changes together
+            - Focus on features/architecture, not file names
+            - Include specifics: method signatures, patterns, libraries
+            - Skip minor tweaks and config changes
+
+            Context:
+            PROMPT_EOF
+
+          # Append context
+          cat context.txt >> prompt.txt
+
+          # Create JSON payload with proper escaping
+          jq -n \
+            --arg model "x-ai/grok-4.1-fast:free" \
+            --arg system "You are a technical writer creating concise GitHub PR descriptions." \
+            --rawfile prompt prompt.txt \
             '{
               model: $model,
               messages: [
-                {
-                  role: "system",
-                  content: $system_content
-                },
-                {
-                  role: "user",
-                  content: $user_content
-                }
-              ]
-            }')
+                {role: "system", content: $system},
+                {role: "user", content: $prompt}
+              ],
+              max_tokens: 1000,
+              temperature: 0.7
+            }' > payload.json
 
-          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+          # Make API call with error handling
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
+            https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD")
+            -H "HTTP-Referer: https://github.com/${{ github.repository }}" \
+            -H "X-Title: PR Description Generator" \
+            -d @payload.json)
 
-          DESCRIPTION=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "No description generated."')
+          # Debug output
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response:"
+          cat response.json
 
-          echo "description<<EOF" >> $GITHUB_OUTPUT
-          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Check if request succeeded
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API request failed with status $HTTP_CODE"
+            ERROR_MSG=$(jq -r '.error.message // "Unknown error"' response.json)
+            echo "Error: $ERROR_MSG"
+            echo "description=⚠️ Failed to generate description. API returned: $ERROR_MSG" >> $GITHUB_OUTPUT
+            exit 0  # Don't fail the workflow
+          fi
 
-      - name: Overwrite PR body completely
+          # Extract description
+          DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
+
+          if [ -z "$DESCRIPTION" ]; then
+            echo "No content in API response"
+            echo "description=⚠️ API returned empty response. Please check workflow logs." >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Save description
+          {
+            echo "description<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: Update PR body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
