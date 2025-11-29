@@ -106,7 +106,6 @@ jobs:
 
           # Try multiple models in priority order (best free models for code analysis)
           MODELS=(
-            "z-ai/glm-4.5-air:free"
             "openai/gpt-oss-20b:free"
             "x-ai/grok-4.1-fast:free"
             "meta-llama/llama-3.3-70b-instruct:free"
