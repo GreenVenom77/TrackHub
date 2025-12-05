@@ -620,7 +620,10 @@ private fun HubDetailsContent(
         SuccessDialog(
             showDialog = showSuccessDialog,
             successMessage = successMessage,
-            onDismiss = { showSuccessDialog = false }
+            onDismiss = {
+                showSuccessDialog = false
+                successMessage = null
+            }
         )
     }
 }

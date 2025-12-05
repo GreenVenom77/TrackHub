@@ -24,10 +24,10 @@ enum class BottomDestination(
         comparableScreen = Screen.SharedHubs,
         subGraph = SubGraph.SharedHubs
     ),
-    Activity(
-        icon = R.drawable.activity_ic,
-        label = R.string.activity,
-        comparableScreen = Screen.Activity,
+    Notifications(
+        icon = R.drawable.notifications_ic,
+        label = R.string.notifications,
+        comparableScreen = Screen.Notifications,
         subGraph = SubGraph.Notifications
     ),
     Menu(

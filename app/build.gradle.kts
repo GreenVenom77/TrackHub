@@ -68,11 +68,13 @@ dependencies {
     implementation(project(":navigation:feat-navigation"))
     implementation(project(":local:core-local"))
     implementation(project(":local:feat-local"))
-
     implementation(project(":core-ui"))
+
     implementation(project(":auth:feat-auth"))
     implementation(project(":hub:feat-hub"))
     implementation(project(":hub:core-hub"))
+    implementation(project(":notifications:feat-notifications"))
+    implementation(project(":notifications:core-notifications"))
     implementation(project(":menu:feat-menu"))
     implementation(project(":menu:core-menu"))
 

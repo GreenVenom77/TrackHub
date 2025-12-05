@@ -42,7 +42,7 @@ fun HubListScreen(
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(areHubsOwned) {
             viewModel.hubListAction(HubListAction.StartCollectingHubs(areHubsOwned))
         }
 
