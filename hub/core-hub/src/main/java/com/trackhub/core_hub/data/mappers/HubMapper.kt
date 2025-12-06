@@ -40,7 +40,7 @@ fun Hub.toHubEntity(): HubEntity {
         ownerId = this.ownerId,
         name = this.name,
         description = this.description,
-        isOwned = ownerId.isNotBlank(),
+        isOwned = this.role == HubRole.Owner,
         createdAt = this.createdAt,
         hubRole = this.role,
         manufacturerList = this.manufacturerList,

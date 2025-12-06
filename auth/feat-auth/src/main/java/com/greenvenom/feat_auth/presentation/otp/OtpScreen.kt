@@ -16,21 +16,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.feat_auth.R
-import com.greenvenom.feat_auth.presentation.component.AuthHeader
-import com.greenvenom.feat_auth.presentation.otp.components.OtpInputField
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
+import com.greenvenom.feat_auth.R
+import com.greenvenom.feat_auth.presentation.component.AuthHeader
+import com.greenvenom.feat_auth.presentation.otp.components.OtpInputField
 
 @Composable
 fun OtpScreen(
@@ -105,6 +104,10 @@ private fun OtpContent(
             ))
             otpActions(OtpAction.ResetNetworkResult)
         }
+
+    LaunchedEffect(Unit) {
+        focusRequesters.firstOrNull()?.requestFocus()
+    }
 
     DisposableEffect(Unit) {
         onDispose {

@@ -35,7 +35,7 @@ class SessionDestinationHandler(
 
             SessionDestinations.MAIN -> {
                 navigationStateRepository.navigate(
-                    NavigationType.ClearBackStack(SubGraph.OwnedHubs)
+                    NavigationType.ClearBackStack(SubGraph.Main)
                 )
             }
         }

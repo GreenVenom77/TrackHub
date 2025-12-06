@@ -5,27 +5,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.greenvenom.core_navigation.data.NavigationType
 import com.trackhub.feat_hub.presentation.hub_details.HubDetailsScreen
-import com.trackhub.feat_hub.presentation.hub_list.HubListScreen
 import com.trackhub.feat_navigation.routes.Screen
 import com.trackhub.feat_navigation.routes.SubGraph
 
-fun NavGraphBuilder.ownedHubsGraph(
+fun NavGraphBuilder.hubDetailsGraph(
     navigate: (NavigationType) -> Unit
 ) {
-    navigation<SubGraph.OwnedHubs>(startDestination = Screen.MyHubs) {
-        composable<Screen.MyHubs> {
-            HubListScreen(
-                areHubsOwned = true,
-                navigateToHubDetails = { hubId ->
-                    navigate(
-                        NavigationType.Standard(Screen.MyHubDetails(hubId))
-                    )
-                },
-                navigateBack = { navigate(NavigationType.Back) },
-            )
-        }
-
-        composable<Screen.MyHubDetails> {
+    navigation<SubGraph.HubDetails>(startDestination = Screen.HubDetails) {
+        composable<Screen.HubDetails> {
             HubDetailsScreen(
                 navigateBack = {
                     navigate(NavigationType.Back)

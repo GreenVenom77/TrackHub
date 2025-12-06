@@ -10,6 +10,7 @@ import com.trackhub.feat_notifications.domain.repo.NotificationsRepository
 import com.trackhub.feat_notifications.presentation.NotificationsAction
 import com.trackhub.feat_notifications.presentation.NotificationsState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -76,6 +77,11 @@ class NotificationsViewModel(
                     )
                 )
             }
+
+            val updateInvitationsDeferred = viewModelScope.async {
+                getAllInvitations()
+            }
+            updateInvitationsDeferred.await()
 
             _notificationsState.update {
                 it.copy(

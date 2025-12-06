@@ -91,16 +91,6 @@ fun NavGraphBuilder.authGraph(
                 },
                 navigateToNextScreen = {
                     when (otpNextScreen) {
-                        is Screen.Login -> {
-                            navigate(
-                                NavigationType.ClearBackStack(Screen.Login)
-                            )
-                        }
-                        is Screen.Register -> {
-                            navigate(
-                                NavigationType.ClearBackStack(Screen.Login)
-                            )
-                        }
                         is Screen.VerifyEmail -> {
                             navigate(
                                 NavigationType.ClearBackStack(Screen.NewPassword)

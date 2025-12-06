@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.data.repo
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -124,10 +125,12 @@ class HubRepositoryImpl(
                     // Fetch remote data and update cache
                     val remoteHubs = if (isOwned) {
                         remoteDataSource.getOwnHubs().map { hubs ->
+                            Log.d("HubRepositoryImpl", "OwnedHub: ${it}")
                             hubs.map { it.extractHub() }
                         }
                     } else {
                         remoteDataSource.getSharedHubs().map { hubs ->
+                            Log.d("HubRepositoryImpl", "SharedHub: ${it}")
                             hubs.map { it.extractHub() }
                         }
                     }
@@ -178,7 +181,10 @@ class HubRepositoryImpl(
                                 }
 
                                 // Send the updated list
-                                send(NetworkResult.Success(if (isOwned) ownedHubs.toList() else sharedHubs.toList()))
+                                send(NetworkResult.Success(
+                                    if (isOwned) ownedHubs.toList()
+                                    else sharedHubs.toList())
+                                )
                             }
                         }
                         .onError { error ->

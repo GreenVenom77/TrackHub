@@ -36,12 +36,12 @@ sealed class Screen: Destination {
     }
 
     @Serializable
-    data object MyHubs: Screen() {
+    data object OwnedHubs: Screen() {
         override val destinationType: DestinationType = DestinationType.MAIN
     }
 
     @Serializable
-    data class MyHubDetails(val hubId: String = ""): Screen() {
+    data object HubDetails: Screen() {
         override val destinationType: DestinationType = DestinationType.SIDE
     }
 
