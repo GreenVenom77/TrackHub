@@ -84,7 +84,6 @@ private fun NotificationsScreenContent(
             if (acceptance.success) {
                 successMessage = stringResource(acceptance.message)
                 showSuccessDialog = true
-                notificationsAction(NotificationsAction.ClearNetworkOperations)
             } else {
                 baseAction(BaseAction.ShowErrorMessage(
                     stringResource(acceptance.message),
@@ -183,27 +182,30 @@ private fun NotificationsScreenContent(
                 )
             }
         }
-
-        WarningDialog(
-            showDialog = showWarningDialog,
-            warningMessage = warningMessage,
-            onDismiss = { showWarningDialog = false },
-            onConfirm = {
-                warningAction?.invoke()
-                warningAction = null
-                warningMessage = null
-            },
-        )
-
-        SuccessDialog(
-            showDialog = showSuccessDialog,
-            successMessage = successMessage,
-            onDismiss = {
-                showSuccessDialog = false
-                successMessage = null
-            }
-        )
     }
+
+    WarningDialog(
+        showDialog = showWarningDialog,
+        warningMessage = warningMessage,
+        onDismiss = {
+            showWarningDialog = false
+            warningAction = null
+            warningMessage = null
+        },
+        onConfirm = {
+            warningAction?.invoke()
+        },
+    )
+
+    SuccessDialog(
+        showDialog = showSuccessDialog,
+        successMessage = successMessage,
+        onDismiss = {
+            notificationsAction(NotificationsAction.ClearNetworkOperations)
+            showSuccessDialog = false
+            successMessage = null
+        }
+    )
 }
 
 @Preview(

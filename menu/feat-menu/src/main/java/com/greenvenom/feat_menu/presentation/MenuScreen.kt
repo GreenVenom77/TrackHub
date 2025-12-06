@@ -20,6 +20,7 @@ import com.greenvenom.core_ui.components.LanguageSwitcher
 import com.greenvenom.core_ui.components.ThemeSwitcher
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
+import com.greenvenom.core_ui.utils.SetScaffold
 import com.greenvenom.feat_menu.presentation.components.MenuCard
 import com.trackhub.feat_menu.R
 
@@ -55,21 +56,23 @@ private fun MenuContent(
     baseAction: (BaseAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    SetScaffold()
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        MenuCard(
-            title = stringResource(R.string.profile),
-            onClick = { menuAction(MenuAction.NavigateToProfile) },
-            painter = painterResource(R.drawable.person_circle_ic),
-            iconDescription = stringResource(R.string.profile_icon),
-            titleStyle = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold
-            )
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+//        MenuCard(
+//            title = stringResource(R.string.profile),
+//            onClick = { menuAction(MenuAction.NavigateToProfile) },
+//            painter = painterResource(R.drawable.person_circle_ic),
+//            iconDescription = stringResource(R.string.profile_icon),
+//            titleStyle = MaterialTheme.typography.headlineLarge.copy(
+//                fontWeight = FontWeight.Bold
+//            )
+//        )
+//        Spacer(modifier = Modifier.height(16.dp))
         ThemeSwitcher(
             darkTheme = menuState.isDarkTheme ?: isSystemInDarkTheme(),
             onClick = { isDarkTheme -> menuAction(MenuAction.ChangeTheme(isDarkTheme)) },
@@ -85,7 +88,6 @@ private fun MenuContent(
         MenuCard(
             title = stringResource(R.string.logout),
             onClick = {
-                baseAction(BaseAction.ShowLoading)
                 menuAction(MenuAction.Logout)
             },
             painter = painterResource(R.drawable.exit_ic),

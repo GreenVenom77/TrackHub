@@ -1,8 +1,9 @@
 package com.greenvenom.feat_menu.presentation
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.feat_menu.domain.repo.MenuRepository
+import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
+import com.greenvenom.feat_menu.domain.repo.MenuRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +56,7 @@ class MenuViewModel(
     }
 
     private fun logout() {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch(Dispatchers.IO) {
             val result = menuRepository.logout()
 
@@ -63,6 +65,7 @@ class MenuViewModel(
                     logoutResult = result
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 }

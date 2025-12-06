@@ -41,7 +41,6 @@
 
     <!-- Item form strings -->
     <string name="item_details">Item Details</string>
-    <string name="no_items_found">No items found</string>
     <string name="item_name">Item name</string>
     <string name="item_stock">Item stock</string>
     <string name="item_unit">Item unit</string>
@@ -90,4 +89,12 @@
     <string name="error_cannot_invite_self">You cannot invite yourself</string>
     <string name="error_invalid_role_name">Invalid role selected. Please choose Owner, Editor, or Viewer</string>
     <string name="error_generic">An error occurred. Please try again</string>
+
+    <!-- Empty Strings -->
+    <string name="no_items_found">No Items Found</string>
+    <string name="no_items_message">There are no items to display at the moment.</string>
+    <string name="no_owned_hubs_found">No Owned Hubs</string>
+    <string name="no_owned_hubs_message">You haven\'t created any hubs yet. Create your first hub to get started!</string>
+    <string name="no_shared_hubs_found">No Shared Hubs</string>
+    <string name="no_shared_hubs_message">You haven\'t joined any hubs yet. Accept an invitation or join a hub to collaborate!</string>
 </resources>

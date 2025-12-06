@@ -41,7 +41,6 @@
 
     <!-- Item form strings -->
     <string name="item_details">تفاصيل العنصر</string>
-    <string name="no_items_found">لا يوجد عناصر</string>
     <string name="item_name">اسم العنصر</string>
     <string name="item_stock">مخزون العنصر</string>
     <string name="item_unit">وحدة العنصر</string>
@@ -90,4 +89,12 @@
     <string name="error_cannot_invite_self">لا يمكنك دعوة نفسك</string>
     <string name="error_invalid_role_name">دور غير صالح. يرجى اختيار مالك أو محرر أو مشاهد</string>
     <string name="error_generic">حدث خطأ. يرجى المحاولة مرة أخرى</string>
+
+    <!-- Empty Strings -->
+    <string name="no_items_found">لا توجد عناصر</string>
+    <string name="no_items_message">لا توجد عناصر للعرض في الوقت الحالي.</string>
+    <string name="no_owned_hubs_found">لا توجد مراكز مملوكة</string>
+    <string name="no_owned_hubs_message">لم تقم بإنشاء أي مراكز بعد. أنشئ مركزك الأول للبدء!</string>
+    <string name="no_shared_hubs_found">لا توجد مراكز مشتركة</string>
+    <string name="no_shared_hubs_message">لم تنضم إلى أي مراكز بعد. اقبل دعوة أو انضم إلى مركز للتعاون!</string>
 </resources>

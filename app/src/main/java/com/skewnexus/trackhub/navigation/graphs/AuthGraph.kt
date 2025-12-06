@@ -26,14 +26,6 @@ fun NavGraphBuilder.authGraph(
     CoroutineScope(Dispatchers.Main).launch {
         navigationStateRepository.navigationState.collect {
             when (it.previousDestination) {
-                is Screen.Login -> {
-                    otpNextScreen = Screen.Login
-                }
-
-                is Screen.Register -> {
-                    otpNextScreen = Screen.Login
-                }
-
                 is Screen.VerifyEmail -> {
                     otpNextScreen = Screen.NewPassword
                 }
@@ -107,9 +99,7 @@ fun NavGraphBuilder.authGraph(
                     navigationStateRepository.navigate(NavigationType.Back)
                 },
                 navigateToLoginScreen = {
-                    navigationStateRepository.navigate(
-                        NavigationType.ClearBackStack(Screen.Login)
-                    )
+
                 }
             )
         }
