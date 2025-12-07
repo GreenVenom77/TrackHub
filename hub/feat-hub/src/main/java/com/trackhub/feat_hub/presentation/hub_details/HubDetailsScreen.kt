@@ -1,15 +1,18 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -28,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -467,11 +471,32 @@ private fun HubDetailsContent(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.no_items_found),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.SearchOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.no_items_found),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Text(
+                        text = stringResource(R.string.no_items_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         }
 
@@ -607,12 +632,14 @@ private fun HubDetailsContent(
         WarningDialog(
             showDialog = showWarningDialog,
             warningMessage = warningMessage,
-            onDismiss = { showWarningDialog = false },
-            onConfirm = {
-                warningAction?.invoke()
+            onDismiss = {
+                showWarningDialog = false
                 warningAction = null
                 warningMessage = null
                 isDeletionDialog = false
+            },
+            onConfirm = {
+                warningAction?.invoke()
             },
             isDeletion = isDeletionDialog
         )
@@ -620,7 +647,10 @@ private fun HubDetailsContent(
         SuccessDialog(
             showDialog = showSuccessDialog,
             successMessage = successMessage,
-            onDismiss = { showSuccessDialog = false }
+            onDismiss = {
+                showSuccessDialog = false
+                successMessage = null
+            }
         )
     }
 }

@@ -39,6 +39,7 @@ class SupabaseSessionRepository(supabaseClient: SupabaseClient): SessionReposito
         when(sessionStatus) {
             SessionStatus.Initializing -> {  }
             is SessionStatus.Authenticated -> {
+                Log.d("Session Source", sessionStatus.source.toString())
                 when(sessionStatus.source) {
                     is SessionSource.Refresh,
                     is SessionSource.Storage,

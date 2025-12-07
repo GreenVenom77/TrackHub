@@ -9,6 +9,7 @@ import com.seravian.feat_local.di.localModule
 import com.skewnexus.trackhub.di.appModule
 import com.trackhub.feat_hub.di.hubFeatureModule
 import com.trackhub.feat_network.di.networkFeatureModule
+import com.trackhub.feat_notifications.di.notificationsModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -28,6 +29,7 @@ class MainApplication: Application() {
                 authFeatureModule,
                 hubFeatureModule,
                 menuModule,
+                notificationsModule,
                 localModule
             )
         }

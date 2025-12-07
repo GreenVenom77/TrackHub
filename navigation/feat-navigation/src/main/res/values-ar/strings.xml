@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="my_hubs">مخازني</string>
-    <string name="activity">الأنشطة</string>
+    <string name="notifications">الإشعارات</string>
     <string name="profile">الملف الشخصي</string>
     <string name="shared_hubs">مخازن الآخرين</string>
     <string name="menu">المزيد</string>

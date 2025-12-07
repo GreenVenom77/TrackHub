@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hub Roles -->
+    <string name="owner">المالك</string>
+    <string name="editor">محرر</string>
+    <string name="viewer">مشاهد</string>
+
+    <!-- Hub Invitations Screen -->
+    <string name="invited_by">دعوة من:</string>
+    <string name="role_label">الدور:</string>
+    <string name="accept">قبول</string>
+    <string name="reject">رفض</string>
+    <string name="no_description">لا يوجد وصف متاح</string>
+    <string name="reject_invitation_warning">هل أنت متأكد من رفض هذه الدعوة؟ لن تتمكن من الانضمام إلى هذا المركز إلا إذا تمت دعوتك مرة أخرى.</string>
+
+    <!-- Empty State -->
+    <string name="no_invitations_title">لا توجد دعوات</string>
+    <string name="no_invitations_message">ليس لديك أي دعوات معلقة في الوقت الحالي</string>
+</resources>

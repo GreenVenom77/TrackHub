@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hub Roles -->
+    <string name="owner">Owner</string>
+    <string name="editor">Editor</string>
+    <string name="viewer">Viewer</string>
+
+    <!-- Hub Invitations Screen -->
+    <string name="invited_by">Invited by:</string>
+    <string name="role_label">Role:</string>
+    <string name="accept">Accept</string>
+    <string name="reject">Reject</string>
+    <string name="no_description">No description available</string>
+    <string name="reject_invitation_warning">Are you sure you want to reject this invitation? You won\'t be able to join this hub unless invited again.</string>
+
+    <!-- Empty State -->
+    <string name="no_invitations_title">No Invitations</string>
+    <string name="no_invitations_message">You don\'t have any pending invitations at the moment</string>
+</resources>

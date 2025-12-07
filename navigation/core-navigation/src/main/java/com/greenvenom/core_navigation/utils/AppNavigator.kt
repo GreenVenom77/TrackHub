@@ -29,7 +29,9 @@ class AppNavigator {
 
     fun navigateAndClearBackStack(target: Destination) {
         navController.navigate(target) {
-            popUpTo(0) { inclusive = true }
+            popUpTo(0) {
+                inclusive = true
+            }
             launchSingleTop = true
         }
     }
@@ -37,6 +39,7 @@ class AppNavigator {
     fun navigateFromBottomBar(target: Destination) {
         navController.navigate(target) {
             popUpTo(navController.graph.startDestinationId) {
+                inclusive = true
                 saveState = true
             }
             launchSingleTop = true

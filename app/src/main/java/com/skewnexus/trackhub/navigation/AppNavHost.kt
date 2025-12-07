@@ -13,10 +13,8 @@ import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_navigation.utils.AppNavigator
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
 import com.skewnexus.trackhub.navigation.graphs.authGraph
-import com.skewnexus.trackhub.navigation.graphs.menuGraph
-import com.skewnexus.trackhub.navigation.graphs.notificationsGraph
-import com.skewnexus.trackhub.navigation.graphs.ownedHubsGraph
-import com.skewnexus.trackhub.navigation.graphs.sharedHubsGraph
+import com.skewnexus.trackhub.navigation.graphs.hubDetailsGraph
+import com.skewnexus.trackhub.navigation.graphs.mainGraph
 import com.skewnexus.trackhub.navigation.utils.SessionDestinationHandler
 import com.trackhub.feat_navigation.routes.Screen
 import org.koin.compose.koinInject
@@ -74,19 +72,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             navigationStateRepository = navigationRepository
         )
 
-        ownedHubsGraph(
+        hubDetailsGraph(
             navigate = navigationRepository::navigate
         )
 
-        sharedHubsGraph(
-            navigate = navigationRepository::navigate
-        )
-
-        notificationsGraph(
-            navigate = navigationRepository::navigate
-        )
-
-        menuGraph(
+        mainGraph(
             navigate = navigationRepository::navigate
         )
     }
