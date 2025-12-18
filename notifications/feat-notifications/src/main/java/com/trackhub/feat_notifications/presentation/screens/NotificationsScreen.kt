@@ -17,9 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,8 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.SuccessDialog
-import com.greenvenom.core_ui.components.WarningDialog
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
@@ -73,17 +68,12 @@ private fun NotificationsScreenContent(
 ) {
     val context = LocalContext.current
 
-    var showWarningDialog by rememberSaveable { mutableStateOf(false) }
-    var warningAction by rememberSaveable { mutableStateOf<(() -> Unit)?>(null) }
-    var warningMessage by rememberSaveable { mutableStateOf<String?>(null) }
-    var showSuccessDialog by rememberSaveable { mutableStateOf(false) }
-    var successMessage by rememberSaveable { mutableStateOf<String?>(null) }
-
     notificationsState.invitationAcceptanceResult
         ?.onSuccess { acceptance ->
             if (acceptance.success) {
-                successMessage = stringResource(acceptance.message)
-                showSuccessDialog = true
+                baseAction(BaseAction.ShowSuccessDialog(
+                    successMessage = stringResource(acceptance.message)
+                ))
             } else {
                 baseAction(BaseAction.ShowErrorMessage(
                     stringResource(acceptance.message),
@@ -167,45 +157,23 @@ private fun NotificationsScreenContent(
                         )
                     },
                     onReject = {
-                        warningAction = {
-                            notificationsAction(
-                                NotificationsAction.RespondToInvitation(
-                                    invitation.invitationId,
-                                    false
+                        baseAction(BaseAction.ShowWarningDialog(
+                            warningMessage = context.getString(R.string.reject_invitation_warning),
+                            confirmAction = {
+                                notificationsAction(
+                                    NotificationsAction.RespondToInvitation(
+                                        invitation.invitationId,
+                                        false
+                                    )
                                 )
-                            )
-                        }
-                        warningMessage = context.getString(R.string.reject_invitation_warning)
-                        showWarningDialog = true
+                            }
+                        ))
                     },
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
         }
     }
-
-    WarningDialog(
-        showDialog = showWarningDialog,
-        warningMessage = warningMessage,
-        onDismiss = {
-            showWarningDialog = false
-            warningAction = null
-            warningMessage = null
-        },
-        onConfirm = {
-            warningAction?.invoke()
-        },
-    )
-
-    SuccessDialog(
-        showDialog = showSuccessDialog,
-        successMessage = successMessage,
-        onDismiss = {
-            notificationsAction(NotificationsAction.ClearNetworkOperations)
-            showSuccessDialog = false
-            successMessage = null
-        }
-    )
 }
 
 @Preview(

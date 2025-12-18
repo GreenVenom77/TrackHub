@@ -63,16 +63,6 @@ private fun MenuContent(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-//        MenuCard(
-//            title = stringResource(R.string.profile),
-//            onClick = { menuAction(MenuAction.NavigateToProfile) },
-//            painter = painterResource(R.drawable.person_circle_ic),
-//            iconDescription = stringResource(R.string.profile_icon),
-//            titleStyle = MaterialTheme.typography.headlineLarge.copy(
-//                fontWeight = FontWeight.Bold
-//            )
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
         ThemeSwitcher(
             darkTheme = menuState.isDarkTheme ?: isSystemInDarkTheme(),
             onClick = { isDarkTheme -> menuAction(MenuAction.ChangeTheme(isDarkTheme)) },
