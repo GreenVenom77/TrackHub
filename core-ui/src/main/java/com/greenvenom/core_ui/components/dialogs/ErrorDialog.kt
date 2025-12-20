@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

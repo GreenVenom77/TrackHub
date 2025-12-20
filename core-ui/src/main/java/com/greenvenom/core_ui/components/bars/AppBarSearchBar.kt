@@ -1,6 +1,6 @@
 @file:OptIn(FlowPreview::class)
 
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

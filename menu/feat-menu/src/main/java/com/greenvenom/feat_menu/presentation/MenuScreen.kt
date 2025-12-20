@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.core_ui.components.LanguageSwitcher
-import com.greenvenom.core_ui.components.ThemeSwitcher
+import com.greenvenom.core_ui.components.buttons.LanguageSwitcher
+import com.greenvenom.core_ui.components.buttons.ThemeSwitcher
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.greenvenom.feat_menu.presentation.components.MenuCard
 import com.trackhub.feat_menu.R

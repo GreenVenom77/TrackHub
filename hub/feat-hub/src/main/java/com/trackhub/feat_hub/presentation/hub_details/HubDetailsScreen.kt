@@ -40,8 +40,8 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.FloatingButton
-import com.greenvenom.core_ui.components.OptionsDropdownMenu
+import com.greenvenom.core_ui.components.buttons.FloatingButton
+import com.greenvenom.core_ui.components.buttons.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold

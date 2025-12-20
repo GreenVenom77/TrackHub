@@ -24,8 +24,8 @@ import com.greenvenom.core_auth.data.repository.EmailState
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.core_ui.components.EmailField
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.text.EmailField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme

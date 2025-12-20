@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.core_ui.components.EmailField
-import com.greenvenom.core_ui.components.PasswordField
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.text.EmailField
+import com.greenvenom.core_ui.components.text.PasswordField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme

@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.buttons
 
 import android.icu.text.SimpleDateFormat
 import androidx.compose.animation.AnimatedVisibility

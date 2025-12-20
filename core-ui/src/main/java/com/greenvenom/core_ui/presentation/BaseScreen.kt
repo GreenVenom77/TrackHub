@@ -15,10 +15,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.core_ui.components.ErrorDialog
-import com.greenvenom.core_ui.components.LoadingDialog
-import com.greenvenom.core_ui.components.SuccessDialog
-import com.greenvenom.core_ui.components.WarningDialog
+import com.greenvenom.core_ui.components.dialogs.ErrorDialog
+import com.greenvenom.core_ui.components.dialogs.LoadingDialog
+import com.greenvenom.core_ui.components.dialogs.SuccessDialog
+import com.greenvenom.core_ui.components.dialogs.WarningDialog
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

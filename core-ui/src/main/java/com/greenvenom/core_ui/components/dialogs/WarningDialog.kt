@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.dialogs
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState

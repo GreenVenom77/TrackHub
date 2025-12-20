@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.FloatingButton
+import com.greenvenom.core_ui.components.buttons.FloatingButton
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
@@ -85,9 +87,13 @@ private fun HubListContent(
     var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubListState.fetchingHubsResult
+        ?.onSuccess {
+            hubListAction(HubListAction.ClearNetworkOperations)
+        }
         ?.onError { error ->
             baseAction(BaseAction.ShowErrorMessage(
-                stringResource(error.messageId)
+                errorMessage = stringResource(error.messageId),
+                dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
         }
 
@@ -117,7 +123,12 @@ private fun HubListContent(
         }
     )
 
-    Box(
+    PullToRefreshBox(
+        isRefreshing = hubListState.isRefreshing,
+        onRefresh = {
+            Log.d("HubListScreen", "onRefresh")
+            hubListAction(HubListAction.Refresh)
+        },
         modifier = Modifier
             .fillMaxSize()
     ) {

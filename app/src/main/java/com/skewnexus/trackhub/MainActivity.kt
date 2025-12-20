@@ -16,7 +16,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_ui.components.TopAppBar
+import com.greenvenom.core_ui.components.bars.TopAppBar
 import com.greenvenom.core_ui.presentation.ScaffoldViewModel
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_ui.utils.LocalScaffoldViewModel

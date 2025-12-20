@@ -26,17 +26,19 @@ import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 
 class HubRepositoryImpl(
@@ -86,6 +88,7 @@ class HubRepositoryImpl(
         return cacheDataSource.getHub(hubId).extractHub()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
         val foundHubs: MutableSet<Hub> = mutableSetOf()
 
@@ -115,53 +118,56 @@ class HubRepositoryImpl(
                 .launchIn(this)
 
             refreshHubsTrigger
-                .onStart { emit(Unit) }
-                .onEach {
-                    // Fetch remote data and update cache
-                    val remoteHubs = if (isOwned) {
-                        remoteDataSource.getOwnHubs().map { hubs ->
-                            hubs.map { it.extractHub() }
+                .flatMapLatest {
+                    flow<Unit> {
+                        // Fetch remote data and update cache
+                        val remoteHubs = if (isOwned) {
+                            remoteDataSource.getOwnHubs().map { hubs ->
+                                hubs.map { it.extractHub() }
+                            }
+                        } else {
+                            remoteDataSource.getSharedHubs().map { hubs ->
+                                hubs.map { it.extractHub() }
+                            }
                         }
-                    } else {
-                        remoteDataSource.getSharedHubs().map { hubs ->
-                            hubs.map { it.extractHub() }
-                        }
+
+                        remoteHubs
+                            .onSuccess { fetchedHubs ->
+                                // Find new hubs that aren't in the current collection
+                                val newHubs = fetchedHubs.filter { it !in foundHubs }
+
+                                // Find deleted hubs that are in the collection but not in fetched data
+                                val deletedHubs = foundHubs.filter { currentHub ->
+                                    currentHub.id !in fetchedHubs.map { it.id }
+                                }
+
+                                // Update the cache with changes
+                                if (newHubs.isNotEmpty() || deletedHubs.isNotEmpty()) {
+                                    // Remove deleted hubs from cache
+                                    if (deletedHubs.isNotEmpty()) {
+                                        cacheDataSource.deleteHubs(
+                                            deletedHubs.map { it.toHubEntity() }
+                                        )
+                                        foundHubs.removeAll(deletedHubs.toSet())
+                                    }
+                                    // Add new hubs to cache
+                                    if (newHubs.isNotEmpty()) {
+                                        cacheDataSource.updateOwnHubs(
+                                            newHubs.map { it.toHubEntity() }
+                                        )
+                                        foundHubs.addAll(newHubs)
+                                    }
+
+                                    // Send the updated list
+                                    send(NetworkResult.Success(foundHubs.toList()))
+                                } else {
+                                    send(NetworkResult.Success(emptyList()))
+                                }
+                            }
+                            .onError { error ->
+                                send(NetworkResult.Error(error))
+                            }
                     }
-
-                    remoteHubs
-                        .onSuccess { fetchedHubs ->
-                            // Find new hubs that aren't in the current collection
-                            val newHubs = fetchedHubs.filter { it !in foundHubs }
-
-                            // Find deleted hubs that are in the collection but not in fetched data
-                            val deletedHubs = foundHubs.filter { currentHub ->
-                                currentHub.id !in fetchedHubs.map { it.id }
-                            }
-
-                            // Update the cache with changes
-                            if (newHubs.isNotEmpty() || deletedHubs.isNotEmpty()) {
-                                // Remove deleted hubs from cache
-                                if (deletedHubs.isNotEmpty()) {
-                                    cacheDataSource.deleteHubs(
-                                        deletedHubs.map { it.toHubEntity() }
-                                    )
-                                    foundHubs.removeAll(deletedHubs.toSet())
-                                }
-                                // Add new hubs to cache
-                                if (newHubs.isNotEmpty()) {
-                                    cacheDataSource.updateOwnHubs(
-                                        newHubs.map { it.toHubEntity() }
-                                    )
-                                    foundHubs.addAll(newHubs)
-                                }
-
-                                // Send the updated list
-                                send(NetworkResult.Success(foundHubs.toList()))
-                            }
-                        }
-                        .onError { error ->
-                            send(NetworkResult.Error(error))
-                        }
                 }
                 .launchIn(this)
         }

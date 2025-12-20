@@ -15,7 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.greenvenom.core_ui.components.FilterDropdown
+import com.greenvenom.core_ui.components.buttons.FilterDropdown
 
 @Composable
 fun FilterDropdownRow(
