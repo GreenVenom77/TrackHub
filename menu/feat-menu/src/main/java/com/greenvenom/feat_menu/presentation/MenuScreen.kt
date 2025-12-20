@@ -18,11 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_ui.components.LanguageSwitcher
 import com.greenvenom.core_ui.components.ThemeSwitcher
-import com.greenvenom.core_ui.presentation.BaseAction
-import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
 import com.greenvenom.feat_menu.presentation.components.MenuCard
 import com.trackhub.feat_menu.R
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MenuScreen(
@@ -30,30 +29,25 @@ fun MenuScreen(
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BaseScreen<MenuViewModel>(
-        onPhysicalBack = { navigateBack() },
-    ) { viewmodel ->
-        val menuState by viewmodel.menuState.collectAsStateWithLifecycle()
+    val viewModel: MenuViewModel = koinViewModel()
+    val menuState by viewModel.menuState.collectAsStateWithLifecycle()
 
-        MenuContent(
-            menuState = menuState,
-            menuAction = { action ->
-                when (action) {
-                    is MenuAction.NavigateToProfile -> navigateToProfile()
-                }
-                viewmodel.menuAction(action)
-            },
-            baseAction = viewmodel::baseAction,
-            modifier = modifier
-        )
-    }
+    MenuContent(
+        menuState = menuState,
+        menuAction = { action ->
+            when (action) {
+                is MenuAction.NavigateToProfile -> navigateToProfile()
+            }
+            viewModel.menuAction(action)
+        },
+        modifier = modifier
+    )
 }
 
 @Composable
 private fun MenuContent(
     menuState: MenuState,
     menuAction: (MenuAction) -> Unit,
-    baseAction: (BaseAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     SetScaffold()
@@ -97,6 +91,5 @@ private fun MenuContentPreview() {
     MenuContent(
         menuState = MenuState(),
         menuAction = {},
-        baseAction = {},
     )
 }

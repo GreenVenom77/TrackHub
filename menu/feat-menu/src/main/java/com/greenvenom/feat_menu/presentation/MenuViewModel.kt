@@ -1,18 +1,18 @@
 package com.greenvenom.feat_menu.presentation
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_ui.presentation.BaseAction
-import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.feat_menu.domain.repo.MenuRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MenuViewModel(
     private val menuRepository: MenuRepository,
-): BaseViewModel() {
+): ViewModel() {
     private val _menuState = MutableStateFlow(MenuState())
     val menuState = _menuState.asStateFlow()
 
@@ -34,10 +34,13 @@ class MenuViewModel(
     }
 
     private fun changeTheme(isDarkTheme: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            menuRepository.changeTheme(
-                isDarkTheme = isDarkTheme
-            )
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                menuRepository.changeTheme(
+                    isDarkTheme = isDarkTheme
+                )
+            }
+
             _menuState.update {
                 it.copy(
                     isDarkTheme = isDarkTheme
@@ -56,16 +59,16 @@ class MenuViewModel(
     }
 
     private fun logout() {
-        baseAction(BaseAction.ShowLoading)
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = menuRepository.logout()
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                menuRepository.logout()
+            }
 
             _menuState.update {
                 it.copy(
                     logoutResult = result
                 )
             }
-            baseAction(BaseAction.HideLoading)
         }
     }
 }

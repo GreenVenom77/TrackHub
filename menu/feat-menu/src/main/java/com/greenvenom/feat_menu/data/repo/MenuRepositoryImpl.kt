@@ -1,10 +1,9 @@
 package com.greenvenom.feat_menu.data.repo
 
-import com.greenvenom.feat_menu.domain.repo.MenuRepository
+import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
-import com.greenvenom.core_network.data.NetworkResult
-import com.greenvenom.core_network.data.map
 import com.greenvenom.feat_menu.domain.remote.MenuRemoteDataSource
+import com.greenvenom.feat_menu.domain.repo.MenuRepository
 import com.seravian.core_local.domain.AppPrefsDataSource
 
 class MenuRepositoryImpl(
@@ -29,8 +28,7 @@ class MenuRepositoryImpl(
         appPrefStateRepository.changeLanguage(languageTag)
     }
 
-    override suspend fun logout(): NetworkResult<Unit, NetworkError> {
-        val result = remoteDataSource.logoutUser()
-        return result.map {  }
+    override suspend fun logout(): EmptyResult<NetworkError> {
+        return remoteDataSource.logoutUser()
     }
 }
