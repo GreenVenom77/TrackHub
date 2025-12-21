@@ -38,7 +38,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":network:core-network"))
     implementation(project(":hub:core-hub"))
 
     implementation(libs.kotlinx.serialization.json)

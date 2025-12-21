@@ -1,7 +1,8 @@
 package com.greenvenom.feat_menu.presentation
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.greenvenom.core_ui.presentation.BaseAction
+import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.feat_menu.domain.repo.MenuRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.withContext
 
 class MenuViewModel(
     private val menuRepository: MenuRepository,
-): ViewModel() {
+): BaseViewModel() {
     private val _menuState = MutableStateFlow(MenuState())
     val menuState = _menuState.asStateFlow()
 
@@ -22,6 +23,14 @@ class MenuViewModel(
                 isArabic = menuRepository.isCurrentLanguageArabic(),
                 isDarkTheme = menuRepository.isCurrentThemeDark()
             )
+        }
+
+        viewModelScope.launch {
+            _menuState.update {
+                it.copy(
+                    profile = menuRepository.getProfile()
+                )
+            }
         }
     }
 
@@ -59,6 +68,7 @@ class MenuViewModel(
     }
 
     private fun logout() {
+        baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
                 menuRepository.logout()
@@ -69,6 +79,7 @@ class MenuViewModel(
                     logoutResult = result
                 )
             }
+            baseAction(BaseAction.HideLoading)
         }
     }
 }

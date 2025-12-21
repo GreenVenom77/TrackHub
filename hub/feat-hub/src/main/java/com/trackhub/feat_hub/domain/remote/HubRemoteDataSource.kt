@@ -8,9 +8,9 @@ import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
+import com.trackhub.core_hub.data.remote.dto.response.HubResponse
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
-import com.trackhub.core_hub.data.remote.dto.response.SharedHubResponse
 import kotlinx.coroutines.flow.Flow
 
 interface HubRemoteDataSource {
@@ -22,7 +22,7 @@ interface HubRemoteDataSource {
 
     suspend fun getOwnHubs(): NetworkResult<List<OwnedHubResponse>, NetworkError>
 
-    suspend fun getSharedHubs(): NetworkResult<List<SharedHubResponse>, NetworkError>
+    suspend fun getSharedHubs(): NetworkResult<List<HubResponse>, NetworkError>
 
     suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError>
 

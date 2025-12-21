@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profile_icon">أيكونة الملف الشخصي</string>
-    <string name="profile">الملف الشخصي</string>
-    <string name="logout_icon">أيكونة تسجيل الخروج</string>
+    <!-- Menu Screen -->
+    <string name="preferences">التفضيلات</string>
+    <string name="about">حول التطبيق</string>
+    <string name="app_version">إصدار التطبيق</string>
+    <string name="theme">المظهر</string>
+    <string name="language">اللغة</string>
+    <string name="dark_theme">داكن</string>
+    <string name="light_theme">فاتح</string>
+    <string name="system_theme">افتراضي النظام</string>
+    <string name="arabic">العربية</string>
+    <string name="english">English</string>
+    <string name="unknown">غير معلوم</string>
+    <string name="member_since">عضو منذ %1$s</string>
     <string name="logout">تسجيل الخروج</string>
+    <string name="logout_icon">أيقونة تسجيل الخروج</string>
+
+    <!-- Common -->
+    <string name="loading">جاري التحميل…</string>
 </resources>

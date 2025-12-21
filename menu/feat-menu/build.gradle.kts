@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui.tooling.preview)
 
     testImplementation(libs.junit)

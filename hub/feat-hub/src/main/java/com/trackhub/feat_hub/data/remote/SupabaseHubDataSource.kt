@@ -10,9 +10,9 @@ import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
 import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
+import com.trackhub.core_hub.data.remote.dto.response.HubResponse
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
-import com.trackhub.core_hub.data.remote.dto.response.SharedHubResponse
 import com.trackhub.feat_hub.domain.remote.HubRemoteDataSource
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -71,16 +71,20 @@ class SupabaseHubDataSource(
         }
     }
 
-    override suspend fun getSharedHubs(): NetworkResult<List<SharedHubResponse>, NetworkError> {
+    override suspend fun getSharedHubs(): NetworkResult<List<HubResponse>, NetworkError> {
+        val userId = supabaseClient.auth.currentUserOrNull()?.id as String
+
         return supabaseCall {
-            supabaseClient.postgrest.rpc("get_shared_hubs").decodeList<SharedHubResponse>()
+            supabaseClient.postgrest.rpc("get_shared_hubs").decodeList<HubResponse>().map {
+                it.copy(viewerId = userId)
+            }
         }
     }
 
     override suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError> {
         return supabaseCall {
             supabaseClient.from("shared_hubs").delete {
-                filter { SharedHubResponse::hubId eq leaveHubRequest.hubId }
+                filter { HubResponse::hubId eq leaveHubRequest.hubId }
             }
         }
     }

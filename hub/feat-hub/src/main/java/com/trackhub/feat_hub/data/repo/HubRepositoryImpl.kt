@@ -1,5 +1,6 @@
 package com.trackhub.feat_hub.data.repo
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 
 class HubRepositoryImpl(
@@ -112,12 +114,14 @@ class HubRepositoryImpl(
                     // Update the local collection with cached data
                     foundHubs.clear()
                     foundHubs.addAll(cachedHubs)
+                    Log.d("HubRepositoryImpl", "Cached hubs: $cachedHubs")
 
                     send(NetworkResult.Success(cachedHubs))
                 }
                 .launchIn(this)
 
             refreshHubsTrigger
+                .onStart { emit(Unit) }
                 .flatMapLatest {
                     flow<Unit> {
                         // Fetch remote data and update cache
@@ -133,6 +137,7 @@ class HubRepositoryImpl(
 
                         remoteHubs
                             .onSuccess { fetchedHubs ->
+                                Log.d("HubRepositoryImpl", "Fetched hubs: $fetchedHubs")
                                 // Find new hubs that aren't in the current collection
                                 val newHubs = fetchedHubs.filter { it !in foundHubs }
 

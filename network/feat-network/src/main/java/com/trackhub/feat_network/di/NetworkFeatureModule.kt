@@ -10,6 +10,9 @@ val networkFeatureModule = module {
     single<SupabaseClient> { ClientFactory.buildSupabaseClient() }
 
     single<SessionRepository>(createdAtStart = true) {
-        SupabaseSessionRepository(supabaseClient = get())
+        SupabaseSessionRepository(
+            supabaseClient = get(),
+            profileDao = get()
+        )
     }
 }

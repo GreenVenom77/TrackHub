@@ -39,8 +39,7 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":network:core-network"))
+    implementation(project(":menu:core-menu"))
 
     implementation(libs.kotlinx.serialization.json)
     ksp(libs.androidx.room.compiler)

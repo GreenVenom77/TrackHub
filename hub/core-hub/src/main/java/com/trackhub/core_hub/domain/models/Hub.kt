@@ -5,6 +5,7 @@ import com.trackhub.core_hub.domain.HubRole
 data class Hub(
     val id: String,
     val ownerId: String,
+    val viewerId: String,
     val name: String,
     val description: String?,
     val createdAt: String,

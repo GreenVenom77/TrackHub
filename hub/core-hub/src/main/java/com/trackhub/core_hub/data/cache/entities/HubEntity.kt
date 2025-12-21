@@ -2,16 +2,34 @@ package com.trackhub.core_hub.data.cache.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.greenvenom.core_menu.data.cache.entities.ProfileEntity
 import com.trackhub.core_hub.domain.HubRole
 
-@Entity(tableName = "hubs")
+@Entity(
+    tableName = "hubs",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProfileEntity::class,
+            parentColumns = ["user_id"],
+            childColumns = ["viewer_id"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
+        )
+    ]
+)
 data class HubEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
     val id: String,
     @ColumnInfo(name = "owner_id")
     val ownerId: String,
+    @ColumnInfo(
+        name = "viewer_id",
+        defaultValue = ""
+    )
+    val viewerId: String,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "description")
