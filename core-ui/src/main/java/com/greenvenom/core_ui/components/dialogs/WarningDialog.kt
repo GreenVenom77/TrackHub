@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.dialogs
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -108,7 +108,7 @@ fun WarningDialog(
 
                     // Title
                     Text(
-                        text = stringResource(R.string.delete_warning_title),
+                        text = stringResource(R.string.warning_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -119,7 +119,11 @@ fun WarningDialog(
 
                     // Message
                     Text(
-                        text = warningMessage ?: stringResource(R.string.delete_warning_message),
+                        text = warningMessage ?: if (isDeletion) {
+                            stringResource(R.string.delete_warning_message)
+                        } else {
+                            stringResource(R.string.warning_message)
+                        },
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

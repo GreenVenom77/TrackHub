@@ -48,8 +48,7 @@ fun NavGraphBuilder.mainGraph(
             MenuScreen(
                 navigateToProfile = {
 
-                },
-                navigateBack = { navigate(NavigationType.Back) },
+                }
             )
         }
     }

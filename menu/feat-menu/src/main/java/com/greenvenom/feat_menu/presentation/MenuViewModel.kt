@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MenuViewModel(
     private val menuRepository: MenuRepository,
@@ -23,6 +24,14 @@ class MenuViewModel(
                 isDarkTheme = menuRepository.isCurrentThemeDark()
             )
         }
+
+        viewModelScope.launch {
+            _menuState.update {
+                it.copy(
+                    profile = menuRepository.getProfile()
+                )
+            }
+        }
     }
 
     fun menuAction(action: MenuAction) {
@@ -34,10 +43,13 @@ class MenuViewModel(
     }
 
     private fun changeTheme(isDarkTheme: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            menuRepository.changeTheme(
-                isDarkTheme = isDarkTheme
-            )
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                menuRepository.changeTheme(
+                    isDarkTheme = isDarkTheme
+                )
+            }
+
             _menuState.update {
                 it.copy(
                     isDarkTheme = isDarkTheme
@@ -57,8 +69,10 @@ class MenuViewModel(
 
     private fun logout() {
         baseAction(BaseAction.ShowLoading)
-        viewModelScope.launch(Dispatchers.IO) {
-            val result = menuRepository.logout()
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                menuRepository.logout()
+            }
 
             _menuState.update {
                 it.copy(

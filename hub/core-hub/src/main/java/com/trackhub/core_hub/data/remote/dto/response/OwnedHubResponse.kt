@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class OwnedHubResponse(
     val id: String,
     val ownerId: String,
+    val viewerId: String = ownerId,
     val name: String,
     val description: String?,
     val createdAt: String,

@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.text
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween

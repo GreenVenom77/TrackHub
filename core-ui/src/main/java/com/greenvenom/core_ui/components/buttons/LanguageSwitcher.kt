@@ -1,4 +1,4 @@
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.buttons
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.core.AnimationSpec
@@ -36,7 +36,7 @@ import com.greenvenom.core_ui.theme.AppTheme
 fun LanguageSwitcher(
     isArabic: Boolean = false,
     size: Dp = 150.dp,
-    iconSize: Dp = size / 2,
+    iconSize: Dp = size / 2.2f,
     padding: Dp = 10.dp,
     borderWidth: Dp = 1.dp,
     parentShape: Shape = CircleShape,

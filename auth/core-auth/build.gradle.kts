@@ -38,8 +38,6 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":network:core-network"))
     implementation(project(":validation"))
 
     implementation(libs.androidx.core.ktx)

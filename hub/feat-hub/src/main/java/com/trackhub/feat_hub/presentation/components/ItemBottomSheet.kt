@@ -49,9 +49,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.core_ui.components.CustomTextField
-import com.greenvenom.core_ui.components.DialogSearchableDropdown
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.dialogs.DialogSearchableDropdown
+import com.greenvenom.core_ui.components.text.CustomTextField
 import com.greenvenom.core_ui.theme.AppTheme
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R

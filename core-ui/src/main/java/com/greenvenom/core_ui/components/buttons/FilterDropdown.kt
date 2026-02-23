@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.greenvenom.core_ui.components
+package com.greenvenom.core_ui.components.buttons
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background

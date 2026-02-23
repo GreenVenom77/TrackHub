@@ -7,5 +7,15 @@ sealed interface BaseAction {
         val errorMessage: String,
         val dismissAction: (() -> Unit)? = null
     ): BaseAction
-    data object HideErrorMessage: BaseAction
+    data class ShowWarningDialog(
+        val warningMessage: String? = null,
+        val dismissAction: (() -> Unit)? = null,
+        val confirmAction: (() -> Unit)? = null,
+        val isDeletionDialog: Boolean = false
+    ): BaseAction
+    data class ShowSuccessDialog(
+        val successTitle: String? = null,
+        val successMessage: String? = null,
+        val dismissAction: (() -> Unit)? = null
+    ): BaseAction
 }

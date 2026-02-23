@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.ksp)
 }
 
 android {
@@ -38,14 +40,9 @@ android {
 
 dependencies {
 
-    val koin = "4.0.0"
-
-    implementation(project(":network:core-network"))
-
-    implementation(platform("io.insert-koin:koin-bom:$koin"))
-    implementation("io.insert-koin:koin-androidx-compose")
-
-    implementation("androidx.datastore:datastore-preferences:1.1.3")
+    implementation(libs.kotlinx.serialization.json)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.bundles.local.data.persistence)
 
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)

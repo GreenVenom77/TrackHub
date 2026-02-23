@@ -46,9 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.core_ui.components.CustomMultilineTextField
-import com.greenvenom.core_ui.components.CustomTextField
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.text.CustomMultilineTextField
+import com.greenvenom.core_ui.components.text.CustomTextField
 import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember

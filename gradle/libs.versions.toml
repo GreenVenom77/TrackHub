@@ -1,13 +1,13 @@
 [versions]
 # Core
-agp = "8.12.0"
+agp = "8.13.2"
 composeShimmer = "1.3.3"
 coreKtx = "1.16.0"
 coreSplashscreen = "1.2.0"
-kotlin = "2.2.0"
+kotlin = "2.2.21"
 lifecycle = "2.9.2"
 kotlinxSerializationJson = "1.9.0"
-ksp = "2.2.0-2.0.2"
+ksp = "2.3.3"
 
 # UI
 activityCompose = "1.10.1"
@@ -31,8 +31,8 @@ pagingRuntime = "3.3.6"
 supabase = "3.2.6"
 
 # Data Persistence
-datastore = "1.1.7"
-room = "2.7.2"
+datastore = "1.2.0"
+room = "2.8.4"
 
 # Image Loading
 coil = "3.3.0"
@@ -99,6 +99,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room = { id = "androidx.room", version.ref = "room" }
 lumo = { id = "com.nomanr.plugin.lumo", version.ref = "lumo" }
 
 [bundles]

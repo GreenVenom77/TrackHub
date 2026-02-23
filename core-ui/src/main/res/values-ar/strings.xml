@@ -35,7 +35,8 @@
     <string name="loading">جارٍ التحميل...</string>
     <string name="loading_2">جارٍ التحميل</string>
     <string name="warning_icon_description">تحذير</string>
-    <string name="delete_warning_title">تحذير!</string>
+    <string name="warning_title">تحذير!</string>
+    <string name="warning_message">قد يؤثر هذا الإجراء على بيانات أو إعدادات مهمة. يرجى التأكد من فهم العواقب قبل المتابعة.</string>
     <string name="delete_warning_message">هذا الإجراء سيحذف بيانات مهمة ولا يمكن التراجع عنه. هل أنت متأكد من رغبتك في المتابعة؟</string>
     <string name="delete">حذف</string>
 

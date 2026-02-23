@@ -39,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.greenvenom.core_ui.components.CustomButton
+import com.greenvenom.core_ui.components.buttons.CustomButton
 import com.greenvenom.core_ui.theme.AppTheme
 import com.trackhub.core_hub.domain.HubRole
 import com.trackhub.core_hub.domain.MemberStatus

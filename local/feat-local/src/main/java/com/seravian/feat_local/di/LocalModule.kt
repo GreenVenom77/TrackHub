@@ -9,6 +9,10 @@ import org.koin.dsl.module
 
 val localModule = module {
     single {
+        get<TrackHubDatabase>().profileDao
+    }
+
+    single {
         get<TrackHubDatabase>().hubDao
     }
 
