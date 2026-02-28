@@ -6,7 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.greenvenom.core_menu.data.cache.entities.ProfileEntity
 import com.trackhub.core_hub.domain.HubRole
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Entity(
     tableName = "hubs",
     foreignKeys = [
@@ -22,7 +26,7 @@ import com.trackhub.core_hub.domain.HubRole
 data class HubEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
-    val id: String,
+    val id: String = Uuid.random().toString(),
     @ColumnInfo(name = "owner_id")
     val ownerId: String,
     @ColumnInfo(
@@ -37,7 +41,7 @@ data class HubEntity(
     @ColumnInfo(name = "is_owned")
     val isOwned: Boolean,
     @ColumnInfo(name = "created_at")
-    val createdAt: String,
+    val createdAt: String = Clock.System.now().toString(),
     @ColumnInfo(name = "hub_role")
     val hubRole: HubRole,
     @ColumnInfo(name = "manufacturer_list")

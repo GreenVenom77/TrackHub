@@ -190,7 +190,7 @@ class HubRepositoryImpl(
         return remoteDataSource.updateItem(itemUpdateRequest)
     }
 
-    override suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError> {
+    override suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError> {
         return remoteDataSource.deleteItem(hubItemId)
     }
 

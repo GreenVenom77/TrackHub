@@ -199,7 +199,7 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun deleteItem(itemId: Int) {
+    private fun deleteItem(itemId: String) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteItemResult = withContext(Dispatchers.IO) {

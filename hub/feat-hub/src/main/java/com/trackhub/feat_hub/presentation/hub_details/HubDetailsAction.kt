@@ -29,7 +29,7 @@ interface HubDetailsAction {
         val updatedItem: Item,
     ): HubDetailsAction
 
-    data class DeleteItem(val itemId: Int): HubDetailsAction
+    data class DeleteItem(val itemId: String): HubDetailsAction
 
     data object GetAllInvitations: HubDetailsAction
 

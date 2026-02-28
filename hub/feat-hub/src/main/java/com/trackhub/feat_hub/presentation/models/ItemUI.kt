@@ -1,7 +1,7 @@
 package com.trackhub.feat_hub.presentation.models
 
 data class ItemUI(
-    val id: Int = 0,
+    val id: String,
     val hubId: String,
     val name: String,
     val stockCount: String,

@@ -356,7 +356,7 @@ private fun ItemDetailsDialogPreview() {
         ItemDetailsDialog(
             onDismiss = {},
             item = ItemUI(
-                id = 1,
+                id = "1",
                 hubId = "hub123",
                 name = "Wireless Headphones",
                 stockCount = "50",

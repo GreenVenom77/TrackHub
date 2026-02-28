@@ -1,7 +1,7 @@
 package com.trackhub.core_hub.domain.models
 
 data class Item(
-    val id: Int,
+    val id: String,
     val hubId: String,
     val name: String,
     val stockCount: Float,

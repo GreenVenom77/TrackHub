@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "8633ef81bdfa3381913121b486b768b7",
+    "identityHash": "81cde76a6f4ca3ccfe7512ddabec34bf",
     "entities": [
       {
         "tableName": "profile",
@@ -127,12 +127,12 @@
       },
       {
         "tableName": "items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `hub_id` TEXT NOT NULL, `name` TEXT NOT NULL, `stock_count` REAL NOT NULL, `unit` TEXT NOT NULL, `image_url` TEXT, `created_at` TEXT NOT NULL, `updated_at` TEXT, `manufacturer` TEXT, `category` TEXT, `in_stock` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`hub_id`) REFERENCES `hubs`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `hub_id` TEXT NOT NULL, `name` TEXT NOT NULL, `stock_count` REAL NOT NULL, `unit` TEXT NOT NULL, `image_url` TEXT, `created_at` TEXT NOT NULL, `updated_at` TEXT, `manufacturer` TEXT, `category` TEXT, `in_stock` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`hub_id`) REFERENCES `hubs`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -298,7 +298,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8633ef81bdfa3381913121b486b768b7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '81cde76a6f4ca3ccfe7512ddabec34bf')"
     ]
   }
 }

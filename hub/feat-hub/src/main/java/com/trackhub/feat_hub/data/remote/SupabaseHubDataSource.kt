@@ -107,7 +107,7 @@ class SupabaseHubDataSource(
         }
     }
 
-    override suspend fun deleteItem(itemId: Int): EmptyResult<NetworkError> {
+    override suspend fun deleteItem(itemId: String): EmptyResult<NetworkError> {
         return supabaseCall {
             supabaseClient.from("items").delete {
                 filter { ItemResponse::id eq itemId }

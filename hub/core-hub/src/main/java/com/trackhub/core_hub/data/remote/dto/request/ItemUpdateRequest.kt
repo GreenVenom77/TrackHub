@@ -5,7 +5,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class ItemUpdateRequest(
-    @Transient val id: Int = 0,
+    @Transient val id: String = "",
     val name: String,
     val stockCount: Float,
     val unit: String,

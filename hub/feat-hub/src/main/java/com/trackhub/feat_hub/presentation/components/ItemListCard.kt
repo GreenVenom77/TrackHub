@@ -87,6 +87,7 @@ fun ItemListCard(
 private fun ItemPreview() {
     ItemListCard(
         hubItem = ItemUI(
+            id = "1",
             hubId = "1",
             name = "Test Item",
             stockCount = "10",

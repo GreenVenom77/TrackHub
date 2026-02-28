@@ -70,7 +70,7 @@ fun ItemBottomSheet(
     manufacturers: List<String> = emptyList(),
     onAdd: (Item) -> Unit = {},
     onEdit: (Item) -> Unit = {},
-    onDelete: (Int) -> Unit = {},
+    onDelete: (String) -> Unit = {},
     onAddCategory: (String) -> Unit = {},
     onAddManufacturer: (String) -> Unit = {},
 ) {
@@ -104,7 +104,7 @@ private fun ItemSheetContent(
     manufacturers: List<String> = emptyList(),
     onAdd: (Item) -> Unit,
     onEdit: (Item) -> Unit,
-    onDelete: (Int) -> Unit,
+    onDelete: (String) -> Unit,
     onAddCategory: (String) -> Unit,
     onAddManufacturer: (String) -> Unit,
 ) {
@@ -307,7 +307,7 @@ private fun ItemSheetContent(
                     ),
                     onClick = {
                         val item = Item(
-                            id = hubItem?.id ?: 0,
+                            id = hubItem?.id ?: "",
                             hubId = hubItem?.hubId ?: "",
                             name = newItemName,
                             stockCount = newItemStock.toFloat(),
@@ -452,7 +452,7 @@ private fun ItemSheetContentPreview() {
                 isEdit = true,
                 isDismissible = true,
                 hubItem = ItemUI(
-                    id = 1,
+                    id = "1",
                     hubId = "hub123",
                     name = "Wireless Headphones",
                     stockCount = "50",

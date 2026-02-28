@@ -32,7 +32,7 @@ interface HubRepository {
 
     suspend fun updateItem(itemUpdateRequest: ItemUpdateRequest): EmptyResult<NetworkError>
 
-    suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError>
+    suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError>
 
     fun getItemsFromHub(
         hubId: String,

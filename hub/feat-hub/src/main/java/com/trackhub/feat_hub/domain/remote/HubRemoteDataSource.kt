@@ -30,7 +30,7 @@ interface HubRemoteDataSource {
 
     suspend fun updateItem(itemUpdateRequest: ItemUpdateRequest): EmptyResult<NetworkError>
 
-    suspend fun deleteItem(itemId: Int): EmptyResult<NetworkError>
+    suspend fun deleteItem(itemId: String): EmptyResult<NetworkError>
 
     suspend fun getItemsFromHub(hubId: String): Flow<NetworkResult<List<ItemResponse>, NetworkError>>
 }
