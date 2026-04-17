@@ -2,19 +2,26 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
 
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
 android {
     namespace = "com.skewnexus.trackhub"
-    compileSdk = 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId = "com.skewnexus.trackhub"
         minSdk = 26
-        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -26,7 +33,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,9 +43,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-    buildFeatures {
-        compose = true
     }
     packaging {
         resources {
@@ -53,15 +57,9 @@ android {
             enableSplit = false
         }
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
-    }
 }
 
 dependencies {
-
     implementation(project(":network:core-network"))
     implementation(project(":network:feat-network"))
     implementation(project(":navigation:core-navigation"))

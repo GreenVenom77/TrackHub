@@ -4,8 +4,14 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
 }
 
 val localProperties = Properties().apply {
@@ -14,7 +20,9 @@ val localProperties = Properties().apply {
 
 android {
     namespace = "com.greenvenom.core_network"
-    compileSdk = 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         minSdk = 26
@@ -45,11 +53,6 @@ android {
     }
     buildFeatures {
         buildConfig = true
-    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
     }
 }
 

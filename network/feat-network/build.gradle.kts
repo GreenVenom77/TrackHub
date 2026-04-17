@@ -2,13 +2,21 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
 }
 
 android {
     namespace = "com.trackhub.feat_network"
-    compileSdk = 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         minSdk = 26
@@ -30,11 +38,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
-    }
 }
 
 dependencies {
@@ -43,6 +46,7 @@ dependencies {
     implementation(project(":menu:core-menu"))
     implementation(project(":navigation:core-navigation"))
 
+    implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.dependency.injection)
