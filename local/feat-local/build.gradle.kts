@@ -14,12 +14,16 @@ kotlin {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 room {
     schemaDirectory("$projectDir/schemas")
 }
 
 android {
-    namespace = "com.seravian.feat_local"
+    namespace = "com.trackhub.feat_local"
     compileSdk {
         version = release(36)
     }
@@ -56,9 +60,14 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.bundles.local.data.persistence)
     implementation(libs.bundles.dependency.injection)
-
     implementation(libs.androidx.core.ktx)
-    testImplementation(libs.junit)
+
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
 }

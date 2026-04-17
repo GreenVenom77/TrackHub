@@ -1,17 +1,17 @@
 package com.trackhub.feat_network.data.repository
 
 import android.util.Log
-import com.greenvenom.core_menu.data.cache.dao.ProfileDao
-import com.greenvenom.core_menu.data.mappers.toDomain
-import com.greenvenom.core_menu.data.mappers.toEntity
-import com.greenvenom.core_menu.data.remote.ProfileDto
-import com.greenvenom.core_menu.domain.Profile
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_network.domain.SessionDestinations
 import com.greenvenom.core_network.domain.SessionRepository
 import com.greenvenom.core_network.supabase.util.extractMetadata
 import com.greenvenom.core_network.supabase.util.supabaseCall
+import com.trackhub.core_menu.data.cache.dao.ProfileDao
+import com.trackhub.core_menu.data.mappers.toDomain
+import com.trackhub.core_menu.data.mappers.toEntity
+import com.trackhub.core_menu.data.remote.ProfileDto
+import com.trackhub.core_menu.domain.Profile
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionSource

@@ -9,22 +9,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
 import com.greenvenom.core_ui.components.bars.TopAppBar
 import com.greenvenom.core_ui.presentation.ScaffoldViewModel
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_ui.utils.LocalScaffoldViewModel
-import com.seravian.core_local.domain.AppPrefsDataSource
+import com.greenvenom.core_util.theme.ThemeManager
 import com.skewnexus.trackhub.navigation.AppNavHost
 import com.trackhub.feat_navigation.components.BottomNavigationBar
 import com.trackhub.feat_navigation.routes.Screen
-import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 class MainActivity : AppCompatActivity() {
@@ -33,21 +31,15 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         setContent {
-            val appPrefsRepository = koinInject<AppPrefsDataSource>()
-            val appPrefState by appPrefsRepository.appPrefsState.collectAsStateWithLifecycle()
+            val themeManager = koinInject<ThemeManager>()
+            val isDarkTheme by themeManager.isDarkThemeFlow.collectAsStateWithLifecycle(isSystemInDarkTheme())
             val navigationRepository = koinInject<NavigationStateRepository>()
             val navigationState by navigationRepository.navigationState.collectAsStateWithLifecycle()
-            val scaffoldViewModel: ScaffoldViewModel = koinInject()
+            val scaffoldViewModel: ScaffoldViewModel = koinViewModel()
             val scaffoldState by scaffoldViewModel.scaffoldState.collectAsStateWithLifecycle()
 
-            LaunchedEffect(Unit)  {
-                lifecycleScope.launch {
-                    appPrefsRepository.getThemePreference()
-                }
-            }
-
             CompositionLocalProvider(LocalScaffoldViewModel provides scaffoldViewModel) {
-                AppTheme(darkTheme = appPrefState.isDarkTheme ?: isSystemInDarkTheme()) {
+                AppTheme(darkTheme = isDarkTheme) {
                     Scaffold(
                         topBar = {
                             TopAppBar(

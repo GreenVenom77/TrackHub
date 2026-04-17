@@ -12,6 +12,10 @@ kotlin {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 android {
     namespace = "com.greenvenom.core_navigation"
     compileSdk {
@@ -47,8 +51,14 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.koin.android.compose)
 
-    testImplementation(libs.junit)
+    implementation(kotlin("reflect"))
+
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(kotlin("reflect"))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
 }

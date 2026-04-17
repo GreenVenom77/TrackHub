@@ -13,6 +13,10 @@ kotlin {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 android {
     namespace = "com.skewnexus.trackhub"
     compileSdk {
@@ -66,7 +70,8 @@ dependencies {
     implementation(project(":navigation:feat-navigation"))
     implementation(project(":local:core-local"))
     implementation(project(":local:feat-local"))
-    implementation(project(":core-ui"))
+    implementation(project(":core:core-ui"))
+    implementation(project(":core:core-util"))
 
     implementation(project(":auth:feat-auth"))
     implementation(project(":hub:feat-hub"))
@@ -86,7 +91,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.splashscreen)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

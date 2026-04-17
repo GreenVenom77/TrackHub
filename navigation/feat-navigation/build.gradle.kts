@@ -13,6 +13,10 @@ kotlin {
     }
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 android {
     namespace = "com.trackhub.feat_navigation"
     compileSdk {
@@ -42,23 +46,24 @@ android {
 }
 
 dependencies {
-    val koin = "4.0.0"
 
     implementation(project(":navigation:core-navigation"))
     implementation(project(":network:core-network"))
     implementation(project(":hub:core-hub"))
-    implementation(project(":core-ui"))
+    implementation(project(":core:core-ui"))
 
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    implementation(platform("io.insert-koin:koin-bom:$koin"))
-    implementation("io.insert-koin:koin-androidx-compose")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.dependency.injection)
 
-    testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -3,9 +3,10 @@ package com.trackhub.core_hub.data.cache.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.greenvenom.core_menu.data.cache.entities.ProfileEntity
 import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_menu.data.cache.entities.ProfileEntity
 import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -21,6 +22,9 @@ import kotlin.uuid.Uuid
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("viewer_id")
     ]
 )
 data class HubEntity(

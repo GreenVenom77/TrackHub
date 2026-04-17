@@ -3,9 +3,9 @@ package com.greenvenom.feat_auth.presentation.login
 import androidx.lifecycle.viewModelScope
 import com.greenvenom.core_auth.data.dto.request.LoginRequest
 import com.greenvenom.core_ui.presentation.BaseAction
-import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.greenvenom.validation.ValidateInput
+import com.greenvenom.core_util.input.InputValidator
+import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -22,14 +22,17 @@ class LoginViewModel(
             is LoginAction.ValidateEmail -> {
                 _loginState.update {
                     it.copy(
-                        emailValidity = ValidateInput.validateEmail(action.email)
+                        emailValidity = InputValidator.validateEmail(action.email)
                     )
                 }
             }
             is LoginAction.ValidatePassword -> {
                 _loginState.update {
                     it.copy(
-                        passwordValidity = ValidateInput.validateLoginPassword(action.password)
+                        passwordValidity = InputValidator.validatePassword(
+                            action.password,
+                            true
+                        )
                     )
                 }
             }

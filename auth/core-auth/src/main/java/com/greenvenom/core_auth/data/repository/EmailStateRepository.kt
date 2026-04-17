@@ -1,7 +1,7 @@
 package com.greenvenom.core_auth.data.repository
 
-import com.greenvenom.validation.domain.ValidationError
-import com.greenvenom.validation.domain.ValidationResult
+import com.greenvenom.core_util.input.domain.ValidationError
+import com.greenvenom.core_util.input.domain.ValidationResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
