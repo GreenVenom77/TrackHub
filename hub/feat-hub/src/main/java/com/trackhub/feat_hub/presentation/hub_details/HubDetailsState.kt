@@ -21,6 +21,7 @@ data class HubDetailsState(
     val selectedCategory: String? = null,
     val selectedManufacturer: String? = null,
     val currentSearchQuery: String? = null,
+    val isRefreshing: Boolean = false,
     val hubDeletionResult: EmptyResult<NetworkError>? = null,
     val hubUpdateResult: EmptyResult<NetworkError>? = null,
     val operationResult: EmptyResult<NetworkError>? = null,

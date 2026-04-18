@@ -1,7 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +18,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,7 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -92,7 +92,7 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val context = LocalContext.current
+    val resource = LocalResources.current
 
     val lazyPagingItems = hubDetailsState.items.collectAsLazyPagingItems()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -324,7 +324,7 @@ private fun HubDetailsContent(
                             onClick = {
                                 onDismiss()
                                 baseAction(BaseAction.ShowWarningDialog(
-                                    warningMessage = context.getString(R.string.leave_hub_message),
+                                    warningMessage = resource.getString(R.string.leave_hub_message),
                                     confirmAction = {
                                         hubDetailsAction(HubDetailsAction.LeaveHub)
                                     }
@@ -371,7 +371,7 @@ private fun HubDetailsContent(
                             onClick = {
                                 onDismiss()
                                 baseAction(BaseAction.ShowWarningDialog(
-                                    warningMessage = context.getString(R.string.leave_hub_message),
+                                    warningMessage = resource.getString(R.string.leave_hub_message),
                                     confirmAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
                                 ))
                             },
@@ -410,36 +410,43 @@ private fun HubDetailsContent(
         }
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Filter Component
-            FilterDropdownRow(
-                categories = hubDetailsState.hub?.categoryList ?: emptyList(),
-                manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                defaultCategory = stringResource(R.string.all_categories),
-                selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
-                defaultManufacturer = stringResource(R.string.all_manufacturers),
-                selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
-                onCategorySelected = { category ->
-                    hubDetailsAction(HubDetailsAction.FilterItems(
-                        category = category,
-                        manufacturer = hubDetailsState.selectedManufacturer,
-                    ))
-                },
-                onManufacturerSelected = { manufacturer ->
-                    hubDetailsAction(HubDetailsAction.FilterItems(
-                        category = hubDetailsState.selectedCategory,
-                        manufacturer = manufacturer,
-                    ))
-                }
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Filter Component
+        FilterDropdownRow(
+            categories = hubDetailsState.hub?.categoryList ?: emptyList(),
+            manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
+            defaultCategory = stringResource(R.string.all_categories),
+            selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+            defaultManufacturer = stringResource(R.string.all_manufacturers),
+            selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+            onCategorySelected = { category ->
+                hubDetailsAction(HubDetailsAction.FilterItems(
+                    category = category,
+                    manufacturer = hubDetailsState.selectedManufacturer,
+                ))
+            },
+            onManufacturerSelected = { manufacturer ->
+                hubDetailsAction(HubDetailsAction.FilterItems(
+                    category = hubDetailsState.selectedCategory,
+                    manufacturer = manufacturer,
+                ))
+            }
+        )
 
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
 
-            // Items List
+        // Items List
+        PullToRefreshBox(
+            isRefreshing = hubDetailsState.isRefreshing,
+            onRefresh = {
+                hubDetailsAction(HubDetailsAction.RefreshHub)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             lazyPagingItems.takeIf { it.itemCount > 0 }?.let { hubItems ->
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -465,35 +472,38 @@ private fun HubDetailsContent(
                         )
                     }
                 }
-            } ?: Box(
+            } ?: LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.SearchOff,
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
+                item {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.SearchOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
 
-                    Text(
-                        text = stringResource(R.string.no_items_found),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                        Text(
+                            text = stringResource(R.string.no_items_found),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
-                    Text(
-                        text = stringResource(R.string.no_items_message),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    )
+                        Text(
+                            text = stringResource(R.string.no_items_message),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+                    }
                 }
             }
         }
@@ -527,7 +537,7 @@ private fun HubDetailsContent(
                     onShowInviteDialog = { showInviteDialog = true },
                     onRemoveMember = { userId, userStatus ->
                         baseAction(BaseAction.ShowWarningDialog(
-                            warningMessage = context.getString(R.string.remove_member_message),
+                            warningMessage = resource.getString(R.string.remove_member_message),
                             confirmAction = {
                                 hubDetailsAction(HubDetailsAction.RemoveMember(userId, userStatus))
                             }
@@ -550,7 +560,7 @@ private fun HubDetailsContent(
         }
 
         if ((hubDetailsState.hub?.role == HubRole.Owner
-            || hubDetailsState.hub?.role == HubRole.Editor)
+                    || hubDetailsState.hub?.role == HubRole.Editor)
             && itemDetailsState) {
             ItemBottomSheet(
                 sheetState = sheetState,

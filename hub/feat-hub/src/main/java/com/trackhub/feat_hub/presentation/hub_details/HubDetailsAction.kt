@@ -61,5 +61,7 @@ interface HubDetailsAction {
 
     data object ClearNetworkOperations: HubDetailsAction
 
+    data object RefreshHub: HubDetailsAction
+
     data object NavigateBack: HubDetailsAction
 }

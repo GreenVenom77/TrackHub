@@ -1,8 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -126,7 +124,6 @@ private fun HubListContent(
     PullToRefreshBox(
         isRefreshing = hubListState.isRefreshing,
         onRefresh = {
-            Log.d("HubListScreen", "onRefresh")
             hubListAction(HubListAction.Refresh)
         },
         modifier = Modifier
@@ -150,41 +147,44 @@ private fun HubListContent(
                     }
                 }
             }
-        } ?: Box(
+        } ?: LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Hub,
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Hub,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
 
-                Text(
-                    text = stringResource(
-                        if (areHubsOwned) R.string.no_owned_hubs_found
-                        else R.string.no_shared_hubs_found
-                    ),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_found
+                            else R.string.no_shared_hubs_found
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                Text(
-                    text = stringResource(
-                        if (areHubsOwned) R.string.no_owned_hubs_message
-                        else R.string.no_shared_hubs_message
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                )
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_message
+                            else R.string.no_shared_hubs_message
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         }
 

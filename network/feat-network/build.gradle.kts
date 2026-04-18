@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":network:core-network"))
     implementation(project(":menu:core-menu"))
     implementation(project(":navigation:core-navigation"))
+    implementation(project(":core:core-util"))
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)

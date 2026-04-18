@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 interface HubRepository {
     fun refreshHubs()
 
+    fun refreshHub(hubId: String)
+
     suspend fun addHub(hubInsertRequest: HubInsertRequest): EmptyResult<NetworkError>
 
     suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): NetworkResult<Hub, NetworkError>
@@ -33,6 +35,8 @@ interface HubRepository {
     suspend fun updateItem(itemUpdateRequest: ItemUpdateRequest): EmptyResult<NetworkError>
 
     suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError>
+
+    suspend fun syncHub(hubId: String): EmptyResult<NetworkError>
 
     fun getItemsFromHub(
         hubId: String,

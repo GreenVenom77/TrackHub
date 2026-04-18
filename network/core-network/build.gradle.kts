@@ -62,6 +62,8 @@ android {
 
 dependencies {
 
+    implementation(project(":core:core-util"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.supabase.bom))

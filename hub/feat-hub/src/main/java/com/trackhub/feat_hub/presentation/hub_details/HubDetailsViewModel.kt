@@ -84,6 +84,7 @@ class HubDetailsViewModel(
                     _hubDetailsState.value.currentSearchQuery
                 )
             }
+            is HubDetailsAction.RefreshHub -> refreshHub()
             is HubDetailsAction.UpdateHub -> updateHub(
                 action.updatedHub
             )
@@ -109,6 +110,30 @@ class HubDetailsViewModel(
             is HubDetailsAction.ClearUserSearch -> clearUserSearch()
             is HubDetailsAction.ClearNetworkOperations -> clearNetworkOperations()
             is HubDetailsAction.NavigateBack -> {  }
+        }
+    }
+
+    private fun refreshHub() {
+        _hubDetailsState.update { it.copy(isRefreshing = true) }
+
+        viewModelScope.launch {
+            val hubId = _hubDetailsState.value.hub?.id ?: return@launch
+
+            // Now actually suspends until network sync is done
+            withContext(Dispatchers.IO) {
+                hubRepository.syncHub(hubId)
+            }
+
+            val refreshedHub = withContext(Dispatchers.IO) {
+                hubRepository.getHub(hubId)  // now reads updated cache
+            }
+
+            _hubDetailsState.update {
+                it.copy(
+                    hub = refreshedHub,
+                    isRefreshing = false
+                )
+            }
         }
     }
 
@@ -257,7 +282,8 @@ class HubDetailsViewModel(
 
                     _hubDetailsState.update {
                         it.copy(
-                            hubItemsResult = itemsResult.map {  }
+                            hubItemsResult = itemsResult.map {  },
+                            isRefreshing = false
                         )
                     }
                 }
@@ -434,6 +460,7 @@ class HubDetailsViewModel(
         _hubDetailsState.update {
             it.copy(
                 operationResult = null,
+                hubItemsResult = null,
                 hubDeletionResult = null,
                 itemDeletionResult = null,
                 hubUpdateResult = null,

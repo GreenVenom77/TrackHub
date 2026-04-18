@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":network:core-network"))
     implementation(project(":hub:core-hub"))
     implementation(project(":core:core-ui"))
+    implementation(project(":core:core-util"))
 
     implementation(libs.bundles.dependency.injection)
     implementation(platform(libs.supabase.bom))

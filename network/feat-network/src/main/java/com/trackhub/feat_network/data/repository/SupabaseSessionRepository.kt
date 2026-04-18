@@ -1,12 +1,12 @@
 package com.trackhub.feat_network.data.repository
 
-import android.util.Log
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_network.domain.SessionDestinations
 import com.greenvenom.core_network.domain.SessionRepository
 import com.greenvenom.core_network.supabase.util.extractMetadata
 import com.greenvenom.core_network.supabase.util.supabaseCall
+import com.greenvenom.core_util.logger.Logger
 import com.trackhub.core_menu.data.cache.dao.ProfileDao
 import com.trackhub.core_menu.data.mappers.toDomain
 import com.trackhub.core_menu.data.mappers.toEntity
@@ -52,7 +52,7 @@ class SupabaseSessionRepository(
         when(sessionStatus) {
             SessionStatus.Initializing -> {  }
             is SessionStatus.Authenticated -> {
-                Log.d("Session Source", sessionStatus.source.toString())
+                Logger.d("Session Source", sessionStatus.source.toString())
                 when(sessionStatus.source) {
                     is SessionSource.Refresh,
                     is SessionSource.Storage,
@@ -64,7 +64,7 @@ class SupabaseSessionRepository(
                     is SessionSource.UserChanged -> {
                         _userSessionDestination.update { SessionDestinations.AUTH }
                     }
-                    else -> { Log.d("Session Source", sessionStatus.source.toString()) }
+                    else -> { Logger.d("Session Source", sessionStatus.source.toString()) }
                 }
             }
             is SessionStatus.NotAuthenticated -> {
