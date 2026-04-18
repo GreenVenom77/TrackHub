@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                         bottomBar = {
                             BottomNavigationBar(
                                 defaultNavigationMethod = navigationRepository::navigate,
-                                currentDestination = navigationState.currentDestination ?: Screen.OwnedHubs,
+                                currentDestination = navigationState.currentDestination ?: Screen.OwnedHubs(),
                                 isVisible = navigationState.bottomBarState
                             )
                         },

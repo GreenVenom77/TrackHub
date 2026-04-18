@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,10 +52,6 @@ fun HubListScreen(
         }
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
-
-        LaunchedEffect(areHubsOwned) {
-            viewModel.hubListAction(HubListAction.StartCollectingHubs(areHubsOwned))
-        }
 
         HubListContent(
             areHubsOwned = areHubsOwned,

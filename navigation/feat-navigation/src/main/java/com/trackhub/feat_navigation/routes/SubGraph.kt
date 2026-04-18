@@ -19,4 +19,24 @@ sealed class SubGraph: Destination {
     data object Main: SubGraph() {
         override val destinationType: DestinationType = DestinationType.GRAPH
     }
+
+    @Serializable
+    data object OwnedHubs: SubGraph() {
+        override val destinationType: DestinationType = DestinationType.GRAPH
+    }
+
+    @Serializable
+    data object SharedHubs: SubGraph() {
+        override val destinationType: DestinationType = DestinationType.GRAPH
+    }
+
+    @Serializable
+    data object Notifications: SubGraph() {
+        override val destinationType: DestinationType = DestinationType.GRAPH
+    }
+
+    @Serializable
+    data object Menu: SubGraph() {
+        override val destinationType: DestinationType = DestinationType.GRAPH
+    }
 }

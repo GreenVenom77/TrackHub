@@ -26,6 +26,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,15 +39,7 @@ class HubDetailsViewModel(
     private val savedStateHandle: SavedStateHandle
 ): BaseViewModel() {
     private val _hubDetailsState = MutableStateFlow(HubDetailsState())
-    val hubDetailsState = _hubDetailsState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(3000),
-        HubDetailsState()
-    )
-
-    private lateinit var itemsCollectionJob: Job
-
-    init {
+    val hubDetailsState = _hubDetailsState.onStart {
         savedStateHandle.get<String>("hubId")?.let { hubId ->
             viewModelScope.launch {
                 val fetchedHub = withContext(Dispatchers.IO) {
@@ -58,9 +52,20 @@ class HubDetailsViewModel(
                     )
                 }
             }
-            itemsCollectionJob = getHubItems(hubId, null, null, null)
+            itemsCollectionJob = getHubItems(
+                hubId,
+                null,
+                null,
+                null
+            )
         }
-    }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        HubDetailsState()
+    )
+
+    private lateinit var itemsCollectionJob: Job
 
     fun hubDetailsAction(action: HubDetailsAction) {
         when (action) {
@@ -270,7 +275,7 @@ class HubDetailsViewModel(
                 category,
                 manufacturer,
                 searchQuery
-            ).collect { itemsResult ->
+            ).collectLatest { itemsResult ->
                 withContext(Dispatchers.Main) {
                     itemsResult.onSuccess { items ->
                         _hubDetailsState.update {

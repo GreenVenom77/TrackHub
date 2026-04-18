@@ -13,10 +13,10 @@ import com.trackhub.feat_notifications.presentation.screens.NotificationsScreen
 fun NavGraphBuilder.mainGraph(
     navigate: (NavigationType) -> Unit
 ) {
-    navigation<SubGraph.Main>(startDestination = Screen.OwnedHubs) {
-        composable<Screen.OwnedHubs> {
+    navigation<SubGraph.Main>(startDestination = Screen.OwnedHubs()) {
+        composable<Screen.OwnedHubs> { backStackEntry ->
             HubListScreen(
-                areHubsOwned = true,
+                areHubsOwned = backStackEntry.arguments?.getBoolean("ownedHubs") ?: true,
                 navigateToHubDetails = { hubId ->
                     navigate(
                         NavigationType.Standard(SubGraph.HubDetails(hubId))
@@ -26,9 +26,9 @@ fun NavGraphBuilder.mainGraph(
             )
         }
 
-        composable<Screen.SharedHubs> {
+        composable<Screen.SharedHubs> { backStackEntry ->
             HubListScreen(
-                areHubsOwned = false,
+                areHubsOwned = backStackEntry.arguments?.getBoolean("ownedHubs") ?: false,
                 navigateToHubDetails = { hubId ->
                     navigate(
                         NavigationType.Standard(SubGraph.HubDetails(hubId))

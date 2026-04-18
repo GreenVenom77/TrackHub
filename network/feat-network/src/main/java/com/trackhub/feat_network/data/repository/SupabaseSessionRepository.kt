@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class SupabaseSessionRepository(
 
     override fun collectSessionStatus() {
         scope.launch {
-            supabaseClient.auth.sessionStatus.collect {
+            supabaseClient.auth.sessionStatus.collectLatest {
                 handleSessionStatus(it)
             }
         }
