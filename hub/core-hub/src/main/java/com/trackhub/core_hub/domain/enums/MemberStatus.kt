@@ -1,4 +1,4 @@
-package com.trackhub.core_hub.domain
+package com.trackhub.core_hub.domain.enums
 
 import androidx.annotation.StringRes
 import com.trackhub.core_hub.R

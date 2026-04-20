@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -33,6 +32,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -41,11 +41,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.components.buttons.CustomButton
 import com.greenvenom.core_ui.theme.AppTheme
-import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.HubUI
+import kotlinx.coroutines.launch
 
 @Composable
 fun AboutHubSheet(
@@ -55,10 +56,11 @@ fun AboutHubSheet(
     hubMembers: List<HubMember>,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
+
     ModalBottomSheet(
         sheetState = sheetState,
         onDismissRequest = onDismiss,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
         modifier = modifier
     ) {
         Column(
@@ -261,7 +263,12 @@ fun AboutHubSheet(
             // Close Button
             CustomButton(
                 text = stringResource(R.string.close),
-                onClick = onDismiss,
+                onClick = {
+                    scope.launch {
+                        sheetState.hide()
+                        onDismiss()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
         }

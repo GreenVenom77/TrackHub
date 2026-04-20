@@ -10,4 +10,22 @@
     <string name="pending_invitation">دعوة معلقة</string>
     <string name="invitation_declined">دعوة مرفوضة</string>
     <string name="not_invited">غير مدعو</string>
+
+    <!-- Base Units -->
+    <string name="unit_pieces">قطع</string>
+    <string name="unit_kilograms">كيلوجرام</string>
+    <string name="unit_grams">جرام</string>
+    <string name="unit_liters">لتر</string>
+    <string name="unit_milliliters">ملليلتر</string>
+    <string name="unit_meters">متر</string>
+    <string name="unit_centimeters">سنتيمتر</string>
+    <string name="unit_boxes">صناديق</string>
+    <string name="unit_packs">عبوات</string>
+    <string name="unit_bottles">زجاجات</string>
+    <string name="unit_cans">علب</string>
+    <string name="unit_bags">أكياس</string>
+    <string name="unit_rolls">لفات</string>
+    <string name="unit_sets">مجموعات</string>
+    <string name="unit_pairs">أزواج</string>
+    <string name="select_unit">اختر الوحدة</string>
 </resources>

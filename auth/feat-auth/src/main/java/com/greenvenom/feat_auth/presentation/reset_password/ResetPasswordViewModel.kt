@@ -1,8 +1,6 @@
 package com.greenvenom.feat_auth.presentation.reset_password
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_auth.data.dto.request.ResetPasswordRequest
-import com.greenvenom.core_auth.data.dto.request.UpdatePasswordRequest
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
@@ -73,7 +71,7 @@ class ResetPasswordViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.sendResetPasswordEmail(
-                ResetPasswordRequest(email)
+                email = email
             )
             _resetPasswordState.update { it.copy(emailSentNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)
@@ -85,7 +83,7 @@ class ResetPasswordViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.updatePassword(
-                UpdatePasswordRequest(newPassword)
+                newPassword = newPassword
             )
             _resetPasswordState.update { it.copy(passwordUpdatedNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)

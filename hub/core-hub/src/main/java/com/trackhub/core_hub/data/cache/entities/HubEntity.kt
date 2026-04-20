@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_menu.data.cache.entities.ProfileEntity
 import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi

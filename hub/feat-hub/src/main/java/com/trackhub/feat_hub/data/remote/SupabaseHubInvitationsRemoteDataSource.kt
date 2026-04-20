@@ -12,7 +12,7 @@ import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
 import com.trackhub.core_hub.data.remote.dto.response.HubMemberResponse
 import com.trackhub.core_hub.data.remote.dto.response.InvitationResponse
 import com.trackhub.core_hub.data.remote.dto.response.UserSearchResponse
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.feat_hub.domain.remote.HubInvitationsRemoteDataSource
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from

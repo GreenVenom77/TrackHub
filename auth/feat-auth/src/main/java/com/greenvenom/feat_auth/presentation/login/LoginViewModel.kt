@@ -1,7 +1,6 @@
 package com.greenvenom.feat_auth.presentation.login
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_auth.data.dto.request.LoginRequest
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.core_util.input.InputValidator
@@ -52,7 +51,8 @@ class LoginViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.loginUser(
-                LoginRequest(email, password)
+                email = email,
+                password = password
             )
             _loginState.update { it.copy(loginNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)

@@ -1,6 +1,6 @@
 package com.trackhub.core_hub.domain.models
 
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.MemberStatus
 
 data class UserSearch(
     val userId: String,

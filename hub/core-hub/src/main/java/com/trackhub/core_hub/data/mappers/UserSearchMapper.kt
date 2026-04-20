@@ -1,7 +1,7 @@
 package com.trackhub.core_hub.data.mappers
 
 import com.trackhub.core_hub.data.remote.dto.response.UserSearchResponse
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.UserSearch
 
 fun UserSearchResponse.toDomain(): UserSearch {

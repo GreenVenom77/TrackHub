@@ -56,9 +56,20 @@ class HubRepositoryImpl(
     }
 
     override suspend fun addHub(
-        hubInsertRequest: HubInsertRequest
+        ownerId: String,
+        name: String,
+        description: String?,
+        manufacturerList: List<String>,
+        categoryList: List<String>
     ): EmptyResult<NetworkError> {
-        val remoteResult = remoteDataSource.addHub(hubInsertRequest)
+        val request = HubInsertRequest(
+            ownerId = ownerId,
+            name = name,
+            description = description,
+            manufacturerList = manufacturerList,
+            categoryList = categoryList
+        )
+        val remoteResult = remoteDataSource.addHub(request)
         remoteResult.onSuccess { hubDto ->
             cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
         }
@@ -66,9 +77,20 @@ class HubRepositoryImpl(
     }
 
     override suspend fun updateHub(
-        hubUpdateRequest: HubUpdateRequest
+        id: String,
+        name: String,
+        description: String?,
+        manufacturerList: List<String>,
+        categoryList: List<String>
     ): NetworkResult<Hub, NetworkError> {
-        val remoteResult = remoteDataSource.updateHub(hubUpdateRequest)
+        val request = HubUpdateRequest(
+            id = id,
+            name = name,
+            description = description,
+            manufacturerList = manufacturerList,
+            categoryList = categoryList
+        )
+        val remoteResult = remoteDataSource.updateHub(request)
         remoteResult.onSuccess { hubDto ->
             cacheDataSource.updateHub(hubDto.extractHub().toHubEntity())
         }
@@ -81,9 +103,10 @@ class HubRepositoryImpl(
         return remoteResult
     }
 
-    override suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError> {
-        val remoteResult = remoteDataSource.leaveHub(leaveHubRequest)
-        remoteResult.onSuccess { cacheDataSource.deleteHub(leaveHubRequest.hubId) }
+    override suspend fun leaveHub(hubId: String): EmptyResult<NetworkError> {
+        val request = LeaveHubRequest(hubId = hubId)
+        val remoteResult = remoteDataSource.leaveHub(request)
+        remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
         return remoteResult
     }
 
@@ -179,17 +202,45 @@ class HubRepositoryImpl(
     }
 
     override suspend fun addItemToHub(
-        itemInsertRequest: ItemInsertRequest
+        hubId: String,
+        name: String,
+        stockCount: Float,
+        unit: String,
+        manufacturer: String?,
+        category: String?
     ): EmptyResult<NetworkError> {
-        return remoteDataSource.addItemToHub(itemInsertRequest).onSuccess {
-            refreshHub(itemInsertRequest.hubId)
+        val request = ItemInsertRequest(
+            hubId = hubId,
+            name = name,
+            stockCount = stockCount,
+            unit = unit,
+            manufacturer = manufacturer,
+            category = category
+        )
+        return remoteDataSource.addItemToHub(request).onSuccess {
+            refreshHub(hubId)
         }
     }
 
     override suspend fun updateItem(
-        itemUpdateRequest: ItemUpdateRequest
+        id: String,
+        name: String,
+        stockCount: Float,
+        unit: String,
+        imageUrl: String?,
+        manufacturer: String?,
+        category: String?
     ): EmptyResult<NetworkError> {
-        return remoteDataSource.updateItem(itemUpdateRequest).onSuccess {
+        val request = ItemUpdateRequest(
+            id = id,
+            name = name,
+            stockCount = stockCount,
+            unit = unit,
+            imageUrl = imageUrl,
+            manufacturer = manufacturer,
+            category = category
+        )
+        return remoteDataSource.updateItem(request).onSuccess {
             refreshHub(currentHubId ?: return@onSuccess)
         }
     }
@@ -286,6 +337,7 @@ class HubRepositoryImpl(
         hubId: String,
         category: String?,
         manufacturer: String?,
+        inStock: Boolean?,
         searchQuery: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>> {
         currentHubId = hubId
@@ -309,6 +361,7 @@ class HubRepositoryImpl(
                     hubId,
                     category,
                     manufacturer,
+                    inStock,
                     formattedSearchQuery
                 )
             }.flow.map { pagingData ->

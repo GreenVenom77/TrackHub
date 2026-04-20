@@ -10,6 +10,8 @@ import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
 import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
 import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
 import com.trackhub.core_hub.domain.models.InvitationResult
 import com.trackhub.core_hub.domain.models.UserSearch
@@ -20,38 +22,64 @@ class HubInvitationsRepositoryImpl(
     private val remoteDataSource: HubInvitationsRemoteDataSource
 ): HubInvitationsRepository {
     override suspend fun getAllHubInvitations(
-        invitationsRequest: HubInvitationsRequest
+        hubId: String
     ): NetworkResult<List<HubMember>, NetworkError> {
-        return remoteDataSource.getAllHubInvitations(invitationsRequest).map { invitations ->
+        val request = HubInvitationsRequest(hubId = hubId)
+        return remoteDataSource.getAllHubInvitations(request).map { invitations ->
             invitations.map { invitation -> invitation.toDomain() }
         }
     }
 
     override suspend fun searchForUsers(
-        searchRequest: UserSearchRequest
+        hubId: String,
+        searchTerm: String
     ): NetworkResult<List<UserSearch>, NetworkError> {
-        return remoteDataSource.searchForUsers(searchRequest).map { users ->
+        val request = UserSearchRequest(hubId = hubId, searchTerm = searchTerm)
+        return remoteDataSource.searchForUsers(request).map { users ->
             users.map { user -> user.toDomain() }
         }
     }
 
     override suspend fun inviteUser(
-        inviteRequest: UserInviteRequest
+        hubId: String,
+        userId: String,
+        role: HubRole
     ): NetworkResult<InvitationResult, NetworkError> {
-        return remoteDataSource.inviteUser(inviteRequest).map { invitation ->
+        val request = UserInviteRequest(
+            hubId = hubId,
+            userId = userId,
+            roleName = role.name
+        )
+        return remoteDataSource.inviteUser(request).map { invitation ->
             invitation.toDomain()
         }
     }
 
     override suspend fun removeUserFromHub(
-        removalRequest: RemoveMemberRequest
+        hubId: String,
+        userId: String,
+        status: MemberStatus
     ): EmptyResult<NetworkError> {
-        return remoteDataSource.removeUserFromHub(removalRequest)
+        val request = RemoveMemberRequest(
+            hubId = hubId,
+            userId = userId,
+            status = status
+        )
+        return remoteDataSource.removeUserFromHub(request)
     }
 
     override suspend fun changeUserRole(
-        changeRoleRequest: ChangeMemberRoleRequest
+        hubId: String,
+        userId: String,
+        role: HubRole,
+        status: MemberStatus
     ): EmptyResult<NetworkError> {
-        return remoteDataSource.changeUserRole(changeRoleRequest)
+        val request = ChangeMemberRoleRequest(
+            hubId = hubId,
+            userId = userId,
+            hubRole = role.name,
+            status = status
+        )
+        return remoteDataSource.changeUserRole(request)
     }
 }

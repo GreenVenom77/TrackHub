@@ -21,8 +21,15 @@ class NotificationsRepositoryImpl(
         }
     }
 
-    override suspend fun respondToInvitation(acceptanceRequest: InvitationAcceptanceRequest): NetworkResult<InvitationAcceptance, NetworkError> {
-        return invitationsDataSource.respondToInvitation(acceptanceRequest).map { invitationAcceptance ->
+    override suspend fun respondToInvitation(
+        invitationId: String,
+        accepted: Boolean
+    ): NetworkResult<InvitationAcceptance, NetworkError> {
+        val request = InvitationAcceptanceRequest(
+            invitationId = invitationId,
+            response = accepted
+        )
+        return invitationsDataSource.respondToInvitation(request).map { invitationAcceptance ->
             invitationAcceptance.toDomain()
         }
     }

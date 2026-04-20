@@ -12,12 +12,14 @@ import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +40,7 @@ import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
 import com.trackhub.feat_hub.presentation.mappers.toHubUI
+import kotlinx.coroutines.launch
 
 @Composable
 fun HubListScreen(
@@ -75,9 +78,9 @@ private fun HubListContent(
     hubListAction: (HubListAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    val sheetState: SheetState = rememberModalBottomSheetState()
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
-    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubListState.fetchingHubsResult
         ?.onSuccess {
@@ -93,15 +96,16 @@ private fun HubListContent(
     hubListState.addHubResult
         ?.onSuccess {
             hubListAction(HubListAction.ClearNetworkOperations)
-            isSheetDismissible = true
-            hubSheetState = false
+            scope.launch {
+                sheetState.hide()
+                hubSheetState = false
+            }
         }
         ?.onError { error ->
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
-            isSheetDismissible = true
         }
 
     SetScaffold(
@@ -109,7 +113,6 @@ private fun HubListContent(
             FloatingButton(
                 isVisible = areHubsOwned,
                 onClick = {
-                    isSheetDismissible = true
                     hubSheetState = true
                 }
             )
@@ -190,9 +193,7 @@ private fun HubListContent(
                     hubSheetState = false
                 },
                 isEdit = false,
-                isDismissible = isSheetDismissible,
                 onAdd = { hubName, hubDescription ->
-                    isSheetDismissible = false
                     hubListAction(HubListAction.AddHub(
                         hubName, hubDescription
                     ))

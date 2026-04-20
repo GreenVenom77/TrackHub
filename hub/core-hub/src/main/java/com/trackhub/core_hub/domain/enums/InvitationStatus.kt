@@ -1,4 +1,4 @@
-package com.trackhub.core_hub.domain
+package com.trackhub.core_hub.domain.enums
 
 enum class InvitationStatus(val value: String) {
     ROLE_UPDATED("role_updated"),

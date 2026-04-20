@@ -7,23 +7,23 @@ object Logger {
     private const val TAG_PREFIX = "Greeve"
     private const val DEFAULT_TAG = "App"
 
-    fun d(message: String, tag: String = DEFAULT_TAG) {
+    fun d( tag: String = DEFAULT_TAG, message: String) {
         log(LogType.DEBUG, tag, message)
     }
 
-    fun e(message: String, throwable: Throwable? = null, tag: String = DEFAULT_TAG) {
+    fun e( tag: String = DEFAULT_TAG, message: String, throwable: Throwable? = null) {
         log(LogType.ERROR, tag, message, throwable)
     }
 
-    fun i(message: String, tag: String = DEFAULT_TAG) {
+    fun i( tag: String = DEFAULT_TAG, message: String) {
         log(LogType.INFO, tag, message)
     }
 
-    fun w(message: String, throwable: Throwable? = null, tag: String = DEFAULT_TAG) {
+    fun w( tag: String = DEFAULT_TAG, message: String, throwable: Throwable? = null) {
         log(LogType.WARN, tag, message, throwable)
     }
 
-    fun v(message: String, tag: String = DEFAULT_TAG) {
+    fun v(tag: String = DEFAULT_TAG, message: String) {
         log(LogType.VERBOSE, tag, message)
     }
 

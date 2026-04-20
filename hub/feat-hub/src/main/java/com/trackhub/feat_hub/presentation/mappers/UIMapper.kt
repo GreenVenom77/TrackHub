@@ -1,7 +1,7 @@
 package com.trackhub.feat_hub.presentation.mappers
 
 import com.greenvenom.core_ui.utils.formatDateTime
-import com.trackhub.core_hub.domain.InvitationStatus
+import com.trackhub.core_hub.domain.enums.InvitationStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.InvitationResult
 import com.trackhub.core_hub.domain.models.Item

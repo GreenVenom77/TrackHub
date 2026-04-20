@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.theme.AppTheme
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.feat_notifications.R
 import com.trackhub.feat_notifications.presentation.models.HubInvitationUI
 
@@ -161,7 +161,7 @@ private fun HubInvitationItemPreview() {
     AppTheme {
         HubInvitationItem(
             invitation = HubInvitationUI(
-                invitationId = 1,
+                invitationId = "1",
                 hubName = "Product Design Team",
                 hubDescription = "Collaborate on design projects and share creative resources",
                 inviterName = "Sarah Johnson",

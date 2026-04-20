@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class HubInvitationResponse(
-    val invitationId: Int,
+    val invitationId: String,
     val hubId: String,
     val hubName: String,
     val hubDescription: String?,

@@ -1,7 +1,7 @@
 package com.trackhub.feat_hub.presentation.utils
 
 import androidx.annotation.StringRes
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.feat_hub.R
 
 @StringRes fun getRoleDescription(role: HubRole): Int {

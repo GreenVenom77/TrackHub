@@ -52,6 +52,7 @@
     <string name="select_an_item">اختر عنصراً</string>
     <string name="select_items">اختر عناصر</string>
     <string name="selected_items">تم اختيار %d عناصر</string>
+    <string name="select_unit">اختر الوحدة</string>
     <string name="close">إغلاق</string>
     <string name="in_stock">متوفر</string>
     <string name="out_of_stock">غير متوفر</string>

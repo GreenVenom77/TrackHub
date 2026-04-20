@@ -7,7 +7,6 @@ import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
 import com.greenvenom.core_util.logger.Logger
-import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,7 +37,7 @@ class HubListViewModel(
     private var fetchingHubsJob: Job? = null
 
     init {
-        Logger.d("HubListViewModel created")
+        Logger.d(message = "HubListViewModel created")
     }
 
     fun hubListAction(action: HubListAction) {
@@ -63,12 +62,11 @@ class HubListViewModel(
                 it.copy(
                     addHubResult = withContext(Dispatchers.IO) {
                         hubRepository.addHub(
-                            HubInsertRequest(
-                                name = hubName,
-                                description = hubDescription,
-                                manufacturerList = emptyList(),
-                                categoryList = emptyList()
-                            )
+                            ownerId = "", // Will be set by backend
+                            name = hubName,
+                            description = hubDescription,
+                            manufacturerList = emptyList(),
+                            categoryList = emptyList()
                         )
                     }
                 )
@@ -113,7 +111,7 @@ class HubListViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        Logger.d("HubListViewModel cleared")
+        Logger.d(message = "HubListViewModel cleared")
         fetchingHubsJob?.cancel()
         fetchingHubsJob = null
     }
