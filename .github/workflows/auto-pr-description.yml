@@ -11,6 +11,7 @@ permissions:
 jobs:
   generate-description:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,116 +19,144 @@ jobs:
           fetch-depth: 0
 
       - name: Fetch base branch
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+        run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
 
-      - name: Get commit messages and code changes
+      - name: Build PR context
         id: context
         run: |
+          BASE="origin/${{ github.event.pull_request.base.ref }}"
+
           {
-            echo "### Commit Messages"
-            git log --pretty=format:"- %s" origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No commits)"
-            
-            echo -e "\n\n### Files Changed"
-            git diff --name-status --diff-filter=AM origin/${{ github.event.pull_request.base.ref }}..HEAD || echo "(No files)"
-            
-            echo -e "\n\n### Added/Modified Code (Key Signatures)"
-            # Show actual added lines with function/class declarations
-            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD | grep '^+' | grep -v '^+++' | grep -E '(fun |class |interface |object |data class |sealed |@Composable|suspend |override |val |var |enum )' | sed 's/^+//' | head -200 || echo "(No signatures)"
-            
-            echo -e "\n\n### Full Diff"
-            git diff origin/${{ github.event.pull_request.base.ref }}..HEAD
+            echo "## Commit Messages"
+            git log --pretty=format:"- %s" "$BASE..HEAD" || echo "(none)"
+
+            echo -e "\n\n## Files Changed"
+            git diff --stat "$BASE..HEAD" || echo "(none)"
+
+            echo -e "\n\n## New Files"
+            git diff --name-status --diff-filter=A "$BASE..HEAD" | awk '{print $2}' || echo "(none)"
+
+            echo -e "\n\n## Deleted Files"
+            git diff --name-status --diff-filter=D "$BASE..HEAD" | awk '{print $2}' || echo "(none)"
+
+            echo -e "\n\n## Code Signatures (declarations added/removed)"
+            git diff "$BASE..HEAD" \
+              | grep -E '^[+-]' \
+              | grep -v '^[+-][+-][+-]' \
+              | grep -E '(fun |class |interface |object |data class |sealed |@Composable|suspend |override |enum |typealias |val |var )' \
+              | sed 's/^+/[+] /' \
+              | sed 's/^-/[-] /' \
+              | sort -u \
+              | head -300 \
+              || echo "(none)"
+
+            echo -e "\n\n## Per-File Added Content"
+            while IFS= read -r file; do
+              echo -e "\n### $file"
+              git diff "$BASE..HEAD" -- "$file" \
+                | grep '^+' \
+                | grep -v '^+++' \
+                | grep -v '^\+[[:space:]]*//' \
+                | grep -v '^\+[[:space:]]*$' \
+                | sed 's/^+//' \
+                | head -60 \
+                || echo "(no additions)"
+            done < <(git diff --name-only --diff-filter=AM "$BASE..HEAD")
+
           } > context.txt
-          
+
+          # Cap at 450k chars (~112k tokens), leaving ~19k headroom for prompt +
+          # output within a 131k-context model.
+          MAX_CHARS=450000
+          ACTUAL=$(wc -c < context.txt)
+          if [ "$ACTUAL" -gt "$MAX_CHARS" ]; then
+            echo "context.txt is ${ACTUAL} chars, capping at ${MAX_CHARS}"
+            head -c "$MAX_CHARS" context.txt > context_trimmed.txt
+            echo -e "\n\n[... truncated to fit model context window ...]" >> context_trimmed.txt
+            mv context_trimmed.txt context.txt
+          fi
+
           {
             echo "context<<CONTEXTEOF"
             cat context.txt
             echo "CONTEXTEOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Generate AI Pull Request Description
+      - name: Generate PR description via OpenRouter
         id: ai
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Create a STRICT prompt that prevents hallucination
-          echo "You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
+          # Write prompt via python to avoid heredoc YAML indentation issues
+          python3 - << 'PYEOF'
+          prompt = """You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
 
-          ⚠️ CRITICAL RULES ⚠️
+          RULES:
           1. SUMMARIZE changes - do NOT copy code verbatim
           2. Describe WHAT was implemented and HOW it works architecturally
-          3. Include function names and types, but write in natural sentences, not code syntax
-          4. NEVER use placeholder commas like: 'Added functions , , , and'
-          5. Focus on the developer's intent and architectural patterns, not line-by-line code
+          3. Include function names and types naturally in sentences, not as raw code
+          4. Focus on the developer's intent and architectural patterns
+          5. NEVER use placeholder commas like: "Added functions , , , and"
 
-          BAD (copying code):
-          ❌ Added Column(Modifier.fillMaxWidth().padding(24.dp))
-          ❌ Uses filter{ SharedHubResponse::hubId eq leaveHubRequest.hubId }
-          ❌ Implements rememberSaveable{ mutableStateOf(false) }
+          BAD examples (do not do this):
+          - Added Column(Modifier.fillMaxWidth().padding(24.dp))
+          - Uses filter{ SharedHubResponse::hubId eq leaveHubRequest.hubId }
+          - Implements rememberSaveable{ mutableStateOf(false) }
 
-          GOOD (describing architecture):
-          ✅ Created InviteUserDialog composable with Material3 AlertDialog, search field, lazy-loaded user list, and role selection dropdown
-          ✅ Implemented leave hub functionality with Supabase delete operation and local cache invalidation
-          ✅ Added dialog state management using rememberSaveable for persistence across recompositions
+          GOOD examples (do this instead):
+          - Created InviteUserDialog composable with Material3 AlertDialog, lazy-loaded user list, and role selection dropdown
+          - Implemented leave hub functionality with Supabase delete operation and local cache invalidation
+          - Added dialog state management using rememberSaveable for persistence across recompositions
 
-          Write a technical PR description:
+          Write the PR description using this structure:
 
           ## Summary
-          3-4 sentences explaining the feature, architectural approach, and key technical decisions
+          3-4 sentences explaining the feature, architectural approach, and key technical decisions.
 
           ## Technical Changes
-          6-8 bullet points describing major changes. Each bullet should:
-          - Start with **Component Name - Feature**: 
-          - Describe what was added/changed in 1-2 sentences
-          - Include key function names (like inviteUser(), getMemberList()) naturally in sentences
-          - Mention important types (Flow<Result<T>>, StateFlow, sealed classes) in context
-          - Explain HOW things work, not just list code elements
+          6-8 bullet points. Each should:
+          - Start with **Component Name**:
+          - Describe what changed in 1-2 sentences
+          - Mention key function names naturally
+          - Note important types like Flow<Result<T>>, StateFlow, or sealed classes where relevant
+          - Explain HOW things work, not just list names
 
-          Format Examples:
+          Good bullet example:
+          - **HubInvitationsRepository**: Added member management via inviteUser(), removeMember(), and changeUserRole(), all returning Flow<Result<T>> for reactive state handling.
 
-          GOOD - Natural technical description:
-          ✅ **HubInvitationsRepository**: Added member management operations including inviteUser(), removeMember(), and changeUserRole(), all returning Flow<Result<T>> for reactive state handling. Repository implementation delegates to remote data source and maps DTOs to domain models.
+          Bad bullet example:
+          - **Repository**: Added suspend fun inviteUser(request: UserInviteRequest): NetworkResult<InvitationResult, NetworkError>
+          """
+          with open("prompt.txt", "w") as f:
+              f.write(prompt)
+          PYEOF
 
-          ✅ **InviteUserDialog Composable**: Implemented user search with 600ms debounced input via LaunchedEffect, displays results in LazyColumn with selectable UserSearchItem components, includes role selection dropdown (Editor/Viewer only), and confirms invitation with selected user and role.
-
-          ✅ **Domain Layer**: Created data models including HubMember (userId, name, email, role, status), InvitationResult for operation feedback, and UserSearch for search results. Added MemberStatus and InvitationStatus enums with string-to-enum mapping for API compatibility.
-
-          BAD - Code copying or too vague:
-          ❌ **Repository**: Added suspend fun inviteUser(request: UserInviteRequest): NetworkResult<InvitationResult, NetworkError>
-          ❌ **Dialog**: Uses Column(Modifier.fillMaxWidth().padding(24.dp)) with remember{ mutableStateOf() }
-          ❌ **ViewModel**: Updated state management
-          ❌ **UI**: Added new components
-
-          Remember: You're writing for developers who need to understand WHAT changed and WHY, not developers who need to see the exact code (they have the diff for that).
-
-          Context:
-          " > prompt.txt
-          
+          printf "\n\n## PR Context\n\n" >> prompt.txt
           cat context.txt >> prompt.txt
 
-          # Try multiple models in priority order (best free models for code analysis)
           MODELS=(
             "z-ai/glm-4.5-air:free"
-            "openrouter/bert-nebulon-alpha"
+            "qwen/qwen3-coder:free"
+            "google/gemma-4-31b-it:free"
+            "openrouter/elephant-alpha"
             "meta-llama/llama-3.3-70b-instruct:free"
-            "x-ai/grok-4.1-fast:free"
           )
-          
+
           for MODEL in "${MODELS[@]}"; do
             echo "Trying model: $MODEL"
-            
+
             jq -n \
               --arg model "$MODEL" \
-              --arg system "You are a technical writer who summarizes code changes for developers. Write clear descriptions of WHAT changed and HOW it works architecturally. Do NOT copy code verbatim - summarize it naturally." \
+              --arg system "You are a technical writer summarizing code changes for developers. Describe WHAT changed and HOW it works architecturally. Never copy code verbatim." \
               --rawfile prompt prompt.txt \
               '{
                 model: $model,
-                messages: [
-                  {role: "system", content: $system},
-                  {role: "user", content: $prompt}
-                ],
                 max_tokens: 2000,
-                temperature: 0.3
+                temperature: 0.3,
+                messages: [
+                  { role: "system", content: $system },
+                  { role: "user", content: $prompt }
+                ]
               }' > payload.json
 
             HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
@@ -138,18 +167,17 @@ jobs:
               -H "X-Title: PR Description Generator" \
               -d @payload.json)
 
-            echo "HTTP Status: $HTTP_CODE"
-            
+            echo "HTTP status: $HTTP_CODE"
+
             if [ "$HTTP_CODE" = "200" ]; then
               DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
-              
               if [ -n "$DESCRIPTION" ]; then
                 echo "Success with model: $MODEL"
                 {
                   echo "description<<DESCEOF"
                   echo "$DESCRIPTION"
                   echo "DESCEOF"
-                } >> $GITHUB_OUTPUT
+                } >> "$GITHUB_OUTPUT"
                 exit 0
               fi
             else
@@ -157,27 +185,28 @@ jobs:
               cat response.json
             fi
           done
-          
-          # If all models failed
+
           echo "All models failed"
           {
             echo "description<<DESCEOF"
-            echo "⚠️ Failed to generate AI description. Please check workflow logs for details."
+            echo "Failed to generate AI description - check workflow logs."
             echo ""
             echo "### Manual Summary Needed"
             echo "Please add a description for this PR."
             echo "DESCEOF"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: Update PR body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "### AI-Generated Pull Request Summary" > new_body.txt
-          echo "" >> new_body.txt
-          echo "${{ steps.ai.outputs.description }}" >> new_body.txt
-          echo "" >> new_body.txt
-          echo "---" >> new_body.txt
-          echo "*Generated by AI - please review and edit as needed*" >> new_body.txt
-          
+          {
+            echo "### AI-Generated Pull Request Summary"
+            echo ""
+            echo "${{ steps.ai.outputs.description }}"
+            echo ""
+            echo "---"
+            echo "*Generated by AI - please review and edit as needed*"
+          } > new_body.txt
+
           gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt
