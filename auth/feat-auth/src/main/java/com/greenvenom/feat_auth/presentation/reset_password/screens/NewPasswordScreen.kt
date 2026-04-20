@@ -27,12 +27,12 @@ import com.greenvenom.core_ui.components.text.PasswordField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
+import com.greenvenom.core_util.input.domain.ValidationResult
 import com.greenvenom.feat_auth.R
 import com.greenvenom.feat_auth.presentation.component.AuthHeader
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
-import com.greenvenom.validation.domain.ValidationResult
 
 @Composable
 fun NewPasswordScreen(

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Email -->
+    <string name="error_email_empty">البريد الإلكتروني لا يمكن أن يكون فارغًا</string>
+    <string name="error_email_too_long">البريد الإلكتروني طويل جدًا</string>
+    <string name="error_email_invalid">صيغة البريد الإلكتروني غير صحيحة</string>
+
+    <!-- Password -->
+    <string name="error_password_empty">كلمة المرور لا يمكن أن تكون فارغة</string>
+    <string name="error_password_short">يجب أن تكون كلمة المرور 8 أحرف على الأقل</string>
+    <string name="error_password_long">كلمة المرور طويلة جدًا</string>
+    <string name="error_password_digit">يجب أن تحتوي كلمة المرور على رقم واحد على الأقل</string>
+    <string name="error_password_letter">يجب أن تحتوي كلمة المرور على حرف واحد على الأقل</string>
+    <string name="error_password_special">يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل</string>
+    <string name="error_password_upper">يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل</string>
+    <string name="error_password_lower">يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل</string>
+    <string name="error_password_mismatch">كلمتا المرور غير متطابقتين</string>
+
+    <!-- Name -->
+    <string name="error_name_empty">الاسم لا يمكن أن يكون فارغًا</string>
+    <string name="error_name_short">يجب أن يكون الاسم حرفين على الأقل</string>
+    <string name="error_name_long">الاسم طويل جدًا</string>
+    <string name="error_name_invalid">الاسم يحتوي على أحرف غير صالحة</string>
+</resources>

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ItemResponse(
-    val id: Int,
+    val id: String,
     val hubId: String,
     val name: String,
     val stockCount: Float,

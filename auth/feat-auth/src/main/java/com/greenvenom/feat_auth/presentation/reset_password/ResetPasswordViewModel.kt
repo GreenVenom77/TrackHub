@@ -1,15 +1,13 @@
 package com.greenvenom.feat_auth.presentation.reset_password
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_auth.data.dto.request.ResetPasswordRequest
-import com.greenvenom.core_auth.data.dto.request.UpdatePasswordRequest
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
 import com.greenvenom.core_ui.presentation.BaseAction
-import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.greenvenom.validation.ValidateInput
-import com.greenvenom.validation.domain.onError
-import com.greenvenom.validation.domain.onSuccess
+import com.greenvenom.core_util.input.InputValidator
+import com.greenvenom.core_util.input.domain.onError
+import com.greenvenom.core_util.input.domain.onSuccess
+import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -30,14 +28,14 @@ class ResetPasswordViewModel(
             is ResetPasswordAction.ValidatePassword -> {
                 _resetPasswordState.update {
                     it.copy(
-                        passwordValidity = ValidateInput.validatePassword(action.password)
+                        passwordValidity = InputValidator.validatePassword(action.password)
                     )
                 }
             }
             is ResetPasswordAction.ValidatePasswordConfirmation -> {
                 _resetPasswordState.update {
                     it.copy(
-                        confirmPasswordValidity = ValidateInput.validatePasswordConfirmation(
+                        confirmPasswordValidity = InputValidator.validatePasswordConfirmation(
                             password = action.password,
                             confirmPassword = action.confirmPassword
                         )
@@ -61,7 +59,7 @@ class ResetPasswordViewModel(
     }
 
     private fun validateEmail(email: String) {
-        val typedEmailValidity = ValidateInput.validateEmail(email)
+        val typedEmailValidity = InputValidator.validateEmail(email)
         typedEmailValidity.onError { emailStateRepository.updateEmailValidity(typedEmailValidity) }
         typedEmailValidity.onSuccess {
             emailStateRepository.updateEmail(email)
@@ -73,7 +71,7 @@ class ResetPasswordViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.sendResetPasswordEmail(
-                ResetPasswordRequest(email)
+                email = email
             )
             _resetPasswordState.update { it.copy(emailSentNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)
@@ -85,7 +83,7 @@ class ResetPasswordViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.updatePassword(
-                UpdatePasswordRequest(newPassword)
+                newPassword = newPassword
             )
             _resetPasswordState.update { it.copy(passwordUpdatedNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)

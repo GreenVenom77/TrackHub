@@ -1,13 +1,12 @@
 package com.greenvenom.feat_auth.presentation.register
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_auth.data.dto.request.RegisterRequest
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
-import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.greenvenom.validation.ValidateInput
+import com.greenvenom.core_util.input.InputValidator
+import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,28 +24,28 @@ class RegisterViewModel(
             is RegisterAction.ValidateUsername -> {
                 _registerState.update {
                     it.copy(
-                        usernameValidity = ValidateInput.validateUsername(action.username)
+                        usernameValidity = InputValidator.validateName(action.username)
                     )
                 }
             }
             is RegisterAction.ValidateEmail -> {
                 _registerState.update {
                     it.copy(
-                        emailValidity = ValidateInput.validateEmail(action.email)
+                        emailValidity = InputValidator.validateEmail(action.email)
                     )
                 }
             }
             is RegisterAction.ValidatePassword -> {
                 _registerState.update {
                     it.copy(
-                        passwordValidity = ValidateInput.validatePassword(action.password)
+                        passwordValidity = InputValidator.validatePassword(action.password)
                     )
                 }
             }
             is RegisterAction.ValidatePasswordConfirmation -> {
                 _registerState.update {
                     it.copy(
-                        confirmPasswordValidity = ValidateInput.validatePasswordConfirmation(
+                        confirmPasswordValidity = InputValidator.validatePasswordConfirmation(
                             password = action.password,
                             confirmPassword = action.confirmPassword
                         )
@@ -71,11 +70,9 @@ class RegisterViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.registerUser(
-                RegisterRequest(
-                    email = email,
-                    password = password,
-                    displayName = username
-                )
+                email = email,
+                password = password,
+                fullName = username
             )
             result.onSuccess { emailStateRepository.updateEmail(email) }
             _registerState.update { it.copy(registrationNetworkResult = result) }.also {

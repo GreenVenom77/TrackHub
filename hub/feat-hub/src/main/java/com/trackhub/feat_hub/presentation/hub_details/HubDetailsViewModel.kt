@@ -7,16 +7,8 @@ import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_hub.data.mappers.toInsertRequest
-import com.trackhub.core_hub.data.mappers.toUpdateRequest
-import com.trackhub.core_hub.data.remote.dto.request.ChangeMemberRoleRequest
-import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
-import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
-import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
-import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
-import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
-import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.domain.repo.HubInvitationsRepository
@@ -26,6 +18,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,15 +31,7 @@ class HubDetailsViewModel(
     private val savedStateHandle: SavedStateHandle
 ): BaseViewModel() {
     private val _hubDetailsState = MutableStateFlow(HubDetailsState())
-    val hubDetailsState = _hubDetailsState.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(3000),
-        HubDetailsState()
-    )
-
-    private lateinit var itemsCollectionJob: Job
-
-    init {
+    val hubDetailsState = _hubDetailsState.onStart {
         savedStateHandle.get<String>("hubId")?.let { hubId ->
             viewModelScope.launch {
                 val fetchedHub = withContext(Dispatchers.IO) {
@@ -58,9 +44,21 @@ class HubDetailsViewModel(
                     )
                 }
             }
-            itemsCollectionJob = getHubItems(hubId, null, null, null)
+            itemsCollectionJob = getHubItems(
+                hubId,
+                null,
+                null,
+                null,
+                null
+            )
         }
-    }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        HubDetailsState()
+    )
+
+    private lateinit var itemsCollectionJob: Job
 
     fun hubDetailsAction(action: HubDetailsAction) {
         when (action) {
@@ -71,6 +69,7 @@ class HubDetailsViewModel(
                     _hubDetailsState.value.hub?.id ?: "",
                     _hubDetailsState.value.selectedCategory,
                     _hubDetailsState.value.selectedManufacturer,
+                    _hubDetailsState.value.selectedInStock,
                     action.searchQuery
                 )
             }
@@ -81,9 +80,11 @@ class HubDetailsViewModel(
                     _hubDetailsState.value.hub?.id ?: "",
                     action.category,
                     action.manufacturer,
+                    action.inStock,
                     _hubDetailsState.value.currentSearchQuery
                 )
             }
+            is HubDetailsAction.RefreshHub -> refreshHub()
             is HubDetailsAction.UpdateHub -> updateHub(
                 action.updatedHub
             )
@@ -112,6 +113,30 @@ class HubDetailsViewModel(
         }
     }
 
+    private fun refreshHub() {
+        _hubDetailsState.update { it.copy(isRefreshing = true) }
+
+        viewModelScope.launch {
+            val hubId = _hubDetailsState.value.hub?.id ?: return@launch
+
+            // Now actually suspends until network sync is done
+            withContext(Dispatchers.IO) {
+                hubRepository.syncHub(hubId)
+            }
+
+            val refreshedHub = withContext(Dispatchers.IO) {
+                hubRepository.getHub(hubId)  // now reads updated cache
+            }
+
+            _hubDetailsState.update {
+                it.copy(
+                    hub = refreshedHub,
+                    isRefreshing = false
+                )
+            }
+        }
+    }
+
     private fun updateHub(
         updatedHub: Hub
     ) {
@@ -119,7 +144,11 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val updateHubResult = withContext(Dispatchers.IO) {
                 hubRepository.updateHub(
-                    updatedHub.toUpdateRequest()
+                    id = updatedHub.id,
+                    name = updatedHub.name,
+                    description = updatedHub.description,
+                    manufacturerList = updatedHub.manufacturerList,
+                    categoryList = updatedHub.categoryList
                 )
             }
 
@@ -164,9 +193,12 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val addItemResult = withContext(Dispatchers.IO) {
                 hubRepository.addItemToHub(
-                    newItem.toInsertRequest(
-                        _hubDetailsState.value.hub?.id ?: ""
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: "",
+                    name = newItem.name,
+                    stockCount = newItem.stockCount,
+                    unit = newItem.unit,
+                    manufacturer = newItem.manufacturer,
+                    category = newItem.category
                 )
             }
 
@@ -186,7 +218,13 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val updateItemResult = withContext(Dispatchers.IO) {
                 hubRepository.updateItem(
-                    updatedItem.toUpdateRequest()
+                    id = updatedItem.id,
+                    name = updatedItem.name,
+                    stockCount = updatedItem.stockCount,
+                    unit = updatedItem.unit,
+                    imageUrl = updatedItem.imageUrl,
+                    manufacturer = updatedItem.manufacturer,
+                    category = updatedItem.category
                 )
             }
 
@@ -199,7 +237,7 @@ class HubDetailsViewModel(
         }
     }
 
-    private fun deleteItem(itemId: Int) {
+    private fun deleteItem(itemId: String) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val deleteItemResult = withContext(Dispatchers.IO) {
@@ -227,6 +265,7 @@ class HubDetailsViewModel(
         hubId: String,
         category: String?,
         manufacturer: String?,
+        inStock: Boolean?,
         searchQuery: String?
     ): Job {
         baseAction(BaseAction.ShowLoading)
@@ -234,6 +273,7 @@ class HubDetailsViewModel(
             it.copy(
                 selectedCategory = category,
                 selectedManufacturer = manufacturer,
+                selectedInStock = inStock,
                 currentSearchQuery = searchQuery
             )
         }
@@ -244,8 +284,9 @@ class HubDetailsViewModel(
                 hubId,
                 category,
                 manufacturer,
+                inStock,
                 searchQuery
-            ).collect { itemsResult ->
+            ).collectLatest { itemsResult ->
                 withContext(Dispatchers.Main) {
                     itemsResult.onSuccess { items ->
                         _hubDetailsState.update {
@@ -257,7 +298,8 @@ class HubDetailsViewModel(
 
                     _hubDetailsState.update {
                         it.copy(
-                            hubItemsResult = itemsResult.map {  }
+                            hubItemsResult = itemsResult.map {  },
+                            isRefreshing = false
                         )
                     }
                 }
@@ -269,9 +311,7 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val getAllInvitationsResult = withContext(Dispatchers.IO) {
                 invitationsRepository.getAllHubInvitations(
-                    HubInvitationsRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: ""
-                    )
+                    _hubDetailsState.value.hub?.id ?: ""
                 )
             }
 
@@ -289,10 +329,8 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val searchForUsersResult = withContext(Dispatchers.IO) {
                 invitationsRepository.searchForUsers(
-                    UserSearchRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: "",
-                        searchTerm = searchTerm
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: "",
+                    searchTerm = searchTerm
                 )
             }
 
@@ -311,11 +349,9 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val inviteUserResult = withContext(Dispatchers.IO) {
                 invitationsRepository.inviteUser(
-                    UserInviteRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: "",
-                        userId = userId,
-                        roleName = role.name
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: "",
+                    userId = userId,
+                    role = role
                 )
             }
 
@@ -343,11 +379,9 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val removeUserResult = withContext(Dispatchers.IO) {
                 invitationsRepository.removeUserFromHub(
-                    RemoveMemberRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: "",
-                        userId = userId,
-                        status = status
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: "",
+                    userId = userId,
+                    status = status
                 )
             }
 
@@ -373,12 +407,10 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val changeUserRoleResult = withContext(Dispatchers.IO) {
                 invitationsRepository.changeUserRole(
-                    ChangeMemberRoleRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: "",
-                        userId = userId,
-                        hubRole = role.name,
-                        status = status
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: "",
+                    userId = userId,
+                    role = role,
+                    status = status
                 )
             }
 
@@ -400,9 +432,7 @@ class HubDetailsViewModel(
         viewModelScope.launch {
             val leaveHubResult = withContext(Dispatchers.IO) {
                 hubRepository.leaveHub(
-                    LeaveHubRequest(
-                        hubId = _hubDetailsState.value.hub?.id ?: ""
-                    )
+                    hubId = _hubDetailsState.value.hub?.id ?: ""
                 )
             }
 
@@ -434,6 +464,7 @@ class HubDetailsViewModel(
         _hubDetailsState.update {
             it.copy(
                 operationResult = null,
+                hubItemsResult = null,
                 hubDeletionResult = null,
                 itemDeletionResult = null,
                 hubUpdateResult = null,

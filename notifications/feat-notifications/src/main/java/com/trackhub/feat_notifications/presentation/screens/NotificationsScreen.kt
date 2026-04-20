@@ -19,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,7 +32,7 @@ import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_ui.utils.SetScaffold
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_notifications.domain.models.HubInvitation
 import com.trackhub.feat_notifications.R
 import com.trackhub.feat_notifications.presentation.NotificationsAction
@@ -66,7 +66,7 @@ private fun NotificationsScreenContent(
     notificationsAction: (NotificationsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
 
     notificationsState.invitationAcceptanceResult
         ?.onSuccess { acceptance ->
@@ -158,7 +158,7 @@ private fun NotificationsScreenContent(
                     },
                     onReject = {
                         baseAction(BaseAction.ShowWarningDialog(
-                            warningMessage = context.getString(R.string.reject_invitation_warning),
+                            warningMessage = resources.getString(R.string.reject_invitation_warning),
                             confirmAction = {
                                 notificationsAction(
                                     NotificationsAction.RespondToInvitation(
@@ -193,7 +193,7 @@ private fun HubInvitationsScreenPreview() {
             notificationsState = NotificationsState(
                 invitations = listOf(
                     HubInvitation(
-                        invitationId = 1,
+                        invitationId = "1",
                         hubId = "123L",
                         hubName = "Product Design Team",
                         hubDescription = "Collaborate on design projects and share creative resources",
@@ -203,7 +203,7 @@ private fun HubInvitationsScreenPreview() {
                         createdAt = "2024-12-05T14:30:00Z"
                     ),
                     HubInvitation(
-                        invitationId = 2,
+                        invitationId = "2",
                         hubId = "456L",
                         hubName = "Engineering Hub",
                         hubDescription = "Development team for mobile and backend services",
@@ -213,7 +213,7 @@ private fun HubInvitationsScreenPreview() {
                         createdAt = "2024-12-04T14:30:00Z"
                     ),
                     HubInvitation(
-                        invitationId = 3,
+                        invitationId = "3",
                         hubId = "789L",
                         hubName = "Marketing Campaign 2025",
                         hubDescription = "No description available",

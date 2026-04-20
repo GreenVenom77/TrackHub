@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class NavigationStateRepository(private var appNavigator: AppNavigator) {
+class NavigationStateRepository(
+    private val appNavigator: AppNavigator
+) {
     private val _navigationState = MutableStateFlow(NavigationState())
     val navigationState = _navigationState.asStateFlow()
 
@@ -30,12 +32,6 @@ class NavigationStateRepository(private var appNavigator: AppNavigator) {
             )
         }
         updateBarsState()
-    }
-
-    fun updateAccountType(typeIndex: Int) {
-        _navigationState.update {
-            it.copy(accountTypeIndex = typeIndex)
-        }
     }
 
     private fun updateBarsState() {

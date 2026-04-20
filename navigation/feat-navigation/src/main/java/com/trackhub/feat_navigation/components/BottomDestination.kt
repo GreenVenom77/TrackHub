@@ -13,12 +13,12 @@ enum class BottomDestination(
     MyHubs(
         icon = R.drawable.home_ic,
         label = R.string.my_hubs,
-        comparableScreen = Screen.OwnedHubs
+        comparableScreen = Screen.OwnedHubs()
     ),
     SharedHubs(
         icon = R.drawable.shared_ic,
         label = R.string.shared_hubs,
-        comparableScreen = Screen.SharedHubs
+        comparableScreen = Screen.SharedHubs()
     ),
     Notifications(
         icon = R.drawable.notifications_ic,

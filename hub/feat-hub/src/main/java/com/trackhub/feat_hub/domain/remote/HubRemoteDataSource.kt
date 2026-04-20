@@ -11,7 +11,6 @@ import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.data.remote.dto.response.HubResponse
 import com.trackhub.core_hub.data.remote.dto.response.ItemResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
-import kotlinx.coroutines.flow.Flow
 
 interface HubRemoteDataSource {
     suspend fun addHub(hubInsertRequest: HubInsertRequest): NetworkResult<OwnedHubResponse, NetworkError>
@@ -22,7 +21,11 @@ interface HubRemoteDataSource {
 
     suspend fun getOwnHubs(): NetworkResult<List<OwnedHubResponse>, NetworkError>
 
+    suspend fun getOwnHub(hubId: String): NetworkResult<OwnedHubResponse, NetworkError>
+
     suspend fun getSharedHubs(): NetworkResult<List<HubResponse>, NetworkError>
+
+    suspend fun getSharedHub(hubId: String): NetworkResult<HubResponse, NetworkError>
 
     suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError>
 
@@ -30,7 +33,7 @@ interface HubRemoteDataSource {
 
     suspend fun updateItem(itemUpdateRequest: ItemUpdateRequest): EmptyResult<NetworkError>
 
-    suspend fun deleteItem(itemId: Int): EmptyResult<NetworkError>
+    suspend fun deleteItem(itemId: String): EmptyResult<NetworkError>
 
-    suspend fun getItemsFromHub(hubId: String): Flow<NetworkResult<List<ItemResponse>, NetworkError>>
+    suspend fun getItemsFromHub(hubId: String): NetworkResult<List<ItemResponse>, NetworkError>
 }

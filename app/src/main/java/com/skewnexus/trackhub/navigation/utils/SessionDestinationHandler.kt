@@ -7,6 +7,7 @@ import com.greenvenom.core_network.domain.SessionRepository
 import com.trackhub.feat_navigation.routes.SubGraph
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SessionDestinationHandler(
@@ -15,7 +16,7 @@ class SessionDestinationHandler(
 ) {
     fun collectSessionDestinations() {
         CoroutineScope(Dispatchers.Main).launch {
-            sessionStateRepository.userSessionDestination.collect { wantedDestination ->
+            sessionStateRepository.userSessionDestination.collectLatest { wantedDestination ->
                 handleSessionStates(wantedDestination)
             }
         }

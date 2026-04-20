@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,14 +25,17 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val appNavigator = koinInject<AppNavigator>()
     val navigationRepository = koinInject<NavigationStateRepository>()
     val destinationHandler = koinInject<SessionDestinationHandler>()
+    val navController = rememberNavController()
 
-    appNavigator.config(
-        returnedDestination = Screen::class,
-        navController = rememberNavController()
-    )
+    LaunchedEffect(Unit) {
+        appNavigator.config(
+            returnedDestination = Screen::class,
+            navController = navController
+        )
+    }
 
     NavHost(
-        navController = appNavigator.navController,
+        navController = navController,
         startDestination = Screen.Splash,
         enterTransition = {
             slideIntoContainer(

@@ -1,6 +1,6 @@
 package com.trackhub.core_notifications.data.mappers
 
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_notifications.data.remote.dto.response.HubInvitationResponse
 import com.trackhub.core_notifications.domain.models.HubInvitation
 

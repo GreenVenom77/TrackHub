@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InvitationAcceptanceRequest(
-    val invitationId: Int,
+    val invitationId: String,
     val response: Boolean
 )

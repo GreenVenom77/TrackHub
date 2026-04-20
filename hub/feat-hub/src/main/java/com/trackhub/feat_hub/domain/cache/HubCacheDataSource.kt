@@ -36,6 +36,7 @@ interface HubCacheDataSource {
         hubId: String,
         category: String?,
         manufacturer: String?,
+        inStock: Boolean?,
         searchQuery: String?
     ): PagingSource<Int, ItemEntity>
 }

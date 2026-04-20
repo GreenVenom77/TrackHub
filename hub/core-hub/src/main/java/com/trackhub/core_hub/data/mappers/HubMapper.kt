@@ -4,7 +4,7 @@ import com.trackhub.core_hub.data.cache.entities.HubEntity
 import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
 import com.trackhub.core_hub.data.remote.dto.response.HubResponse
 import com.trackhub.core_hub.data.remote.dto.response.OwnedHubResponse
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_hub.domain.models.Hub
 
 fun HubResponse.extractHub(): Hub {

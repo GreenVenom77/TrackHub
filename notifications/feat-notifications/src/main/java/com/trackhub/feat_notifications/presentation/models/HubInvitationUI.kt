@@ -1,9 +1,9 @@
 package com.trackhub.feat_notifications.presentation.models
 
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 
 data class HubInvitationUI(
-    val invitationId: Int,
+    val invitationId: String,
     val hubName: String,
     val hubDescription: String?,
     val inviterName: String,

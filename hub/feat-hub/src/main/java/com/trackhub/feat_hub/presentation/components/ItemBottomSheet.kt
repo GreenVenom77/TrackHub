@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -53,6 +53,7 @@ import com.greenvenom.core_ui.components.buttons.CustomButton
 import com.greenvenom.core_ui.components.dialogs.DialogSearchableDropdown
 import com.greenvenom.core_ui.components.text.CustomTextField
 import com.greenvenom.core_ui.theme.AppTheme
+import com.trackhub.core_hub.domain.enums.BaseUnit
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.ItemUI
@@ -64,13 +65,12 @@ fun ItemBottomSheet(
     onDismiss: () -> Unit,
     isEdit: Boolean,
     modifier: Modifier = Modifier,
-    isDismissible: Boolean = true,
     hubItem: ItemUI? = null,
     categories: List<String> = emptyList(),
     manufacturers: List<String> = emptyList(),
     onAdd: (Item) -> Unit = {},
     onEdit: (Item) -> Unit = {},
-    onDelete: (Int) -> Unit = {},
+    onDelete: (String) -> Unit = {},
     onAddCategory: (String) -> Unit = {},
     onAddManufacturer: (String) -> Unit = {},
 ) {
@@ -78,7 +78,6 @@ fun ItemBottomSheet(
         sheetState = sheetState,
         onDismiss = onDismiss,
         isEdit = isEdit,
-        isDismissible = isDismissible,
         modifier = modifier,
         hubItem = hubItem,
         categories = categories,
@@ -97,20 +96,21 @@ private fun ItemSheetContent(
     sheetState: SheetState,
     onDismiss: () -> Unit,
     isEdit: Boolean,
-    isDismissible: Boolean,
     modifier: Modifier = Modifier,
     hubItem: ItemUI? = null,
     categories: List<String> = emptyList(),
     manufacturers: List<String> = emptyList(),
     onAdd: (Item) -> Unit,
     onEdit: (Item) -> Unit,
-    onDelete: (Int) -> Unit,
+    onDelete: (String) -> Unit,
     onAddCategory: (String) -> Unit,
     onAddManufacturer: (String) -> Unit,
 ) {
     var newItemName by remember { mutableStateOf(hubItem?.name ?: "") }
     var newItemStock by remember { mutableStateOf(hubItem?.stockCount ?: "") }
-    var newItemUnit by remember { mutableStateOf(hubItem?.unit ?: "") }
+    var selectedUnit by remember { mutableStateOf<BaseUnit?>(
+        hubItem?.unit?.let { BaseUnit.fromApiKey(it) }
+    ) }
     var selectedCategory by remember { mutableStateOf(hubItem?.category) }
     var selectedManufacturer by remember { mutableStateOf(hubItem?.manufacturer) }
     var isDeletePressed by remember { mutableStateOf(false) }
@@ -120,14 +120,7 @@ private fun ItemSheetContent(
 
     ModalBottomSheet(
         sheetState = sheetState,
-        onDismissRequest = {
-            if (isDismissible) {
-                onDismiss()
-            }
-        },
-        dragHandle = {
-            if (isDismissible) { BottomSheetDefaults.DragHandle() }
-        },
+        onDismissRequest = onDismiss,
         modifier = modifier
     ) {
         Column(
@@ -213,13 +206,16 @@ private fun ItemSheetContent(
                             icon = Icons.Default.Scale,
                             modifier = Modifier.weight(1f)
                         ) {
-                            CustomTextField(
-                                value = newItemUnit,
-                                label = null,
-                                onValueChange = { newItemUnit = it },
-                                imeAction = ImeAction.Next,
-                                readOnly = isDeletePressed || isEditPressed,
-                                modifier = Modifier.fillMaxWidth()
+                            val resources = LocalResources.current
+                            DialogSearchableDropdown(
+                                selectedOption = selectedUnit,
+                                onItemSelected = { selectedUnit = it },
+                                options = BaseUnit.entries,
+                                placeholder = stringResource(R.string.select_unit),
+                                enabled = !isDeletePressed && !isEditPressed,
+                                selectedItemToString = { unit ->
+                                    resources.getString(unit.displayNameRes)
+                                }
                             )
                         }
                     }
@@ -307,11 +303,11 @@ private fun ItemSheetContent(
                     ),
                     onClick = {
                         val item = Item(
-                            id = hubItem?.id ?: 0,
+                            id = hubItem?.id ?: "",
                             hubId = hubItem?.hubId ?: "",
                             name = newItemName,
                             stockCount = newItemStock.toFloat(),
-                            unit = newItemUnit,
+                            unit = selectedUnit?.apiKey ?: "",
                             imageUrl = hubItem?.imageUrl,
                             createdAt = hubItem?.createdAt ?: "",
                             updatedAt = hubItem?.updatedAt,
@@ -328,7 +324,7 @@ private fun ItemSheetContent(
                     },
                     enabled = newItemName.isNotEmpty()
                             && newItemStock.isNotEmpty()
-                            && newItemUnit.isNotEmpty()
+                            && selectedUnit != null
                             && !isDeletePressed,
                     isLoading = isEditPressed,
                     modifier = Modifier.weight(1f)
@@ -450,9 +446,8 @@ private fun ItemSheetContentPreview() {
                 sheetState = rememberModalBottomSheetState(),
                 onDismiss = {},
                 isEdit = true,
-                isDismissible = true,
                 hubItem = ItemUI(
-                    id = 1,
+                    id = "1",
                     hubId = "hub123",
                     name = "Wireless Headphones",
                     stockCount = "50",

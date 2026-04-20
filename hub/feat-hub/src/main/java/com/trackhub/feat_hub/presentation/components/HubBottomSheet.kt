@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.components.buttons.CustomButton
 import com.greenvenom.core_ui.components.text.CustomMultilineTextField
 import com.greenvenom.core_ui.components.text.CustomTextField
-import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.HubUI
@@ -58,11 +57,10 @@ import com.trackhub.feat_hub.presentation.models.HubUI
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HubBottomSheet(
-    sheetState: SheetState,
     onDismiss: () -> Unit,
     isEdit: Boolean,
     modifier: Modifier = Modifier,
-    isDismissible: Boolean = true,
+    sheetState: SheetState = rememberModalBottomSheetState(),
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
     onAdd: (String, String) -> Unit = { _, _ -> },
@@ -76,7 +74,6 @@ fun HubBottomSheet(
         sheetState = sheetState,
         onDismiss = onDismiss,
         isEdit = isEdit,
-        isDismissible = isDismissible,
         modifier = modifier,
         hub = hub,
         hubMembers = hubMembers,
@@ -95,7 +92,6 @@ private fun HubSheetContent(
     sheetState: SheetState,
     onDismiss: () -> Unit,
     isEdit: Boolean,
-    isDismissible: Boolean,
     modifier: Modifier = Modifier,
     hub: HubUI? = null,
     hubMembers: List<HubMember> = emptyList(),
@@ -113,16 +109,7 @@ private fun HubSheetContent(
 
     ModalBottomSheet(
         sheetState = sheetState,
-        onDismissRequest = {
-            if (isDismissible) {
-                onDismiss()
-            }
-        },
-        dragHandle = {
-            if (isDismissible) {
-                BottomSheetDefaults.DragHandle()
-            }
-        },
+        onDismissRequest = onDismiss,
         modifier = modifier
     ) {
         Column(
@@ -349,7 +336,6 @@ private fun PreviewAddHub() {
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismiss = {},
             isEdit = false,
-            isDismissible = true,
             hub = null,
             hubMembers = emptyList(),
             onAdd = { _, _ -> },
@@ -371,7 +357,6 @@ private fun PreviewEditHubNoMembers() {
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismiss = {},
             isEdit = true,
-            isDismissible = true,
             hub = HubUI(
                 id = "hub_1",
                 userId = "user_1",
@@ -400,7 +385,6 @@ private fun PreviewEditHubWithMembers() {
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onDismiss = {},
             isEdit = true,
-            isDismissible = true,
             hub = HubUI(
                 id = "hub_1",
                 userId = "user_1",

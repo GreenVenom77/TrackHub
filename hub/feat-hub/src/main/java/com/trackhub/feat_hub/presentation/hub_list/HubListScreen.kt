@@ -1,8 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,13 +12,14 @@ import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +40,7 @@ import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
 import com.trackhub.feat_hub.presentation.mappers.toHubUI
+import kotlinx.coroutines.launch
 
 @Composable
 fun HubListScreen(
@@ -55,10 +55,6 @@ fun HubListScreen(
         }
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
-
-        LaunchedEffect(areHubsOwned) {
-            viewModel.hubListAction(HubListAction.StartCollectingHubs(areHubsOwned))
-        }
 
         HubListContent(
             areHubsOwned = areHubsOwned,
@@ -82,9 +78,9 @@ private fun HubListContent(
     hubListAction: (HubListAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    val sheetState: SheetState = rememberModalBottomSheetState()
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
-    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
 
     hubListState.fetchingHubsResult
         ?.onSuccess {
@@ -100,15 +96,16 @@ private fun HubListContent(
     hubListState.addHubResult
         ?.onSuccess {
             hubListAction(HubListAction.ClearNetworkOperations)
-            isSheetDismissible = true
-            hubSheetState = false
+            scope.launch {
+                sheetState.hide()
+                hubSheetState = false
+            }
         }
         ?.onError { error ->
             baseAction(BaseAction.ShowErrorMessage(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
             ))
-            isSheetDismissible = true
         }
 
     SetScaffold(
@@ -116,7 +113,6 @@ private fun HubListContent(
             FloatingButton(
                 isVisible = areHubsOwned,
                 onClick = {
-                    isSheetDismissible = true
                     hubSheetState = true
                 }
             )
@@ -126,7 +122,6 @@ private fun HubListContent(
     PullToRefreshBox(
         isRefreshing = hubListState.isRefreshing,
         onRefresh = {
-            Log.d("HubListScreen", "onRefresh")
             hubListAction(HubListAction.Refresh)
         },
         modifier = Modifier
@@ -150,41 +145,44 @@ private fun HubListContent(
                     }
                 }
             }
-        } ?: Box(
+        } ?: LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Hub,
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Hub,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
 
-                Text(
-                    text = stringResource(
-                        if (areHubsOwned) R.string.no_owned_hubs_found
-                        else R.string.no_shared_hubs_found
-                    ),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_found
+                            else R.string.no_shared_hubs_found
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                Text(
-                    text = stringResource(
-                        if (areHubsOwned) R.string.no_owned_hubs_message
-                        else R.string.no_shared_hubs_message
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                )
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_message
+                            else R.string.no_shared_hubs_message
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         }
 
@@ -195,9 +193,7 @@ private fun HubListContent(
                     hubSheetState = false
                 },
                 isEdit = false,
-                isDismissible = isSheetDismissible,
                 onAdd = { hubName, hubDescription ->
-                    isSheetDismissible = false
                     hubListAction(HubListAction.AddHub(
                         hubName, hubDescription
                     ))

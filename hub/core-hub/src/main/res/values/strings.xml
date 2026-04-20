@@ -10,4 +10,22 @@
     <string name="pending_invitation">Pending Invitation</string>
     <string name="invitation_declined">Invitation Declined</string>
     <string name="not_invited">Not Invited</string>
+
+    <!-- Base Units -->
+    <string name="unit_pieces">Pieces</string>
+    <string name="unit_kilograms">Kilograms</string>
+    <string name="unit_grams">Grams</string>
+    <string name="unit_liters">Liters</string>
+    <string name="unit_milliliters">Milliliters</string>
+    <string name="unit_meters">Meters</string>
+    <string name="unit_centimeters">Centimeters</string>
+    <string name="unit_boxes">Boxes</string>
+    <string name="unit_packs">Packs</string>
+    <string name="unit_bottles">Bottles</string>
+    <string name="unit_cans">Cans</string>
+    <string name="unit_bags">Bags</string>
+    <string name="unit_rolls">Rolls</string>
+    <string name="unit_sets">Sets</string>
+    <string name="unit_pairs">Pairs</string>
+    <string name="select_unit">Select Unit</string>
 </resources>

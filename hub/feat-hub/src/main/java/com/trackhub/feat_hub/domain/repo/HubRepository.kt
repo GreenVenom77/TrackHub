@@ -4,11 +4,6 @@ import androidx.paging.PagingData
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
-import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
-import com.trackhub.core_hub.data.remote.dto.request.HubUpdateRequest
-import com.trackhub.core_hub.data.remote.dto.request.ItemInsertRequest
-import com.trackhub.core_hub.data.remote.dto.request.ItemUpdateRequest
-import com.trackhub.core_hub.data.remote.dto.request.LeaveHubRequest
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 import kotlinx.coroutines.flow.Flow
@@ -16,28 +11,60 @@ import kotlinx.coroutines.flow.Flow
 interface HubRepository {
     fun refreshHubs()
 
-    suspend fun addHub(hubInsertRequest: HubInsertRequest): EmptyResult<NetworkError>
+    fun refreshHub(hubId: String)
 
-    suspend fun updateHub(hubUpdateRequest: HubUpdateRequest): NetworkResult<Hub, NetworkError>
+    suspend fun addHub(
+        ownerId: String,
+        name: String,
+        description: String?,
+        manufacturerList: List<String>,
+        categoryList: List<String>
+    ): EmptyResult<NetworkError>
+
+    suspend fun updateHub(
+        id: String,
+        name: String,
+        description: String?,
+        manufacturerList: List<String>,
+        categoryList: List<String>
+    ): NetworkResult<Hub, NetworkError>
 
     suspend fun deleteHub(hubId: String): EmptyResult<NetworkError>
 
-    suspend fun leaveHub(leaveHubRequest: LeaveHubRequest): EmptyResult<NetworkError>
+    suspend fun leaveHub(hubId: String): EmptyResult<NetworkError>
 
     suspend fun getHub(hubId: String): Hub
 
     fun getHubs(isOwned: Boolean = true): Flow<NetworkResult<List<Hub>, NetworkError>>
 
-    suspend fun addItemToHub(itemInsertRequest: ItemInsertRequest): EmptyResult<NetworkError>
+    suspend fun addItemToHub(
+        hubId: String,
+        name: String,
+        stockCount: Float,
+        unit: String,
+        manufacturer: String?,
+        category: String?
+    ): EmptyResult<NetworkError>
 
-    suspend fun updateItem(itemUpdateRequest: ItemUpdateRequest): EmptyResult<NetworkError>
+    suspend fun updateItem(
+        id: String,
+        name: String,
+        stockCount: Float,
+        unit: String,
+        imageUrl: String?,
+        manufacturer: String?,
+        category: String?
+    ): EmptyResult<NetworkError>
 
-    suspend fun deleteHubItem(hubItemId: Int): EmptyResult<NetworkError>
+    suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError>
+
+    suspend fun syncHub(hubId: String): EmptyResult<NetworkError>
 
     fun getItemsFromHub(
         hubId: String,
         category: String?,
         manufacturer: String?,
+        inStock: Boolean?,
         searchQuery: String?
     ): Flow<NetworkResult<Flow<PagingData<Item>>, NetworkError>>
 }

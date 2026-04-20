@@ -3,33 +3,38 @@ package com.trackhub.feat_hub.domain.repo
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
-import com.trackhub.core_hub.data.remote.dto.request.ChangeMemberRoleRequest
-import com.trackhub.core_hub.data.remote.dto.request.HubInvitationsRequest
-import com.trackhub.core_hub.data.remote.dto.request.RemoveMemberRequest
-import com.trackhub.core_hub.data.remote.dto.request.UserInviteRequest
-import com.trackhub.core_hub.data.remote.dto.request.UserSearchRequest
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
 import com.trackhub.core_hub.domain.models.InvitationResult
 import com.trackhub.core_hub.domain.models.UserSearch
 
 interface HubInvitationsRepository {
     suspend fun getAllHubInvitations(
-        invitationsRequest: HubInvitationsRequest
+        hubId: String
     ): NetworkResult<List<HubMember>, NetworkError>
 
     suspend fun searchForUsers(
-        searchRequest: UserSearchRequest
+        hubId: String,
+        searchTerm: String
     ): NetworkResult<List<UserSearch>, NetworkError>
 
     suspend fun inviteUser(
-        inviteRequest: UserInviteRequest
+        hubId: String,
+        userId: String,
+        role: HubRole
     ): NetworkResult<InvitationResult, NetworkError>
 
     suspend fun removeUserFromHub(
-        removalRequest: RemoveMemberRequest
+        hubId: String,
+        userId: String,
+        status: MemberStatus
     ): EmptyResult<NetworkError>
 
     suspend fun changeUserRole(
-        changeRoleRequest: ChangeMemberRoleRequest
+        hubId: String,
+        userId: String,
+        role: HubRole,
+        status: MemberStatus
     ): EmptyResult<NetworkError>
 }

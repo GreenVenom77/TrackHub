@@ -1,7 +1,6 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,15 +18,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +46,7 @@ import com.greenvenom.core_ui.components.buttons.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
-import com.trackhub.core_hub.domain.HubRole
+import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.AboutHubSheet
@@ -60,6 +61,7 @@ import com.trackhub.feat_hub.presentation.mappers.toHubUI
 import com.trackhub.feat_hub.presentation.mappers.toUI
 import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
+import kotlinx.coroutines.launch
 
 @Composable
 fun HubDetailsScreen(
@@ -92,7 +94,8 @@ private fun HubDetailsContent(
     hubDetailsAction: (HubDetailsAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val resource = LocalResources.current
 
     val lazyPagingItems = hubDetailsState.items.collectAsLazyPagingItems()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -100,7 +103,6 @@ private fun HubDetailsContent(
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
     var aboutHubSheetState by rememberSaveable { mutableStateOf(false) }
     var itemDetailsState by rememberSaveable { mutableStateOf(false) }
-    var isSheetDismissible by rememberSaveable { mutableStateOf(true) }
     var showInviteDialog by rememberSaveable { mutableStateOf(false) }
 
     hubDetailsState.hubItemsResult
@@ -116,29 +118,10 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
-            isSheetDismissible = true
-            itemDetailsState = false
-            isItemEdit = false
-            baseAction(BaseAction.ShowSuccessDialog())
-        }
-        ?.onError { error ->
-            baseAction(
-                BaseAction.ShowErrorMessage(
-                    errorMessage = stringResource(error.messageId),
-                    dismissAction = {
-                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                        isSheetDismissible = true
-                    }
-                )
-            )
-        }
-
-    hubDetailsState.hubUpdateResult
-        ?.onSuccess {
-            isSheetDismissible = true
-            hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-            if (hubSheetState) {
-                hubSheetState = false
+            scope.launch {
+                sheetState.hide()
+                itemDetailsState = false
+                isItemEdit = false
             }
             baseAction(BaseAction.ShowSuccessDialog())
         }
@@ -148,7 +131,28 @@ private fun HubDetailsContent(
                     errorMessage = stringResource(error.messageId),
                     dismissAction = {
                         hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                        isSheetDismissible = true
+                    }
+                )
+            )
+        }
+
+    hubDetailsState.hubUpdateResult
+        ?.onSuccess {
+            hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
+            if (hubSheetState) {
+                scope.launch {
+                    sheetState.hide()
+                    hubSheetState = false
+                }
+            }
+            baseAction(BaseAction.ShowSuccessDialog())
+        }
+        ?.onError { error ->
+            baseAction(
+                BaseAction.ShowErrorMessage(
+                    errorMessage = stringResource(error.messageId),
+                    dismissAction = {
+                        hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
                     }
                 )
             )
@@ -156,8 +160,10 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubDeletionResult
         ?.onSuccess {
-            isSheetDismissible = true
-            hubSheetState = false
+            scope.launch {
+                sheetState.hide()
+                hubSheetState = false
+            }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.NavigateBack)
         }
@@ -167,7 +173,6 @@ private fun HubDetailsContent(
                     errorMessage = stringResource(error.messageId),
                     dismissAction = {
                         hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                        isSheetDismissible = true
                     }
                 )
             )
@@ -175,11 +180,13 @@ private fun HubDetailsContent(
 
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
-            isSheetDismissible = true
-            itemDetailsState = false
+            scope.launch {
+                sheetState.hide()
+                itemDetailsState = false
+                isItemEdit = false
+            }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
-            isItemEdit = false
             baseAction(BaseAction.ShowSuccessDialog())
         }
         ?.onError { error ->
@@ -188,7 +195,6 @@ private fun HubDetailsContent(
                 errorMessage = stringResource(error.messageId),
                 dismissAction = {
                     hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                    isSheetDismissible = true
                 }
             ))
         }
@@ -210,7 +216,6 @@ private fun HubDetailsContent(
                         errorMessage = stringResource(result.toUI().messageResId),
                         dismissAction = {
                             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                            isSheetDismissible = true
                         }
                     )
                 )
@@ -222,7 +227,6 @@ private fun HubDetailsContent(
                     errorMessage = stringResource(error.messageId),
                     dismissAction = {
                         hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
-                        isSheetDismissible = true
                     }
                 )
             )
@@ -324,7 +328,7 @@ private fun HubDetailsContent(
                             onClick = {
                                 onDismiss()
                                 baseAction(BaseAction.ShowWarningDialog(
-                                    warningMessage = context.getString(R.string.leave_hub_message),
+                                    warningMessage = resource.getString(R.string.leave_hub_message),
                                     confirmAction = {
                                         hubDetailsAction(HubDetailsAction.LeaveHub)
                                     }
@@ -371,7 +375,7 @@ private fun HubDetailsContent(
                             onClick = {
                                 onDismiss()
                                 baseAction(BaseAction.ShowWarningDialog(
-                                    warningMessage = context.getString(R.string.leave_hub_message),
+                                    warningMessage = resource.getString(R.string.leave_hub_message),
                                     confirmAction = { hubDetailsAction(HubDetailsAction.LeaveHub) }
                                 ))
                             },
@@ -400,7 +404,6 @@ private fun HubDetailsContent(
                 FloatingButton(
                     isVisible = true,
                     onClick = {
-                        isSheetDismissible = true
                         isItemEdit = false
                         hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                         itemDetailsState = true
@@ -410,36 +413,53 @@ private fun HubDetailsContent(
         }
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Filter Component
-            FilterDropdownRow(
-                categories = hubDetailsState.hub?.categoryList ?: emptyList(),
-                manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
-                defaultCategory = stringResource(R.string.all_categories),
-                selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
-                defaultManufacturer = stringResource(R.string.all_manufacturers),
-                selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
-                onCategorySelected = { category ->
-                    hubDetailsAction(HubDetailsAction.FilterItems(
-                        category = category,
-                        manufacturer = hubDetailsState.selectedManufacturer,
-                    ))
-                },
-                onManufacturerSelected = { manufacturer ->
-                    hubDetailsAction(HubDetailsAction.FilterItems(
-                        category = hubDetailsState.selectedCategory,
-                        manufacturer = manufacturer,
-                    ))
-                }
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Filter Component
+        FilterDropdownRow(
+            categories = hubDetailsState.hub?.categoryList ?: emptyList(),
+            manufacturers = hubDetailsState.hub?.manufacturerList ?: emptyList(),
+            defaultCategory = stringResource(R.string.all_categories),
+            selectedCategory = hubDetailsState.selectedCategory ?: stringResource(R.string.all_categories),
+            defaultManufacturer = stringResource(R.string.all_manufacturers),
+            selectedManufacturer = hubDetailsState.selectedManufacturer ?: stringResource(R.string.all_manufacturers),
+            selectedInStock = hubDetailsState.selectedInStock,
+            onCategorySelected = { category ->
+                hubDetailsAction(HubDetailsAction.FilterItems(
+                    category = category,
+                    manufacturer = hubDetailsState.selectedManufacturer,
+                    inStock = hubDetailsState.selectedInStock
+                ))
+            },
+            onManufacturerSelected = { manufacturer ->
+                hubDetailsAction(HubDetailsAction.FilterItems(
+                    category = hubDetailsState.selectedCategory,
+                    manufacturer = manufacturer,
+                    inStock = hubDetailsState.selectedInStock
+                ))
+            },
+            onInStockSelected = { inStock ->
+                hubDetailsAction(HubDetailsAction.FilterItems(
+                    category = hubDetailsState.selectedCategory,
+                    manufacturer = hubDetailsState.selectedManufacturer,
+                    inStock = inStock
+                ))
+            }
+        )
 
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
 
-            // Items List
+        // Items List
+        PullToRefreshBox(
+            isRefreshing = hubDetailsState.isRefreshing,
+            onRefresh = {
+                hubDetailsAction(HubDetailsAction.RefreshHub)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             lazyPagingItems.takeIf { it.itemCount > 0 }?.let { hubItems ->
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -454,7 +474,6 @@ private fun HubDetailsContent(
                         ItemListCard(
                             hubItem = hubItem.toHubItemUI(),
                             onClick = {
-                                isSheetDismissible = true
                                 isItemEdit = true
                                 hubDetailsAction(HubDetailsAction.ChangeCurrentItem(hubItem))
                                 itemDetailsState = true
@@ -465,35 +484,38 @@ private fun HubDetailsContent(
                         )
                     }
                 }
-            } ?: Box(
+            } ?: LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.SearchOff,
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
+                item {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.SearchOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
 
-                    Text(
-                        text = stringResource(R.string.no_items_found),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                        Text(
+                            text = stringResource(R.string.no_items_found),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
-                    Text(
-                        text = stringResource(R.string.no_items_message),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
-                    )
+                        Text(
+                            text = stringResource(R.string.no_items_message),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+                    }
                 }
             }
         }
@@ -506,9 +528,7 @@ private fun HubDetailsContent(
                     hubMembers = hubDetailsState.invitationsList,
                     onDismiss = { hubSheetState = false },
                     isEdit = true,
-                    isDismissible = isSheetDismissible,
                     onEdit = { hubName, hubDescription ->
-                        isSheetDismissible = false
                         hubDetailsAction(HubDetailsAction.UpdateHub(
                             hub.copy(
                                 name = hubName,
@@ -517,7 +537,6 @@ private fun HubDetailsContent(
                         ))
                     },
                     onDelete = { hubId ->
-                        isSheetDismissible = false
                         baseAction(BaseAction.ShowWarningDialog(
                             confirmAction = {
                                 hubDetailsAction(HubDetailsAction.DeleteHub(hubId))
@@ -527,7 +546,7 @@ private fun HubDetailsContent(
                     onShowInviteDialog = { showInviteDialog = true },
                     onRemoveMember = { userId, userStatus ->
                         baseAction(BaseAction.ShowWarningDialog(
-                            warningMessage = context.getString(R.string.remove_member_message),
+                            warningMessage = resource.getString(R.string.remove_member_message),
                             confirmAction = {
                                 hubDetailsAction(HubDetailsAction.RemoveMember(userId, userStatus))
                             }
@@ -550,12 +569,11 @@ private fun HubDetailsContent(
         }
 
         if ((hubDetailsState.hub?.role == HubRole.Owner
-            || hubDetailsState.hub?.role == HubRole.Editor)
+                    || hubDetailsState.hub?.role == HubRole.Editor)
             && itemDetailsState) {
             ItemBottomSheet(
                 sheetState = sheetState,
                 isEdit = isItemEdit,
-                isDismissible = isSheetDismissible,
                 hubItem = hubDetailsState.currentItem?.toHubItemUI(),
                 manufacturers = hubDetailsState.hub.manufacturerList,
                 categories = hubDetailsState.hub.categoryList,
@@ -565,7 +583,6 @@ private fun HubDetailsContent(
                     hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
                 },
                 onAdd = { newItem ->
-                    isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.AddItem(
                             newItem
@@ -573,7 +590,6 @@ private fun HubDetailsContent(
                     )
                 },
                 onEdit = { updatedItem ->
-                    isSheetDismissible = false
                     hubDetailsAction(
                         HubDetailsAction.UpdateItem(
                             updatedItem
@@ -581,7 +597,6 @@ private fun HubDetailsContent(
                     )
                 },
                 onDelete = { itemId ->
-                    isSheetDismissible = false
                     baseAction(BaseAction.ShowWarningDialog(
                         confirmAction = { hubDetailsAction(HubDetailsAction.DeleteItem(itemId)) },
                         isDeletionDialog = true

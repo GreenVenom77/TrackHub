@@ -29,17 +29,26 @@ fun FilterDropdownRow(
     onManufacturerSelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
     showCategory: Boolean = true,
-    showManufacturer: Boolean = true
+    showManufacturer: Boolean = true,
+    selectedInStock: Boolean? = null,
+    onInStockSelected: (Boolean?) -> Unit = {},
+    showInStockFilter: Boolean = true
 ) {
     var selectedCategory by rememberSaveable { mutableStateOf(selectedCategory) }
     var selectedManufacturer by rememberSaveable { mutableStateOf(selectedManufacturer) }
+    val inStockOptions = listOf("All", "In Stock", "Out Of Stock")
+    val selectedInStockOption = when (selectedInStock) {
+        null -> "All"
+        true -> "In Stock"
+        false -> "Out Of Stock"
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Category Dropdown
@@ -53,7 +62,7 @@ fun FilterDropdownRow(
                     selectedCategory = category
                 },
                 modifier = Modifier
-                    .width(200.dp)
+                    .width(180.dp)
             )
         }
 
@@ -68,7 +77,27 @@ fun FilterDropdownRow(
                     selectedManufacturer = manufacturer
                 },
                 modifier = Modifier
-                    .width(200.dp)
+                    .width(180.dp)
+            )
+        }
+
+        // InStock Dropdown
+        if (showInStockFilter) {
+            FilterDropdown(
+                items = inStockOptions,
+                selectedItem = selectedInStockOption,
+                defaultItem = "All",
+                onItemSelected = { option ->
+                    val inStockValue = when (option) {
+                        "All" -> null
+                        "In Stock" -> true
+                        "Out Of Stock" -> false
+                        else -> null
+                    }
+                    onInStockSelected(inStockValue)
+                },
+                modifier = Modifier
+                    .width(140.dp)
             )
         }
     }

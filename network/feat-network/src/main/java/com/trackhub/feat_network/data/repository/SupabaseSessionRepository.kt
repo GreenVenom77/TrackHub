@@ -1,17 +1,17 @@
 package com.trackhub.feat_network.data.repository
 
-import android.util.Log
-import com.greenvenom.core_menu.data.cache.dao.ProfileDao
-import com.greenvenom.core_menu.data.mappers.toDomain
-import com.greenvenom.core_menu.data.mappers.toEntity
-import com.greenvenom.core_menu.data.remote.ProfileDto
-import com.greenvenom.core_menu.domain.Profile
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_network.domain.SessionDestinations
 import com.greenvenom.core_network.domain.SessionRepository
 import com.greenvenom.core_network.supabase.util.extractMetadata
 import com.greenvenom.core_network.supabase.util.supabaseCall
+import com.greenvenom.core_util.logger.Logger
+import com.trackhub.core_menu.data.cache.dao.ProfileDao
+import com.trackhub.core_menu.data.mappers.toDomain
+import com.trackhub.core_menu.data.mappers.toEntity
+import com.trackhub.core_menu.data.remote.ProfileDto
+import com.trackhub.core_menu.domain.Profile
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionSource
@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class SupabaseSessionRepository(
 
     override fun collectSessionStatus() {
         scope.launch {
-            supabaseClient.auth.sessionStatus.collect {
+            supabaseClient.auth.sessionStatus.collectLatest {
                 handleSessionStatus(it)
             }
         }
@@ -52,7 +53,7 @@ class SupabaseSessionRepository(
         when(sessionStatus) {
             SessionStatus.Initializing -> {  }
             is SessionStatus.Authenticated -> {
-                Log.d("Session Source", sessionStatus.source.toString())
+                Logger.d("Session Source", sessionStatus.source.toString())
                 when(sessionStatus.source) {
                     is SessionSource.Refresh,
                     is SessionSource.Storage,
@@ -64,7 +65,7 @@ class SupabaseSessionRepository(
                     is SessionSource.UserChanged -> {
                         _userSessionDestination.update { SessionDestinations.AUTH }
                     }
-                    else -> { Log.d("Session Source", sessionStatus.source.toString()) }
+                    else -> { Logger.d("Session Source", sessionStatus.source.toString()) }
                 }
             }
             is SessionStatus.NotAuthenticated -> {

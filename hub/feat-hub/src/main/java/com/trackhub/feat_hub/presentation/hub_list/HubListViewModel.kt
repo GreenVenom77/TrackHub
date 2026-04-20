@@ -1,40 +1,48 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_hub.data.remote.dto.request.HubInsertRequest
+import com.greenvenom.core_util.logger.Logger
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class HubListViewModel(
-    private val hubRepository: HubRepository
+    private val hubRepository: HubRepository,
+    private val savedStateHandle: SavedStateHandle
 ): BaseViewModel() {
     private val _hubListState: MutableStateFlow<HubListState> = MutableStateFlow(HubListState())
-    val hubListState = _hubListState.stateIn(
+    val hubListState = _hubListState.onStart {
+        savedStateHandle.get<Boolean>("ownedHubs")?.let { isOwned ->
+            fetchingHubsJob = getHubs(isOwned)
+        }
+    }.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(3000),
+        SharingStarted.WhileSubscribed(5000),
         HubListState()
     )
 
     private var fetchingHubsJob: Job? = null
 
+    init {
+        Logger.d(message = "HubListViewModel created")
+    }
+
     fun hubListAction(action: HubListAction) {
         when (action) {
             is HubListAction.AddHub -> addHub(action.hubName, action.hubDescription)
-            is HubListAction.StartCollectingHubs -> {
-                fetchingHubsJob = if (action.isOwned) getHubs(true) else getHubs(false)
-            }
             is HubListAction.Refresh -> {
                 _hubListState.update {
                     it.copy(
@@ -54,12 +62,11 @@ class HubListViewModel(
                 it.copy(
                     addHubResult = withContext(Dispatchers.IO) {
                         hubRepository.addHub(
-                            HubInsertRequest(
-                                name = hubName,
-                                description = hubDescription,
-                                manufacturerList = emptyList(),
-                                categoryList = emptyList()
-                            )
+                            ownerId = "", // Will be set by backend
+                            name = hubName,
+                            description = hubDescription,
+                            manufacturerList = emptyList(),
+                            categoryList = emptyList()
                         )
                     }
                 )
@@ -104,6 +111,7 @@ class HubListViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        Logger.d(message = "HubListViewModel cleared")
         fetchingHubsJob?.cancel()
         fetchingHubsJob = null
     }

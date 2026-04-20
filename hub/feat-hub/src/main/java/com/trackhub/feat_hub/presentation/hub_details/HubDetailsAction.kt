@@ -1,7 +1,7 @@
 package com.trackhub.feat_hub.presentation.hub_details
 
-import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.Item
 
@@ -12,7 +12,8 @@ interface HubDetailsAction {
 
     data class FilterItems(
         val category: String?,
-        val manufacturer: String?
+        val manufacturer: String?,
+        val inStock: Boolean?
     ): HubDetailsAction
 
     data class UpdateHub(
@@ -29,7 +30,7 @@ interface HubDetailsAction {
         val updatedItem: Item,
     ): HubDetailsAction
 
-    data class DeleteItem(val itemId: Int): HubDetailsAction
+    data class DeleteItem(val itemId: String): HubDetailsAction
 
     data object GetAllInvitations: HubDetailsAction
 
@@ -60,6 +61,8 @@ interface HubDetailsAction {
     data object ClearUserSearch: HubDetailsAction
 
     data object ClearNetworkOperations: HubDetailsAction
+
+    data object RefreshHub: HubDetailsAction
 
     data object NavigateBack: HubDetailsAction
 }

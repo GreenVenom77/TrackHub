@@ -20,6 +20,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresListDataFlow
 import io.github.jan.supabase.realtime.realtime
@@ -71,6 +72,16 @@ class SupabaseHubDataSource(
         }
     }
 
+    override suspend fun getOwnHub(
+        hubId: String
+    ): NetworkResult<OwnedHubResponse, NetworkError> {
+        return supabaseCall {
+            supabaseClient.from("hubs").select {
+                filter { OwnedHubResponse::id eq hubId }
+            }.decodeSingle<OwnedHubResponse>()
+        }
+    }
+
     override suspend fun getSharedHubs(): NetworkResult<List<HubResponse>, NetworkError> {
         val userId = supabaseClient.auth.currentUserOrNull()?.id as String
 
@@ -78,6 +89,17 @@ class SupabaseHubDataSource(
             supabaseClient.postgrest.rpc("get_shared_hubs").decodeList<HubResponse>().map {
                 it.copy(viewerId = userId)
             }
+        }
+    }
+
+    override suspend fun getSharedHub(hubId: String): NetworkResult<HubResponse, NetworkError> {
+        val userId = supabaseClient.auth.currentUserOrNull()?.id as String
+
+        return supabaseCall {
+            supabaseClient.postgrest.rpc(
+                "get_shared_hub",
+                mapOf("invited_hub_id" to hubId)
+            ).decodeSingle<HubResponse>().copy(viewerId = userId)
         }
     }
 
@@ -107,7 +129,7 @@ class SupabaseHubDataSource(
         }
     }
 
-    override suspend fun deleteItem(itemId: Int): EmptyResult<NetworkError> {
+    override suspend fun deleteItem(itemId: String): EmptyResult<NetworkError> {
         return supabaseCall {
             supabaseClient.from("items").delete {
                 filter { ItemResponse::id eq itemId }
@@ -116,6 +138,16 @@ class SupabaseHubDataSource(
     }
 
     override suspend fun getItemsFromHub(
+        hubId: String
+    ): NetworkResult<List<ItemResponse>, NetworkError> {
+        return supabaseCall {
+            supabaseClient.from(table = "items").select {
+                filter { ItemResponse::hubId eq hubId }
+            }.decodeList<ItemResponse>()
+        }
+    }
+
+    fun getItemsFromHubFlow(
         hubId: String
     ): Flow<NetworkResult<List<ItemResponse>, NetworkError>> {
         val itemsChannel = supabaseClient.realtime.channel("public:items")

@@ -5,7 +5,11 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 @Entity(
     tableName = "items",
     foreignKeys = [
@@ -24,10 +28,10 @@ import androidx.room.PrimaryKey
         Index("category"),
     ]
 )
-data class ItemEntity(
+data class ItemEntity (
     @PrimaryKey
     @ColumnInfo(name = "id")
-    val id: Int,
+    val id: String = Uuid.random().toString(),
     @ColumnInfo(name = "hub_id")
     val hubId: String,
     @ColumnInfo(name = "name")
@@ -39,7 +43,7 @@ data class ItemEntity(
     @ColumnInfo(name = "image_url")
     val imageUrl: String?,
     @ColumnInfo(name = "created_at")
-    val createdAt: String,
+    val createdAt: String = Clock.System.now().toString(),
     @ColumnInfo(name = "updated_at")
     val updatedAt: String?,
     @ColumnInfo(name = "manufacturer")

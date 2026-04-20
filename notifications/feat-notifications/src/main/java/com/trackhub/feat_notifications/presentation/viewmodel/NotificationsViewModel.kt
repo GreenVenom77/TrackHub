@@ -5,7 +5,6 @@ import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.trackhub.core_notifications.data.remote.dto.request.InvitationAcceptanceRequest
 import com.trackhub.feat_notifications.domain.repo.NotificationsRepository
 import com.trackhub.feat_notifications.presentation.NotificationsAction
 import com.trackhub.feat_notifications.presentation.NotificationsState
@@ -66,15 +65,16 @@ class NotificationsViewModel(
         }
     }
 
-    private fun respondToInvitation(invitationId: Int, accepted: Boolean) {
+    private fun respondToInvitation(
+        invitationId: String,
+        accepted: Boolean
+    ) {
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val respondToInvitationResult = withContext(Dispatchers.IO) {
                 repository.respondToInvitation(
-                    InvitationAcceptanceRequest(
-                        invitationId,
-                        accepted
-                    )
+                    invitationId = invitationId,
+                    accepted = accepted
                 )
             }
 

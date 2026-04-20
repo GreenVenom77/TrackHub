@@ -1,8 +1,8 @@
 package com.trackhub.core_hub.data.mappers
 
 import com.trackhub.core_hub.data.remote.dto.response.HubMemberResponse
-import com.trackhub.core_hub.domain.HubRole
-import com.trackhub.core_hub.domain.MemberStatus
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_hub.domain.enums.MemberStatus
 import com.trackhub.core_hub.domain.models.HubMember
 
 fun HubMemberResponse.toDomain(): HubMember {

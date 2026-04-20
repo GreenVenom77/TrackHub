@@ -1,6 +1,6 @@
 package com.trackhub.core_hub.domain.models
 
-import com.trackhub.core_hub.domain.InvitationStatus
+import com.trackhub.core_hub.domain.enums.InvitationStatus
 import kotlinx.serialization.Serializable
 
 @Serializable

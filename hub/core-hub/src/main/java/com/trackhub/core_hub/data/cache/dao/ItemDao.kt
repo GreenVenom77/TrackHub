@@ -23,6 +23,7 @@ interface ItemDao {
         WHERE items.hub_id = :hubId
         AND (:category IS NULL OR TRIM(:category) = '' OR items.category = :category)
         AND (:manufacturer IS NULL OR TRIM(:manufacturer) = '' OR items.manufacturer = :manufacturer)
+        AND (:inStock IS NULL OR items.in_stock = :inStock)
         AND (
             :searchQuery IS NULL
             OR TRIM(:searchQuery) = ''
@@ -37,6 +38,7 @@ interface ItemDao {
         hubId: String,
         category: String?,
         manufacturer: String?,
+        inStock: Boolean?,
         searchQuery: String?
     ): PagingSource<Int, ItemEntity>
 }

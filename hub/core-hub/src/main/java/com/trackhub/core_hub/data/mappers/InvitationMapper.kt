@@ -1,7 +1,7 @@
 package com.trackhub.core_hub.data.mappers
 
 import com.trackhub.core_hub.data.remote.dto.response.InvitationResponse
-import com.trackhub.core_hub.domain.InvitationStatus
+import com.trackhub.core_hub.domain.enums.InvitationStatus
 import com.trackhub.core_hub.domain.models.InvitationResult
 
 fun InvitationResponse.toDomain(): InvitationResult {

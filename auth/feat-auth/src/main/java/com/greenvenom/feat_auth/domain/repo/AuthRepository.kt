@@ -1,10 +1,5 @@
 package com.greenvenom.feat_auth.domain.repo
 
-import com.greenvenom.core_auth.data.dto.request.LoginRequest
-import com.greenvenom.core_auth.data.dto.request.RegisterRequest
-import com.greenvenom.core_auth.data.dto.request.ResetPasswordRequest
-import com.greenvenom.core_auth.data.dto.request.UpdatePasswordRequest
-import com.greenvenom.core_auth.data.dto.request.VerifyUserRequest
 import com.greenvenom.core_network.data.EmptyResult
 import com.greenvenom.core_network.data.NetworkError
 import com.greenvenom.core_network.data.NetworkResult
@@ -12,22 +7,26 @@ import io.github.jan.supabase.auth.user.UserInfo
 
 interface AuthRepository {
     suspend fun registerUser(
-        registerRequest: RegisterRequest
+        email: String,
+        password: String,
+        fullName: String
     ): NetworkResult<UserInfo?, NetworkError>
 
     suspend fun loginUser(
-        loginRequest: LoginRequest
+        email: String,
+        password: String
     ): EmptyResult<NetworkError>
 
     suspend fun verifyUser(
-        verifyUserRequest: VerifyUserRequest
+        email: String,
+        token: String
     ): EmptyResult<NetworkError>
 
     suspend fun sendResetPasswordEmail(
-        resetPasswordRequest: ResetPasswordRequest
+        email: String
     ): EmptyResult<NetworkError>
 
     suspend fun updatePassword(
-        updatePasswordRequest: UpdatePasswordRequest
+        newPassword: String
     ): NetworkResult<UserInfo, NetworkError>
 }
