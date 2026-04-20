@@ -1,34 +1,46 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_ui.components.FloatingButton
-import com.greenvenom.core_ui.components.TopAppBar
+import com.greenvenom.core_ui.components.buttons.FloatingButton
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
+import com.greenvenom.core_ui.utils.SetScaffold
+import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
-import com.trackhub.feat_hub.presentation.models.toHubUI
+import com.trackhub.feat_hub.presentation.mappers.toHubUI
+import kotlinx.coroutines.launch
 
 @Composable
 fun HubListScreen(
@@ -43,10 +55,6 @@ fun HubListScreen(
         }
     ) { viewModel ->
         val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
-
-        LaunchedEffect(Unit) {
-            viewModel.hubListAction(HubListAction.StartCollectingHubs(areHubsOwned))
-        }
 
         HubListContent(
             areHubsOwned = areHubsOwned,
@@ -70,20 +78,13 @@ private fun HubListContent(
     hubListAction: (HubListAction) -> Unit,
     baseAction: (BaseAction) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    val sheetState: SheetState = rememberModalBottomSheetState()
     var hubSheetState by rememberSaveable { mutableStateOf(false) }
 
     hubListState.fetchingHubsResult
-        ?.onError { error ->
-            baseAction(BaseAction.ShowErrorMessage(
-                stringResource(error.messageId)
-            ))
-        }
-
-    hubListState.addHubResult
         ?.onSuccess {
             hubListAction(HubListAction.ClearNetworkOperations)
-            hubSheetState = false
         }
         ?.onError { error ->
             baseAction(BaseAction.ShowErrorMessage(
@@ -92,70 +93,121 @@ private fun HubListContent(
             ))
         }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                isVisible = true,
-                isSideDestination = false,
-                isActionEnabled = false
-            )
-        },
+    hubListState.addHubResult
+        ?.onSuccess {
+            hubListAction(HubListAction.ClearNetworkOperations)
+            scope.launch {
+                sheetState.hide()
+                hubSheetState = false
+            }
+        }
+        ?.onError { error ->
+            baseAction(BaseAction.ShowErrorMessage(
+                errorMessage = stringResource(error.messageId),
+                dismissAction = { hubListAction(HubListAction.ClearNetworkOperations) }
+            ))
+        }
+
+    SetScaffold(
         floatingActionButton = {
             FloatingButton(
                 isVisible = areHubsOwned,
-                onClick = { hubSheetState = true },
-                modifier = Modifier
-                    .size(64.dp)
+                onClick = {
+                    hubSheetState = true
+                }
             )
+        }
+    )
+
+    PullToRefreshBox(
+        isRefreshing = hubListState.isRefreshing,
+        onRefresh = {
+            hubListAction(HubListAction.Refresh)
         },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            hubListState.hubs.takeIf { it.isNotEmpty() }?.let { hubs ->
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(
-                        items = hubs,
-                        key = { hub -> hub.id }
-                    ) { hub ->
-                        hub.toHubUI().let { hubUI ->
-                            HubListCard(
-                                hub = hubUI,
-                                onClick = {
-                                    hubListAction(HubListAction.NavigateToHubDetails(hubUI.id))
-                                },
-                                modifier = Modifier
-                                    .padding(8.dp)
-                            )
-                        }
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        hubListState.hubs.takeIf { it.isNotEmpty() }?.let { hubs ->
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(
+                    items = hubs,
+                    key = { hub -> hub.id }
+                ) { hub ->
+                    hub.toHubUI().let { hubUI ->
+                        HubListCard(
+                            hub = hubUI,
+                            onClick = {
+                                hubListAction(HubListAction.NavigateToHubDetails(hubUI.id))
+                            },
+                            modifier = Modifier
+                                .padding(8.dp)
+                        )
                     }
                 }
             }
+        } ?: LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Hub,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
 
-            if (hubSheetState) {
-                HubBottomSheet(
-                    sheetState = sheetState,
-                    onDismiss = {
-                        hubSheetState = false
-                    },
-                    isEdit = false,
-                    onAdd = { hubName, hubDescription ->
-                        hubListAction(HubListAction.AddHub(hubName, hubDescription))
-                    }
-                )
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_found
+                            else R.string.no_shared_hubs_found
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Text(
+                        text = stringResource(
+                            if (areHubsOwned) R.string.no_owned_hubs_message
+                            else R.string.no_shared_hubs_message
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
+        }
+
+        if (hubSheetState) {
+            HubBottomSheet(
+                sheetState = sheetState,
+                onDismiss = {
+                    hubSheetState = false
+                },
+                isEdit = false,
+                onAdd = { hubName, hubDescription ->
+                    hubListAction(HubListAction.AddHub(
+                        hubName, hubDescription
+                    ))
+                }
+            )
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun HubListPreview() {
     HubListContent(
-        areHubsOwned = true,
+        areHubsOwned = false,
         hubListState = HubListState(),
         hubListAction = {  },
         baseAction = {  },

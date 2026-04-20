@@ -79,9 +79,11 @@ private fun BottomBarContent(
         BottomDestination.entries.forEach { destination ->
             NavigationBarItem(
                 onClick = {
-                    defaultNavigationMethod(NavigationType.BottomNavigation(
-                        destination = destination.subGraph
-                    ))
+                    if (destination.comparableScreen != currentDestination) {
+                        defaultNavigationMethod(NavigationType.BottomNavigation(
+                            destination = destination.comparableScreen
+                        ))
+                    }
                 },
                 icon = {
                     Icon(
@@ -109,6 +111,6 @@ private fun BottomBarContent(
 private fun BottomNavigationBarContent() {
     BottomBarContent(
         defaultNavigationMethod = {  },
-        currentDestination = Screen.MyHubs
+        currentDestination = Screen.SharedHubs()
     )
 }

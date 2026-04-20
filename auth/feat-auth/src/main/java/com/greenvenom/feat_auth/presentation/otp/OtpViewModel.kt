@@ -1,11 +1,10 @@
 package com.greenvenom.feat_auth.presentation.otp
 
 import androidx.lifecycle.viewModelScope
-import com.greenvenom.core_auth.data.dto.request.VerifyUserRequest
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
-import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
+import com.greenvenom.feat_auth.domain.repo.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -53,7 +52,8 @@ class OtpViewModel(
         baseAction(BaseAction.ShowLoading)
         viewModelScope.launch {
             val result = authRepository.verifyUser(
-                VerifyUserRequest(email, otp)
+                email = email,
+                token = otp
             )
             _otpState.update { it.copy(otpNetworkResult = result) }.also {
                 baseAction(BaseAction.HideLoading)

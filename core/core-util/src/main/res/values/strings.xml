@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Email -->
+    <string name="error_email_empty">Email cannot be empty</string>
+    <string name="error_email_too_long">Email is too long</string>
+    <string name="error_email_invalid">Invalid email format</string>
+
+    <!-- Password -->
+    <string name="error_password_empty">Password cannot be empty</string>
+    <string name="error_password_short">Password must be at least 8 characters</string>
+    <string name="error_password_long">Password is too long</string>
+    <string name="error_password_digit">Password must contain at least one digit</string>
+    <string name="error_password_letter">Password must contain at least one letter</string>
+    <string name="error_password_special">Password must contain at least one special character</string>
+    <string name="error_password_upper">Password must contain at least one uppercase letter</string>
+    <string name="error_password_lower">Password must contain at least one lowercase letter</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+
+    <!-- Name -->
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_name_short">Name must be at least 2 characters</string>
+    <string name="error_name_long">Name is too long</string>
+    <string name="error_name_invalid">Name contains invalid characters</string>
+</resources>

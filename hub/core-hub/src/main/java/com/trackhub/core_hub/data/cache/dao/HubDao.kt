@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
 import com.trackhub.core_hub.data.cache.entities.HubEntity
-import com.trackhub.core_hub.data.cache.entities.HubItemEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -41,13 +40,4 @@ interface HubDao {
 
     @Query("DELETE FROM hubs")
     suspend fun deleteAllHubs()
-
-    @Upsert
-    suspend fun updateHubItems(items: List<HubItemEntity>)
-
-    @Delete
-    suspend fun deleteItems(items: List<HubItemEntity>)
-
-    @Query("SELECT * FROM hub_items WHERE hub_id = :hubId")
-    fun getItemsFromHub(hubId: String): Flow<List<HubItemEntity>>
 }

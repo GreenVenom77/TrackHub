@@ -3,6 +3,7 @@ package com.greenvenom.core_network.utils
 import com.greenvenom.core_network.R
 import com.greenvenom.core_network.data.ErrorType
 import com.greenvenom.core_network.data.NetworkError
+import com.greenvenom.core_util.logger.Logger
 
 fun buildNetworkError(
     statusErrorCode: Int,
@@ -25,8 +26,7 @@ fun buildNetworkError(
     val customMessageStatusCodes = listOf(400, 401, 403, 409, 422)
 
     val shouldCheckCustomMessage = statusErrorCode in customMessageStatusCodes &&
-            message != null &&
-            message.isNotBlank() &&
+            !message.isNullOrBlank() &&
             message.trim().isNotEmpty()
 
     val messageId = if (shouldCheckCustomMessage) {
@@ -34,6 +34,8 @@ fun buildNetworkError(
     } else {
         errorType.getDefaultMessageId()
     }
+
+    Logger.d("NetworkError", "messageId: $messageId, message: $message")
 
     return NetworkError(
         errorType = errorType,
@@ -47,6 +49,7 @@ private fun getCustomMessageId(errorType: ErrorType, message: String): Int {
     return when (errorType) {
         ErrorType.BAD_REQUEST -> {
             when {
+                lowerMessage.contains("invalid") && (lowerMessage.contains("credentials") || lowerMessage.contains("login")) -> R.string.error_invalid_credentials
                 lowerMessage.contains("email") && lowerMessage.contains("format") -> R.string.error_invalid_email_format
                 lowerMessage.contains("password") && (lowerMessage.contains("short") || lowerMessage.contains("8")) -> R.string.error_password_too_short
                 else -> R.string.error_bad_request

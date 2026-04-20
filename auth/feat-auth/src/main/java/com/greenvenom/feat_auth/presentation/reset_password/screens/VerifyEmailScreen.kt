@@ -20,22 +20,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.feat_auth.R
 import com.greenvenom.core_auth.data.repository.EmailState
 import com.greenvenom.core_auth.data.repository.EmailStateRepository
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.feat_auth.presentation.component.AuthHeader
-import com.greenvenom.core_ui.components.CustomTextField
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
-import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.text.EmailField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
-import com.greenvenom.validation.domain.ValidationError
-import com.greenvenom.validation.domain.ValidationResult
+import com.greenvenom.core_util.input.domain.ValidationError
+import com.greenvenom.core_util.input.domain.ValidationResult
+import com.greenvenom.feat_auth.R
+import com.greenvenom.feat_auth.presentation.component.AuthHeader
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
+import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -105,19 +105,21 @@ private fun VerifyEmailContent(
                 text = stringResource(R.string.email),
                 color = MaterialTheme.colorScheme.onBackground
             )
-            CustomTextField(
+            EmailField(
                 value = email,
                 onValueChange = {
                     email = it
                     resetPasswordActions(ResetPasswordAction.UpdateEmail(email))
                 },
                 label = stringResource(R.string.enter_your_email),
-                error = if (emailState.emailValidity is ValidationResult.Error) {
+                errorText = if (emailState.emailValidity is ValidationResult.Error) {
                     stringResource((emailState.emailValidity as ValidationResult.Error<ValidationError>)
                         .error.messageId)
-                } else "",
+                } else ""
             )
+
             Spacer(modifier = Modifier.height(20.dp))
+
             CustomButton(
                 text = stringResource(R.string.next),
                 enabled = emailState.emailValidity is ValidationResult.Success,

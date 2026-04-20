@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -23,16 +20,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.feat_auth.R
-import com.greenvenom.core_ui.components.CustomButton
-import com.greenvenom.feat_auth.presentation.component.AuthHeader
-import com.greenvenom.core_ui.components.CustomTextField
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
+import com.greenvenom.core_ui.components.buttons.CustomButton
+import com.greenvenom.core_ui.components.text.CustomTextField
+import com.greenvenom.core_ui.components.text.EmailField
+import com.greenvenom.core_ui.components.text.PasswordField
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.theme.AppTheme
-import com.greenvenom.validation.domain.ValidationResult
+import com.greenvenom.core_util.input.domain.ValidationResult
+import com.greenvenom.feat_auth.R
+import com.greenvenom.feat_auth.presentation.component.AuthHeader
 
 @Composable
 fun RegisterScreen(
@@ -107,11 +106,6 @@ private fun RegisterContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Username Field
-            Text(
-                text = stringResource(R.string.user_name),
-                color = MaterialTheme.colorScheme.onBackground
-            )
             CustomTextField(
                 value = username,
                 onValueChange = {
@@ -119,66 +113,53 @@ private fun RegisterContent(
                     registerActions(RegisterAction.ValidateUsername(username))
                 },
                 label = stringResource(R.string.enter_your_username),
-                error = if (state.usernameValidity is ValidationResult.Error)
+                errorText = if (state.usernameValidity is ValidationResult.Error)
                     stringResource(state.usernameValidity.error.messageId)
                 else "",
                 isPasswordField = false,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                imeAction = ImeAction.Next
             )
-            // Email Field
-            Text(
-                text = stringResource(R.string.email),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+
+            EmailField(
                 value = email,
                 onValueChange = {
                     email = it
                     registerActions(RegisterAction.ValidateEmail(email))
                 },
                 label = stringResource(R.string.enter_your_email),
-                error = if (state.emailValidity is ValidationResult.Error)
+                errorText = if (state.emailValidity is ValidationResult.Error)
                     stringResource(state.emailValidity.error.messageId)
                 else "",
-                isPasswordField = false,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                imeAction = ImeAction.Next
             )
-            // Password Field
-            Text(
-                text = stringResource(R.string.Password),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+
+            PasswordField(
                 value = password,
                 onValueChange = {
                     password = it
                     registerActions(RegisterAction.ValidatePassword(password))
                 },
                 label = stringResource(R.string.enter_your_password),
-                error = if (state.passwordValidity is ValidationResult.Error)
+                errorText = if (state.passwordValidity is ValidationResult.Error)
                     stringResource(state.passwordValidity.error.messageId)
                 else "",
-                isPasswordField = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                imeAction = ImeAction.Next
             )
-            // Confirm Password Field
-            Text(
-                text = stringResource(R.string.confirm_password),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            CustomTextField(
+
+            PasswordField(
                 value = confirmPassword,
                 onValueChange = {
                     confirmPassword = it
                     registerActions(RegisterAction.ValidatePasswordConfirmation(password, confirmPassword))
                 },
                 label = stringResource(R.string.confirm_your_password),
-                error = if (state.confirmPasswordValidity is ValidationResult.Error)
+                errorText = if (state.confirmPasswordValidity is ValidationResult.Error)
                     stringResource(state.confirmPasswordValidity.error.messageId)
-                else "",
-                isPasswordField = true
+                else ""
             )
+
             Spacer(modifier = Modifier.height(20.dp))
+
             // Register Button
             CustomButton(
                 text = stringResource(R.string.register),

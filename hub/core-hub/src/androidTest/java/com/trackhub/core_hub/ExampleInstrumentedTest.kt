@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.trackhub.hub.test", appContext.packageName)
+        assertEquals("com.trackhub.core_hub.test", appContext.packageName)
     }
 }

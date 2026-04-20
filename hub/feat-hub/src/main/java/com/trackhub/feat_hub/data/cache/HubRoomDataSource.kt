@@ -1,16 +1,16 @@
 package com.trackhub.feat_hub.data.cache
 
+import androidx.paging.PagingSource
 import com.trackhub.core_hub.data.cache.dao.HubDao
+import com.trackhub.core_hub.data.cache.dao.ItemDao
 import com.trackhub.core_hub.data.cache.entities.HubEntity
-import com.trackhub.core_hub.data.cache.entities.HubItemEntity
-import com.trackhub.core_hub.domain.models.Hub
-import com.trackhub.core_hub.domain.models.HubItem
+import com.trackhub.core_hub.data.cache.entities.ItemEntity
 import com.trackhub.feat_hub.domain.cache.HubCacheDataSource
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 class HubRoomDataSource(
-    private val hubDao: HubDao
+    private val hubDao: HubDao,
+    private val itemDao: ItemDao
 ): HubCacheDataSource {
     // Hubs
     override suspend fun addHub(hub: HubEntity) {
@@ -41,12 +41,12 @@ class HubRoomDataSource(
         return hubDao.getHub(hubId)
     }
 
-    override fun getOwnHubs(): Flow<List<Hub>> {
-        return hubDao.getOwnHubs().map { it.map { hubEntity -> hubEntity.extractHub() } }
+    override fun getOwnHubs(): Flow<List<HubEntity>> {
+        return hubDao.getOwnHubs()
     }
 
-    override fun getSharedHubs(): Flow<List<Hub>> {
-        return hubDao.getSharedHubs().map { it.map { hubEntity -> hubEntity.extractHub() } }
+    override fun getSharedHubs(): Flow<List<HubEntity>> {
+        return hubDao.getSharedHubs()
     }
 
     override suspend fun deleteAllHubs() {
@@ -54,15 +54,31 @@ class HubRoomDataSource(
     }
 
     // Items
-    override suspend fun updateHubItems(items: List<HubItemEntity>) {
-        hubDao.updateHubItems(items)
+    override suspend fun updateHubItems(items: List<ItemEntity>) {
+        itemDao.updateItems(items)
     }
 
-    override suspend fun deleteItems(items: List<HubItemEntity>) {
-        hubDao.deleteItems(items)
+    override suspend fun deleteItems(items: List<ItemEntity>) {
+        itemDao.deleteItems(items)
     }
 
-    override fun getItemsFromHub(hubId: String): Flow<List<HubItem>> {
-        return hubDao.getItemsFromHub(hubId).map { it.map{ hubItemEntity -> hubItemEntity.extractHubItem() } }
+    override fun getItemsFromHub(hubId: String): List<ItemEntity> {
+        return itemDao.getItemsFromHub(hubId)
+    }
+
+    override fun getItemsWithFiltersPaged(
+        hubId: String,
+        category: String?,
+        manufacturer: String?,
+        inStock: Boolean?,
+        searchQuery: String?
+    ): PagingSource<Int, ItemEntity> {
+        return itemDao.getItemsWithFiltersPaged(
+            hubId,
+            category,
+            manufacturer,
+            inStock,
+            searchQuery
+        )
     }
 }

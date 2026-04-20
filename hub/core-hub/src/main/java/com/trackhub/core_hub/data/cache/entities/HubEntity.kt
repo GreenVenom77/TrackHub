@@ -2,32 +2,54 @@ package com.trackhub.core_hub.data.cache.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.trackhub.core_hub.domain.models.Hub
+import com.trackhub.core_hub.domain.enums.HubRole
+import com.trackhub.core_menu.data.cache.entities.ProfileEntity
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-@Entity(tableName = "hubs")
+@OptIn(ExperimentalUuidApi::class)
+@Entity(
+    tableName = "hubs",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProfileEntity::class,
+            parentColumns = ["user_id"],
+            childColumns = ["viewer_id"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index("viewer_id")
+    ]
+)
 data class HubEntity(
     @PrimaryKey
     @ColumnInfo(name = "id")
-    val id: String = "",
-    @ColumnInfo(name = "user_id")
-    val userId: String,
+    val id: String = Uuid.random().toString(),
+    @ColumnInfo(name = "owner_id")
+    val ownerId: String,
+    @ColumnInfo(
+        name = "viewer_id",
+        defaultValue = ""
+    )
+    val viewerId: String,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "description")
-    val description: String? = null,
+    val description: String?,
     @ColumnInfo(name = "is_owned")
-    val isOwned: Boolean = true,
+    val isOwned: Boolean,
     @ColumnInfo(name = "created_at")
-    val createdAt: String = "",
-) {
-    fun extractHub(): Hub {
-        return Hub(
-            id = this.id,
-            userId = this.userId,
-            name = this.name,
-            description = this.description,
-            createdAt = this.createdAt,
-        )
-    }
-}
+    val createdAt: String = Clock.System.now().toString(),
+    @ColumnInfo(name = "hub_role")
+    val hubRole: HubRole,
+    @ColumnInfo(name = "manufacturer_list")
+    val manufacturerList: List<String>,
+    @ColumnInfo(name = "category_list")
+    val categoryList: List<String>
+)

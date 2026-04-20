@@ -8,11 +8,94 @@
     <string name="edit_hub_Details">Edit Hub Details</string>
     <string name="hub_id">Hub ID</string>
     <string name="update_hub">Update Hub</string>
-    <string name="item_name">Name</string>
-    <string name="item_stock">Stock</string>
-    <string name="item_unit">Unit</string>
-    <string name="update_item">Update Item</string>
-    <string name="add_item">Add Item</string>
-    <string name="delete_item">Delete Item</string>
     <string name="unknown_hub">Unknown Hub</string>
+    <string name="hub_description_hint">Enter hub description</string>
+    <string name="about_hub">About Hub</string>
+    <string name="created_at">Created At</string>
+    <string name="no_description">No description provided</string>
+    <string name="unknown">Unknown</string>
+    <string name="leave_hub">Leave Hub</string>
+    <string name="leave_hub_message">Are you sure you want to leave this hub?</string>
+
+    <!-- Category related strings -->
+    <string name="category">Category</string>
+    <string name="select_category">Select category</string>
+    <string name="add_category">Add Category</string>
+    <string name="category_name">Category name</string>
+    <string name="all_categories">All Categories</string>
+
+    <!-- Manufacturer related strings -->
+    <string name="manufacturer">Manufacturer</string>
+    <string name="select_manufacturer">Select manufacturer</string>
+    <string name="add_manufacturer">Add Manufacturer</string>
+    <string name="manufacturer_name">Manufacturer name</string>
+    <string name="all_manufacturers">All Manufacturers</string>
+
+    <!-- General action strings -->
+    <string name="add_new">Add New</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="all">All</string>
+    <string name="settings">Settings</string>
+
+    <!-- Item form strings -->
+    <string name="item_details">Item Details</string>
+    <string name="item_name">Item name</string>
+    <string name="item_stock">Item stock</string>
+    <string name="item_unit">Item unit</string>
+    <string name="add_item">Add Item</string>
+    <string name="update_item">Update Item</string>
+    <string name="delete_item">Delete Item</string>
+
+    <!-- Selection strings -->
+    <string name="select_an_item">Select an item</string>
+    <string name="select_items">Select items</string>
+    <string name="selected_items">%d items selected</string>
+    <string name="select_unit">Select Unit</string>
+    <string name="close">Close</string>
+    <string name="in_stock">In Stock</string>
+    <string name="out_of_stock">Out Of Stock</string>
+
+    <!-- Members & Invitations -->
+    <string name="members">Members</string>
+    <string name="invite">Invite</string>
+    <string name="invite_user">Invite User</string>
+    <string name="send_invite">Send Invite</string>
+    <string name="no_members_yet">No members yet</string>
+    <string name="remove_member">Remove Member</string>
+    <string name="search_by_name_or_email">Search by name or email</string>
+    <string name="no_users_found">No users found</string>
+    <string name="select_role">Select Role</string>
+    <string name="clear_selection">Clear Selection</string>
+    <string name="remove_member_message">Are you sure you want to remove this member from the hub?</string>
+
+    <!-- Role Descriptions -->
+    <string name="role_owner_desc">Full access to everything</string>
+    <string name="role_editor_desc">Can add and edit items</string>
+    <string name="role_viewer_desc">Can only view items</string>
+
+    <!-- Success messages -->
+    <string name="invitation_role_updated">Member role updated successfully</string>
+    <string name="invitation_updated">Pending invitation updated with new role</string>
+    <string name="invitation_resent">Invitation resent successfully</string>
+    <string name="invitation_sent">Invitation sent successfully</string>
+
+    <!-- Error messages -->
+    <string name="error_hub_id_null">Hub ID is required</string>
+    <string name="error_user_id_null">User ID is required</string>
+    <string name="error_role_name_empty">Please select a role</string>
+    <string name="error_no_permission">You don\'t have permission to invite users to this hub</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_cannot_invite_self">You cannot invite yourself</string>
+    <string name="error_invalid_role_name">Invalid role selected. Please choose Owner, Editor, or Viewer</string>
+    <string name="error_generic">An error occurred. Please try again</string>
+
+    <!-- Empty Strings -->
+    <string name="no_items_found">No Items Found</string>
+    <string name="no_items_message">There are no items to display at the moment.</string>
+    <string name="no_owned_hubs_found">No Owned Hubs</string>
+    <string name="no_owned_hubs_message">You haven\'t created any hubs yet. Create your first hub to get started!</string>
+    <string name="no_shared_hubs_found">No Shared Hubs</string>
+    <string name="no_shared_hubs_message">You haven\'t joined any hubs yet. Accept an invitation or join a hub to collaborate!</string>
 </resources>

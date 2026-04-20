@@ -1,9 +1,8 @@
 package com.trackhub.feat_hub.domain.cache
 
+import androidx.paging.PagingSource
 import com.trackhub.core_hub.data.cache.entities.HubEntity
-import com.trackhub.core_hub.data.cache.entities.HubItemEntity
-import com.trackhub.core_hub.domain.models.Hub
-import com.trackhub.core_hub.domain.models.HubItem
+import com.trackhub.core_hub.data.cache.entities.ItemEntity
 import kotlinx.coroutines.flow.Flow
 
 interface HubCacheDataSource {
@@ -21,15 +20,23 @@ interface HubCacheDataSource {
 
     suspend fun getHub(hubId: String): HubEntity
 
-    fun getOwnHubs(): Flow<List<Hub>>
+    fun getOwnHubs(): Flow<List<HubEntity>>
 
-    fun getSharedHubs(): Flow<List<Hub>>
+    fun getSharedHubs(): Flow<List<HubEntity>>
 
     suspend fun deleteAllHubs()
 
-    suspend fun updateHubItems(items: List<HubItemEntity>)
+    suspend fun updateHubItems(items: List<ItemEntity>)
 
-    suspend fun deleteItems(items: List<HubItemEntity>)
+    suspend fun deleteItems(items: List<ItemEntity>)
 
-    fun getItemsFromHub(hubId: String): Flow<List<HubItem>>
+    fun getItemsFromHub(hubId: String): List<ItemEntity>
+
+    fun getItemsWithFiltersPaged(
+        hubId: String,
+        category: String?,
+        manufacturer: String?,
+        inStock: Boolean?,
+        searchQuery: String?
+    ): PagingSource<Int, ItemEntity>
 }

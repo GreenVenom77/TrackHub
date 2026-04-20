@@ -10,7 +10,7 @@
     <string name="sign_in">سجل دخولك</string>
     <string name="enter_your_email">أدخل بريدك الإلكتروني</string>
     <string name="email">البريد الإلكتروني</string>
-    <string name="Password">كلمة المرور</string>
+    <string name="password">كلمة المرور</string>
     <string name="enter_your_password">أدخل كلمة المرور</string>
     <string name="forgot_password">نسيت كلمة المرور؟</string>
     <string name="log_in">سجل دخولك</string>

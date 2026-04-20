@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Invitation Response Messages -->
+    <string name="invitation_accepted_success">Successfully joined the hub</string>
+    <string name="invitation_declined_success">Invitation declined successfully</string>
+    <string name="invitation_response_success">Invitation response processed successfully</string>
+
+    <!-- Error Messages -->
+    <string name="error_not_authenticated">You are not authenticated. Please log in and try again.</string>
+    <string name="error_invitation_not_found">Invitation not found or you do not have permission to respond to it</string>
+    <string name="error_invitation_already_responded">This invitation has already been responded to</string>
+    <string name="error_generic">An error occurred while processing your request. Please try again.</string>
+</resources>

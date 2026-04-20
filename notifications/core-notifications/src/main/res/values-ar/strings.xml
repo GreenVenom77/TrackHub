@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Invitation Response Messages -->
+    <string name="invitation_accepted_success">تم الانضمام إلى المركز بنجاح</string>
+    <string name="invitation_declined_success">تم رفض الدعوة بنجاح</string>
+    <string name="invitation_response_success">تمت معالجة الرد على الدعوة بنجاح</string>
+
+    <!-- Error Messages -->
+    <string name="error_not_authenticated">أنت غير مسجل الدخول. يرجى تسجيل الدخول والمحاولة مرة أخرى.</string>
+    <string name="error_invitation_not_found">لم يتم العثور على الدعوة أو ليس لديك إذن للرد عليها</string>
+    <string name="error_invitation_already_responded">تم الرد على هذه الدعوة بالفعل</string>
+    <string name="error_generic">حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.</string>
+</resources>

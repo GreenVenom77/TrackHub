@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dismiss">غلق</string>
+    <string name="confirm">تأكيد</string>
+    <string name="add">أضف جديد</string>
+    <string name="dark_mode">الوضع المظلم</string>
+    <string name="light_mode">الوضع المضيء</string>
+    <string name="arabic">العربية</string>
+    <string name="english">الإنجليزية</string>
+    <string name="back_button">الرجوع للخلف</string>
+    <string name="select_items">اختر من القائمة</string>
+    <string name="select_an_item">اختر من القائمة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">حسناً</string>
+    <string name="selected_items">العناصر المحددة: %1$d</string>
+    <string name="oops">عذراً!</string>
+    <string name="close_menu">إغلاق القائمة</string>
+    <string name="open_menu">فتح القائمة</string>
+    <string name="select_event_date">اختر تاريخ الحدث</string>
+    <string name="select_your_birth_date">اختر تاريخ ميلادك</string>
+    <string name="clear_date">مسح التاريخ</string>
+    <string name="event_date">تاريخ الحدث</string>
+    <string name="date_of_birth">تاريخ الميلاد</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="comment">تعليق</string>
+    <string name="write_your_comment_here">اكتب تعليقك هنا...</string>
+    <string name="description">الوصف</string>
+    <string name="enter_description">أدخل الوصف...</string>
+    <string name="add_a_note">أضف ملاحظة...</string>
+    <string name="select_date">اختر التاريخ</string>
+    <string name="calendar">التقويم</string>
+    <string name="loading">جارٍ التحميل...</string>
+    <string name="loading_2">جارٍ التحميل</string>
+    <string name="warning_icon_description">تحذير</string>
+    <string name="warning_title">تحذير!</string>
+    <string name="warning_message">قد يؤثر هذا الإجراء على بيانات أو إعدادات مهمة. يرجى التأكد من فهم العواقب قبل المتابعة.</string>
+    <string name="delete_warning_message">هذا الإجراء سيحذف بيانات مهمة ولا يمكن التراجع عنه. هل أنت متأكد من رغبتك في المتابعة؟</string>
+    <string name="delete">حذف</string>
+
+    <!-- Search string -->
+    <string name="search">بحث</string>
+    <string name="clear_search">مسح البحث</string>
+    <string name="search_holder">بحث...</string>
+    <string name="close_search">إغلاق البحث</string>
+    <string name="options">اختيارات</string>
+
+    <!-- Success Dialog Strings -->
+    <string name="success_icon_description">أيقونة النجاح</string>
+    <string name="success_title">نجح!</string>
+    <string name="success_message">تمت العملية بنجاح</string>
+</resources>

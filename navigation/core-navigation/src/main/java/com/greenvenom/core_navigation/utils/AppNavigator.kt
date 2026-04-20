@@ -1,5 +1,6 @@
 package com.greenvenom.core_navigation.utils
 
+import android.util.Log
 import androidx.navigation.NavHostController
 import com.greenvenom.core_navigation.domain.Destination
 import kotlin.reflect.KClass
@@ -29,19 +30,20 @@ class AppNavigator {
 
     fun navigateAndClearBackStack(target: Destination) {
         navController.navigate(target) {
-            popUpTo(0) { inclusive = true }
+            popUpTo(0) {
+                inclusive = true
+            }
             launchSingleTop = true
         }
     }
 
     fun navigateFromBottomBar(target: Destination) {
+        Log.d("AppNavigator", "navigateFromBottomBar: ${navController.currentBackStackEntry?.destination}")
         navController.navigate(target) {
-            popUpTo(navController.graph.startDestinationId) {
-                saveState = true
-            }
             launchSingleTop = true
             restoreState = true
         }
+        Log.d("AppNavigator", "After navigateFromBottomBar: ${navController.currentBackStackEntry?.destination}")
     }
 
     fun getCurrentDestination(): Destination? {
