@@ -1,0 +1,186 @@
+name: Android CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+      run_lint:
+        description: 'Run lint'
+        required: false
+        type: boolean
+        default: true
+      continue_on_lint_error:
+        description: 'Continue build even if lint fails (only applies if "Run lint" is checked)'
+        required: false
+        type: boolean
+        default: true
+      create_release:
+        description: 'Create GitHub Release'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Run Lint
+      id: lint
+      if: github.event.inputs.run_lint == 'true'
+      continue-on-error: ${{ github.event.inputs.continue_on_lint_error == 'true' }}
+      run: |
+        if [ "${{ github.event.inputs.build_type }}" = "release" ]; then
+          ./gradlew lintRelease --continue
+        else
+          ./gradlew lintDebug --continue
+        fi
+
+    - name: Build APK
+      id: build
+      continue-on-error: true
+      run: |
+        if [ "${{ github.event.inputs.build_type }}" = "release" ]; then
+          ./gradlew assembleRelease
+        else
+          ./gradlew assembleDebug
+        fi
+
+    - name: Check Build Status
+      id: build_check
+      run: |
+        if [ "${{ github.event.inputs.build_type }}" = "release" ]; then
+          APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+        else
+          APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+        fi
+
+        if [ -f "$APK_PATH" ]; then
+          echo "build_success=true" >> $GITHUB_OUTPUT
+        else
+          echo "build_success=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload Debug APK
+      if: github.event.inputs.build_type == 'debug' && steps.build_check.outputs.build_success == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 2
+
+    - name: Upload Release APK
+      if: github.event.inputs.build_type == 'release' && steps.build_check.outputs.build_success == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release
+        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        retention-days: 2
+
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d-%H%M')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      if: github.event.inputs.create_release == 'true' && steps.build_check.outputs.build_success == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.build_type }}-${{ steps.date.outputs.date }}
+        name: ${{ github.event.inputs.build_type == 'release' && 'Release' || 'Debug' }} Build - ${{ steps.date.outputs.date }}
+        body: |
+          ## 📦 Build Information
+
+          - **Build Type:** ${{ github.event.inputs.build_type }}
+          - **Built on:** ${{ steps.date.outputs.date }}
+          - **Branch:** ${{ github.ref_name }}
+          - **Commit:** ${{ github.sha }}
+
+          ### Download
+          Download the APK from the assets below.
+
+          ${{ github.event.inputs.run_lint == 'true' && '⚠️ Lint report available in artifacts' || '' }}
+        files: |
+          app/build/outputs/apk/${{ github.event.inputs.build_type }}/*.apk
+        draft: false
+        prerelease: ${{ github.event.inputs.build_type == 'debug' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Report Summary
+      if: always()
+      run: |
+        echo "### Build Results 🏗️" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Build Type:** ${{ github.event.inputs.build_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ github.event.inputs.build_type }}" = "release" ]; then
+          if [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            echo "✅ Release APK built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Release APK build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            echo "✅ Debug APK built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Debug APK build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Lint Results 🔍" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ github.event.inputs.run_lint }}" = "true" ]; then
+          LINT_FILE="app/build/reports/lint-results-${{ github.event.inputs.build_type }}.html"
+          if [ -f "$LINT_FILE" ]; then
+            if [ "${{ github.event.inputs.continue_on_lint_error }}" = "true" ]; then
+              echo "⚠️ Lint completed with issues (build continued) - Check artifacts for detailed report" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ Lint completed - Check artifacts for detailed report" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ Lint report not found" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⏭️ Lint skipped" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "${{ github.event.inputs.create_release }}" = "true" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### GitHub Release 🚀" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.build_check.outputs.build_success }}" = "true" ]; then
+            echo "✅ Release created - Check [Releases page](https://github.com/${{ github.repository }}/releases)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Release skipped - Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+
+    - name: Upload Lint Report
+      uses: actions/upload-artifact@v4
+      if: always() && github.event.inputs.run_lint == 'true'
+      with:
+        name: lint-report-${{ github.event.inputs.build_type }}
+        path: app/build/reports/lint-results-${{ github.event.inputs.build_type }}.html
+        retention-days: 2
