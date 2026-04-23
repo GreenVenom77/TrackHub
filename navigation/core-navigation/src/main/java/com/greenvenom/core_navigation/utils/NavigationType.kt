@@ -1,6 +1,6 @@
-package com.greenvenom.core_navigation.data
+package com.greenvenom.core_navigation.utils
 
-import com.greenvenom.core_navigation.domain.Destination
+import com.greenvenom.core_navigation.routes.Destination
 
 sealed class NavigationType {
     data object Back : NavigationType()

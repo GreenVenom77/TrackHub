@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
+import com.greenvenom.core_navigation.domain.repos.NavigationStateRepository
 import com.greenvenom.core_navigation.utils.AppNavigator
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
 import com.skewnexus.trackhub.navigation.graphs.authGraph

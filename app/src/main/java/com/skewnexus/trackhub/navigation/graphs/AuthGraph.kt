@@ -3,9 +3,9 @@ package com.skewnexus.trackhub.navigation.graphs
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_navigation.domain.Destination
+import com.greenvenom.core_navigation.domain.repos.NavigationStateRepository
+import com.greenvenom.core_navigation.routes.Destination
+import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.feat_auth.presentation.login.LoginScreen
 import com.greenvenom.feat_auth.presentation.otp.OtpScreen
 import com.greenvenom.feat_auth.presentation.register.RegisterScreen

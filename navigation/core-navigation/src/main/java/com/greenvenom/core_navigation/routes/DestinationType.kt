@@ -1,4 +1,4 @@
-package com.greenvenom.core_navigation.domain
+package com.greenvenom.core_navigation.routes
 
 enum class DestinationType {
     GRAPH,

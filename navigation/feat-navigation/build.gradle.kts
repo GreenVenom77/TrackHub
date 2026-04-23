@@ -58,7 +58,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.compose.navigation)
     implementation(libs.bundles.dependency.injection)
+
+    implementation(kotlin("reflect"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

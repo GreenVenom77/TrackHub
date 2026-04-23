@@ -47,11 +47,9 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.compose.navigation)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.compose.navigation)
     implementation(libs.koin.android.compose)
-
-    implementation(kotlin("reflect"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

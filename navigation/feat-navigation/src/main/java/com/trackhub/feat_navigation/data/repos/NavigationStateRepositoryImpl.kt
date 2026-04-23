@@ -1,19 +1,21 @@
-package com.greenvenom.core_navigation.data.repository
+package com.trackhub.feat_navigation.data.repos
 
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.domain.DestinationType
+import com.greenvenom.core_navigation.domain.repos.NavigationState
+import com.greenvenom.core_navigation.domain.repos.NavigationStateRepository
+import com.greenvenom.core_navigation.routes.DestinationType
 import com.greenvenom.core_navigation.utils.AppNavigator
+import com.greenvenom.core_navigation.utils.NavigationType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class NavigationStateRepository(
+class NavigationStateRepositoryImpl(
     private val appNavigator: AppNavigator
-) {
+): NavigationStateRepository {
     private val _navigationState = MutableStateFlow(NavigationState())
-    val navigationState = _navigationState.asStateFlow()
+    override val navigationState = _navigationState.asStateFlow()
 
-    fun navigate(navigationType: NavigationType) {
+    override fun navigate(navigationType: NavigationType) {
         when(navigationType) {
             is NavigationType.Back -> appNavigator.navigateBack()
             is NavigationType.ClearBackStack -> appNavigator.navigateAndClearBackStack(navigationType.destination)
@@ -24,7 +26,7 @@ class NavigationStateRepository(
         updateStoredDestinations()
     }
 
-    fun updateStoredDestinations() {
+    private fun updateStoredDestinations() {
         _navigationState.update {
             it.copy(
                 currentDestination = appNavigator.getCurrentDestination(),

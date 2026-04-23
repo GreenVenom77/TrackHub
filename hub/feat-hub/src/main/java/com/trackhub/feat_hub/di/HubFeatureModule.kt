@@ -15,7 +15,7 @@ import com.trackhub.feat_hub.presentation.hub_list.HubListViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val hubFeatureModule = module {
+val hubModule = module {
     single<HubCacheDataSource> {
         HubRoomDataSource(
             hubDao = get(),

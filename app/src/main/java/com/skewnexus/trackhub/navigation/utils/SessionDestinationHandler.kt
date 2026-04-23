@@ -1,7 +1,7 @@
 package com.skewnexus.trackhub.navigation.utils
 
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
+import com.greenvenom.core_navigation.domain.repos.NavigationStateRepository
+import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.core_network.domain.SessionDestinations
 import com.greenvenom.core_network.domain.SessionRepository
 import com.trackhub.feat_navigation.routes.SubGraph

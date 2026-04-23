@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.domain.Destination
+import com.greenvenom.core_navigation.routes.Destination
+import com.greenvenom.core_navigation.utils.NavigationType
 import com.trackhub.feat_navigation.R
 import com.trackhub.feat_navigation.routes.Screen
 
