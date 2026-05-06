@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.greenvenom.core_navigation.routes.Destination
 
 @Immutable
-data class NavigationState(
+data class NavigationData(
     val currentDestination: Destination? = null,
     val previousDestination: Destination? = null,
     val isCurrentDestinationSide: Boolean = false,

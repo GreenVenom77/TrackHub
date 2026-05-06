@@ -1,15 +1,11 @@
 package com.greenvenom.core_navigation.utils
 
-import androidx.navigation.NavHostController
+import com.greenvenom.core_navigation.domain.NavigationState
 import com.greenvenom.core_navigation.routes.Destination
-import kotlin.reflect.KClass
 
 interface AppNavigator {
-    val navController: NavHostController
-
-    fun config(
-        returnedDestination: KClass<out Destination>,
-        navController: NavHostController
+    fun bind(
+        navigationState: NavigationState
     )
 
     fun navigateTo(target: Destination)
@@ -20,7 +16,7 @@ interface AppNavigator {
 
     fun navigateFromBottomBar(target: Destination)
 
-    fun getCurrentDestination(): Destination?
+    fun getCurrentDestination(): Destination
 
     fun getPreviousDestination(): Destination?
 }

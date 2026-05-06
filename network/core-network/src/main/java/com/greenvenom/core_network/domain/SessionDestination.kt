@@ -1,6 +1,6 @@
 package com.greenvenom.core_network.domain
 
-enum class SessionDestinations {
+enum class SessionDestination {
     INITIALIZE,
     AUTH,
     MAIN,

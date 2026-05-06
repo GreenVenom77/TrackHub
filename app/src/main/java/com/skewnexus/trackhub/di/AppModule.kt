@@ -6,7 +6,7 @@ import org.koin.dsl.module
 val appModule = module {
     single(createdAtStart = true) {
         SessionDestinationHandler(
-            navigationStateRepository = get(),
+            navigationRepository = get(),
             sessionStateRepository = get()
         )
     }

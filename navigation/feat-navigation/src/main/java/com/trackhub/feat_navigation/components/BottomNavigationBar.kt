@@ -79,9 +79,9 @@ private fun BottomBarContent(
         BottomDestination.entries.forEach { destination ->
             NavigationBarItem(
                 onClick = {
-                    if (destination.comparableScreen != currentDestination) {
-                        defaultNavigationMethod(NavigationType.BottomNavigation(
-                            destination = destination.comparableScreen
+                    if (destination.destination != currentDestination) {
+                        defaultNavigationMethod(NavigationType.Standard(
+                            destination = destination.destination
                         ))
                     }
                 },
@@ -100,7 +100,7 @@ private fun BottomBarContent(
                         style = MaterialTheme.typography.labelMedium
                     )
                 },
-                selected = destination.comparableScreen == currentDestination,
+                selected = destination.destination == currentDestination,
             )
         }
     }

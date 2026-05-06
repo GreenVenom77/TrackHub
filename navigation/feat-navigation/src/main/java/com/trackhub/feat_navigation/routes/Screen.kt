@@ -27,7 +27,7 @@ sealed class Screen: Destination {
     }
 
     @Serializable
-    data object OTP: Screen() {
+    data class OTP(val next: OTPNext): Screen() {
         override val destinationType: DestinationType = DestinationType.AUTH
     }
 
@@ -47,7 +47,12 @@ sealed class Screen: Destination {
     }
 
     @Serializable
-    data object HubDetails: Screen() {
+    data class OwnedHubDetails(val hubId: String): Screen() {
+        override val destinationType: DestinationType = DestinationType.SIDE
+    }
+
+    @Serializable
+    data class SharedHubDetails(val hubId: String): Screen() {
         override val destinationType: DestinationType = DestinationType.SIDE
     }
 
@@ -65,4 +70,10 @@ sealed class Screen: Destination {
     data object Profile: Screen() {
         override val destinationType: DestinationType = DestinationType.OTHER
     }
+}
+
+@Serializable
+enum class OTPNext {
+    ConfirmAccount,
+    ResetPassword
 }
