@@ -47,7 +47,7 @@ android {
 dependencies {
     implementation(project(":hub:core-hub"))
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

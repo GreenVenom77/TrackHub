@@ -56,9 +56,10 @@ dependencies {
     implementation(project(":menu:core-menu"))
     implementation(project(":hub:core-hub"))
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     ksp(libs.androidx.room.compiler)
     implementation(libs.bundles.local.data.persistence)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
     implementation(libs.androidx.core.ktx)
 

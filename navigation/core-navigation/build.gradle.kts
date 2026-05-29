@@ -50,9 +50,10 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.compose.navigation)
-    implementation(libs.koin.android.compose)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.bundles.dependency.injection)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

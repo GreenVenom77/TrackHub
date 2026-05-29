@@ -22,8 +22,8 @@ import com.greenvenom.core_util.theme.ThemeManager
 import com.skewnexus.trackhub.navigation.AppNavHost
 import com.trackhub.feat_navigation.components.BottomNavigationBar
 import com.trackhub.feat_navigation.routes.Screen
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

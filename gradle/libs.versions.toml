@@ -2,23 +2,22 @@
 # ----------------------------
 # 🔧 Core / Build
 # ----------------------------
-agp = "9.1.1"
+agp = "9.2.1"
 kotlin = "2.3.21"
-ksp = "2.3.6"
+ksp = "2.3.8"
 
 coreKtx = "1.18.0"
 coreSplashscreen = "1.2.0"
 lifecycle = "2.10.0"
-kotlinxSerializationJson = "1.11.0"
+kotlinxSerialization = "1.11.0"
 
 # ----------------------------
 # 🎨 UI (Compose)
 # ----------------------------
-composeBom = "2026.05.00"
+composeBom = "2026.05.01"
 activityCompose = "1.13.0"
 material3 = "1.4.0"
-composeNavigation = "2.9.7"
-nav3Core = "1.1.1"
+nav3Core = "1.1.2"
 composeShimmer = "1.4.0"
 materialIconsExtended = "1.7.8"
 lumo = "1.2.5"
@@ -27,7 +26,7 @@ lumo = "1.2.5"
 # 🧪 Testing
 # ----------------------------
 junit4 = "4.13.2"
-junit5 = "6.0.3"
+junit5 = "6.1.0"
 androidxJunit = "1.3.0"
 espresso = "3.7.0"
 
@@ -42,14 +41,14 @@ koin = "4.2.1"
 # ----------------------------
 # 🌐 Network
 # ----------------------------
-ktor = "3.4.3"
+ktor = "3.5.0"
 supabase = "3.6.0"
 
 # ----------------------------
 # 💾 Data
 # ----------------------------
 datastore = "1.2.1"
-libphonenumber-android = "9.0.29"
+libphonenumber-android = "9.0.31"
 room = "2.8.4"
 paging = "3.5.0"
 
@@ -62,7 +61,7 @@ coil = "3.4.0"
 # 🧱 Legacy / Views
 # ----------------------------
 appcompat = "1.7.1"
-material = "1.13.0"
+material = "1.14.0"
 
 # ============================
 # 📦 Libraries
@@ -74,7 +73,8 @@ material = "1.13.0"
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # -------- Lifecycle --------
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
@@ -82,9 +82,8 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 
 # -------- Compose --------
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
-androidx-compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
+
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
@@ -129,8 +128,10 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 # -------- Dependency Injection --------
-koin-android-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koin-android-compose-navigation = { module = "io.insert-koin:koin-compose-navigation3", version.ref = "koin" }
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
+koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3" }
 
 # -------- Network (Ktor) --------
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
@@ -172,8 +173,14 @@ lumo = { id = "com.nomanr.plugin.lumo", version.ref = "lumo" }
 [bundles]
 
 dependency-injection = [
-    "koin-android-compose",
-    "koin-android-compose-navigation"
+    "koin-compose",
+    "koin-compose-viewmodel",
+    "koin-compose-navigation3"
+]
+
+kotlinx-serialization = [
+    "kotlinx-serialization-core",
+    "kotlinx-serialization-json",
 ]
 
 compose-main = [
@@ -190,7 +197,6 @@ compose-lifecycle = [
 ]
 
 compose-navigation = [
-    "androidx-compose-navigation",
     "androidx-navigation3-runtime",
     "androidx-navigation3-ui",
     "androidx-lifecycle-viewmodel-navigation3",

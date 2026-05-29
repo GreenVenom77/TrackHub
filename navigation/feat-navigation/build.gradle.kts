@@ -57,11 +57,10 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.compose.navigation)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
-
-    implementation(kotlin("reflect"))
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

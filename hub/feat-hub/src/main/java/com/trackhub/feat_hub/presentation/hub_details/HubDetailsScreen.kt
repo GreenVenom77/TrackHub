@@ -62,27 +62,29 @@ import com.trackhub.feat_hub.presentation.mappers.toUI
 import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HubDetailsScreen(
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    hubDetailsViewModel: HubDetailsViewModel = koinViewModel()
 ) {
-    BaseScreen<HubDetailsViewModel>(
-        onPhysicalBack = {
-            navigateBack()
-        }
-    ) { viewModel ->
-        val hubDetailsState by viewModel.hubDetailsState.collectAsStateWithLifecycle()
+    val baseState by hubDetailsViewModel.baseState.collectAsStateWithLifecycle()
+    val hubDetailsState by hubDetailsViewModel.hubDetailsState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = hubDetailsViewModel,
+        baseState = baseState,
+    ) {
         HubDetailsContent(
             hubDetailsState = hubDetailsState,
             hubDetailsAction = {
                 when(it) {
                     is HubDetailsAction.NavigateBack -> navigateBack()
                 }
-                viewModel.hubDetailsAction(it)
+                hubDetailsViewModel.hubDetailsAction(it)
             },
-            baseAction = viewModel::baseAction
+            baseAction = hubDetailsViewModel::baseAction
         )
     }
 }

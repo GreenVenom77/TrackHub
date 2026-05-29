@@ -51,6 +51,7 @@ dependencies {
     implementation(project(":core:core-ui"))
     implementation(project(":core:core-util"))
 
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)

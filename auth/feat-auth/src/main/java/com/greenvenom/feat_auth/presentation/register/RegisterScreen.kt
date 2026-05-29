@@ -32,21 +32,26 @@ import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_util.input.domain.ValidationResult
 import com.greenvenom.feat_auth.R
 import com.greenvenom.feat_auth.presentation.component.AuthHeader
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun RegisterScreen(
     navigateBack: () -> Unit,
     navigateToAccountVerificationScreen: () -> Unit,
+    registerViewModel: RegisterViewModel = koinViewModel()
 ) {
-    BaseScreen<RegisterViewModel>(
-        onPhysicalBack = { navigateBack() }
-    ) { viewModel ->
-        val state by viewModel.registerState.collectAsStateWithLifecycle()
+    val baseState by registerViewModel.baseState.collectAsStateWithLifecycle()
+    val registerState by registerViewModel.registerState.collectAsStateWithLifecycle()
+
+    BaseScreen(
+        viewModel = registerViewModel,
+        baseState = baseState,
+    ) {
 
         RegisterContent(
-            state = state,
-            registerActions = viewModel::registerAction,
-            baseActions = viewModel::baseAction,
+            state = registerState,
+            registerActions = registerViewModel::registerAction,
+            baseActions = registerViewModel::baseAction,
             navigateBack = navigateBack,
             navigateToAccountVerificationScreen = navigateToAccountVerificationScreen
         )

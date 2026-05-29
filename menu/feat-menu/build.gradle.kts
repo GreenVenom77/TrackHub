@@ -53,6 +53,7 @@ dependencies {
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
 
     implementation(libs.androidx.core.ktx)

@@ -53,7 +53,8 @@ dependencies {
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
     implementation(libs.androidx.core.ktx)
 

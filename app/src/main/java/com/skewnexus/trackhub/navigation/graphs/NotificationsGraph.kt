@@ -10,8 +10,6 @@ fun EntryProviderScope<NavKey>.notificationsGraph(
     navigate: (NavigationType) -> Unit
 ) {
     entry<Screen.Notifications> {
-        NotificationsScreen(
-            navigateBack = { navigate(NavigationType.Back) }
-        )
+        NotificationsScreen()
     }
 }
