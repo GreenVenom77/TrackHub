@@ -4,7 +4,8 @@ import com.greenvenom.core_navigation.domain.repos.NavigationRepository
 import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.core_network.domain.SessionDestination
 import com.greenvenom.core_network.domain.SessionRepository
-import com.trackhub.feat_navigation.routes.Screen
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
+import com.trackhub.feat_hub.presentation.routes.HubDest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,13 +41,13 @@ class SessionDestinationHandler(
 
             SessionDestination.AUTH -> {
                 navigationRepository.navigate(
-                    NavigationType.ClearBackStack(Screen.Login)
+                    NavigationType.ClearBackStack(AuthDest.Login)
                 )
             }
 
             SessionDestination.MAIN -> {
                 navigationRepository.navigate(
-                    NavigationType.ClearBackStack(Screen.OwnedHubs())
+                    NavigationType.ClearBackStack(HubDest.OwnedHubs())
                 )
             }
         }

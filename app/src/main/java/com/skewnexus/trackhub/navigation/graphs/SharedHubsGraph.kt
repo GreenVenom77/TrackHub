@@ -5,28 +5,34 @@ import androidx.navigation3.runtime.NavKey
 import com.greenvenom.core_navigation.utils.NavigationType
 import com.trackhub.feat_hub.presentation.hub_details.HubDetailsScreen
 import com.trackhub.feat_hub.presentation.hub_list.HubListScreen
-import com.trackhub.feat_navigation.routes.Screen
-import com.trackhub.feat_navigation.routes.SubGraph
+import com.trackhub.feat_hub.presentation.routes.HubDest
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 fun EntryProviderScope<NavKey>.sharedHubsGraph(
     navigate: (NavigationType) -> Unit
 ) {
-    entry<Screen.SharedHubs> { key ->
+    entry<HubDest.SharedHubs> { key ->
         HubListScreen(
-            areHubsOwned = key.ownedHubs,
             navigateToHubDetails = { hubId ->
                 navigate(
-                    NavigationType.Standard(SubGraph.HubDetails(hubId))
+                    NavigationType.Standard(HubDest.SharedHubDetails(hubId))
                 )
             },
             navigateBack = { navigate(NavigationType.Back) },
+            hubListViewModel = koinViewModel {
+                parametersOf(key.areHubsOwned)
+            }
         )
     }
 
-    entry<Screen.SharedHubDetails> { key ->
+    entry<HubDest.SharedHubDetails> { key ->
         HubDetailsScreen(
             navigateBack = {
                 navigate(NavigationType.Back)
+            },
+            hubDetailsViewModel = koinViewModel {
+                parametersOf(key.hubId)
             }
         )
     }

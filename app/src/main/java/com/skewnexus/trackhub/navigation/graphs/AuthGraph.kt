@@ -8,55 +8,55 @@ import com.greenvenom.feat_auth.presentation.otp.OtpScreen
 import com.greenvenom.feat_auth.presentation.register.RegisterScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.NewPasswordScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.VerifyEmailScreen
-import com.trackhub.feat_navigation.routes.OTPNext
-import com.trackhub.feat_navigation.routes.Screen
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
+import com.greenvenom.feat_auth.presentation.routes.OTPNext
 
 fun EntryProviderScope<NavKey>.authGraph(
     navigate: (NavigationType) -> Unit,
 ) {
-    entry<Screen.Login> {
+    entry<AuthDest.Login> {
         LoginScreen(
             navigateToRegisterScreen = {
                 navigate(
-                    NavigationType.Standard(Screen.Register)
+                    NavigationType.Standard(AuthDest.Register)
                 )
             },
             navigateToEmailVerificationScreen = {
                 navigate(
-                    NavigationType.Standard(Screen.VerifyEmail)
+                    NavigationType.Standard(AuthDest.VerifyEmail)
                 )
             },
             navigateToNextScreen = {  },
         )
     }
 
-    entry<Screen.Register> {
+    entry<AuthDest.Register> {
         RegisterScreen(
             navigateBack = {
                 navigate(NavigationType.Back)
             },
             navigateToAccountVerificationScreen = {
                 navigate(
-                    NavigationType.Standard(Screen.OTP(OTPNext.ConfirmAccount))
+                    NavigationType.Standard(AuthDest.OTP(OTPNext.ConfirmAccount))
                 )
             }
         )
     }
 
-    entry<Screen.VerifyEmail> {
+    entry<AuthDest.VerifyEmail> {
         VerifyEmailScreen(
             navigateBack = {
                 navigate(NavigationType.Back)
             },
             navigateToOtpScreen = {
                 navigate(
-                    NavigationType.Standard(Screen.OTP(OTPNext.ResetPassword))
+                    NavigationType.Standard(AuthDest.OTP(OTPNext.ResetPassword))
                 )
             }
         )
     }
 
-    entry<Screen.OTP> { key ->
+    entry<AuthDest.OTP> { key ->
         OtpScreen(
             navigateBack = {
                 navigate(NavigationType.Back)
@@ -65,7 +65,7 @@ fun EntryProviderScope<NavKey>.authGraph(
                 when (key.next) {
                     OTPNext.ResetPassword -> {
                         navigate(
-                            NavigationType.ClearBackStack(Screen.NewPassword)
+                            NavigationType.ClearBackStack(AuthDest.NewPassword)
                         )
                     }
 
@@ -77,7 +77,7 @@ fun EntryProviderScope<NavKey>.authGraph(
         )
     }
 
-    entry<Screen.NewPassword> {
+    entry<AuthDest.NewPassword> {
         NewPasswordScreen(
             navigateBack = {
                 navigate(NavigationType.Back)

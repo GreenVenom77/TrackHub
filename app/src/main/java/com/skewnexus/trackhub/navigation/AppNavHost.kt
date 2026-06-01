@@ -17,15 +17,15 @@ import com.greenvenom.core_navigation.domain.rememberNavigationState
 import com.greenvenom.core_navigation.domain.repos.NavigationRepository
 import com.greenvenom.core_navigation.domain.toEntries
 import com.greenvenom.core_navigation.utils.AppNavigator
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
+import com.skewnexus.trackhub.navigation.components.BottomDestination
 import com.skewnexus.trackhub.navigation.graphs.authGraph
 import com.skewnexus.trackhub.navigation.graphs.menuGraph
 import com.skewnexus.trackhub.navigation.graphs.notificationsGraph
 import com.skewnexus.trackhub.navigation.graphs.ownedHubsGraph
 import com.skewnexus.trackhub.navigation.graphs.sharedHubsGraph
 import com.skewnexus.trackhub.navigation.utils.SessionDestinationHandler
-import com.trackhub.feat_navigation.components.BottomDestination
-import com.trackhub.feat_navigation.routes.Screen
 import org.koin.compose.koinInject
 
 @Composable
@@ -36,9 +36,9 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val splashComplete by destinationHandler.isReady.collectAsStateWithLifecycle()
 
     val navigationState = rememberNavigationState(
-        startRoute = Screen.Login,
+        startRoute = AuthDest.Login,
         topLevelRoutes = buildSet {
-            add(Screen.Login)
+            add(AuthDest.Login)
             addAll(BottomDestination.entries.map { it.destination })
         }
     )

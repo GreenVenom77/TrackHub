@@ -116,11 +116,11 @@ class HubRepositoryImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getHubs(isOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
+    override fun getHubs(areOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
         val foundHubs: MutableSet<Hub> = mutableSetOf()
 
         return channelFlow {
-            val cachedHubsFlow = if (isOwned) {
+            val cachedHubsFlow = if (areOwned) {
                 cacheDataSource.getOwnHubs().map {
                     it.map { hubEntity ->
                         hubEntity.extractHub()
@@ -149,7 +149,7 @@ class HubRepositoryImpl(
                 .flatMapLatest {
                     flow<Unit> {
                         // Fetch remote data and update cache
-                        val remoteHubs = if (isOwned) {
+                        val remoteHubs = if (areOwned) {
                             remoteDataSource.getOwnHubs().map { hubs ->
                                 hubs.map { it.extractHub() }
                             }

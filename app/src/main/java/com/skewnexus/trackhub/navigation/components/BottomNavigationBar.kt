@@ -1,4 +1,4 @@
-package com.trackhub.feat_navigation.components
+package com.skewnexus.trackhub.navigation.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -21,8 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.greenvenom.core_navigation.routes.Destination
 import com.greenvenom.core_navigation.utils.NavigationType
+import com.trackhub.feat_hub.presentation.routes.HubDest
 import com.trackhub.feat_navigation.R
-import com.trackhub.feat_navigation.routes.Screen
 
 @Composable
 fun BottomNavigationBar(
@@ -111,6 +111,6 @@ private fun BottomBarContent(
 private fun BottomNavigationBarContent() {
     BottomBarContent(
         defaultNavigationMethod = {  },
-        currentDestination = Screen.SharedHubs()
+        currentDestination = HubDest.SharedHubs()
     )
 }

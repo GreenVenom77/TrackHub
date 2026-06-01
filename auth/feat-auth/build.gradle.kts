@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":auth:core-auth"))
     implementation(project(":core:core-ui"))
     implementation(project(":core:core-util"))
+    implementation(project(":navigation:core-navigation"))
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
@@ -61,6 +62,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.navigation3.runtime)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

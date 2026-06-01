@@ -45,7 +45,6 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HubListScreen(
-    areHubsOwned: Boolean,
     navigateToHubDetails: (String) -> Unit,
     navigateBack: () -> Unit,
     hubListViewModel: HubListViewModel = koinViewModel()
@@ -58,7 +57,7 @@ fun HubListScreen(
         baseState = baseState,
     ) {
         HubListContent(
-            areHubsOwned = areHubsOwned,
+            areHubsOwned = hubListViewModel.areHubsOwned,
             hubListState = hubListState,
             hubListAction = { action ->
                 when (action) {
