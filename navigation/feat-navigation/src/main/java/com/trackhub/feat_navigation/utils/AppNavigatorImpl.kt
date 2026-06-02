@@ -62,7 +62,7 @@ class AppNavigatorImpl: AppNavigator {
             }
             // We're at the root of the main route, exit the app
             else -> {
-
+                // Handled Automatically by Navigation 3
             }
         }
     }

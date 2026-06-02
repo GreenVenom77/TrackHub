@@ -17,6 +17,7 @@ import com.greenvenom.core_navigation.domain.rememberNavigationState
 import com.greenvenom.core_navigation.domain.repos.NavigationRepository
 import com.greenvenom.core_navigation.domain.toEntries
 import com.greenvenom.core_navigation.utils.AppNavigator
+import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.feat_auth.presentation.routes.AuthDest
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
 import com.skewnexus.trackhub.navigation.components.BottomDestination
@@ -72,7 +73,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         menuGraph(navigationRepository::navigate)
                     }
                 ),
-                onBack = appNavigator::navigateBack,
+                onBack = { navigationRepository.navigate(NavigationType.Back) },
                 modifier = modifier
             )
         }
