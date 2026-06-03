@@ -29,10 +29,6 @@ class AppNavigatorImpl: AppNavigator {
         navigationState.topLevelRoute = target
     }
 
-    override fun navigateFromBottomBar(target: Destination) {
-        navigate(target)
-    }
-
     override fun getCurrentDestination(): Destination {
         return navigationState.currentRoute as Destination
     }

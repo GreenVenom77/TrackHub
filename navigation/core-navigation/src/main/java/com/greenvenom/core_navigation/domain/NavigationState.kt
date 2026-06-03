@@ -20,7 +20,12 @@ import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
 
 /**
- * Create a navigation state that persists config changes and process death.
+ * Creates a [NavigationState] that survives configuration changes and process death.
+ * This state holds the current navigation routes and back stacks for each top-level route.
+ *
+ * @param startRoute the initial destination when the navigation graph is created
+ * @param topLevelRoutes the set of routes that constitute the top-level navigation (e.g., bottom nav items)
+ * @return a NavigationState instance that can be hoisted in composables
  */
 @Composable
 fun rememberNavigationState(
@@ -54,11 +59,12 @@ fun rememberNavigationState(
 }
 
 /**
- * Data holder for navigation state.
+ * Holds the mutable state of the navigation graph.
+ * This class is not intended to be instantiated directly; use [rememberNavigationState] instead.
  *
- * @param mainRoute - the main route. The user will exit the app through this route.
- * @param topLevelRoute - the current top level route
- * @param backStacks - the back stacks for each top level route
+ * @param mainRoute mutable state representing the route to which the user navigates when exiting the app
+ * @param topLevelRoute mutable state representing the currently selected top-level route
+ * @param backStacks map of top-level routes to their respective back stacks
  */
 class NavigationState(
     mainRoute: MutableState<NavKey>,
@@ -68,16 +74,24 @@ class NavigationState(
     var topLevelRoute: NavKey by topLevelRoute
     var mainRoute: NavKey by mainRoute
 
+    /**
+     * Returns the back stack corresponding to the current [topLevelRoute].
+     * Throws an illegal state exception if the stack is missing (should not happen).
+     */
     val currentStack: NavBackStack<NavKey>
         get() = backStacks[topLevelRoute] ?:
-        error("Stack for $topLevelRoute not found")
+            error("Stack for $topLevelRoute not found")
 
+    /**
+     * The route currently at the top of the current back stack.
+     */
     val currentRoute: NavKey
-        get() {
-            return currentStack.last()
-        }
+        get() = currentStack.last()
 
-
+    /**
+     * The route just before the current route in the current back stack, if any.
+     * Returns null if the current route is the first in its stack.
+     */
     val previousRoute: NavKey?
         get() {
             val currentRouteIndex = currentStack.indexOf(currentRoute)
@@ -88,6 +102,11 @@ class NavigationState(
             }
         }
 
+    /**
+     * List of top-level routes that currently have active back stacks.
+     * If the current top-level route is the main route, only the main route is active.
+     * Otherwise, both the main route and the current top-level route are considered active.
+     */
     val stacksInUse: List<NavKey>
         get() = if (topLevelRoute == mainRoute) {
             listOf(mainRoute)
@@ -97,7 +116,11 @@ class NavigationState(
 }
 
 /**
- * Convert NavigationState into NavEntries.
+ * Converts this [NavigationState] into a list of [NavEntry] instances suitable for consumption by
+ * the Navigation 3 library.
+ *
+ * @param entryProvider a lambda that creates a [NavEntry] given a route key
+ * @return a snapshot state list of navigation entries for the active stacks
  */
 @Composable
 fun NavigationState.toEntries(
