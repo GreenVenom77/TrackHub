@@ -1,27 +1,26 @@
-package com.trackhub.feat_navigation.utils
+package com.trackhub.feat_navigation.data
 
 import com.greenvenom.core_navigation.domain.NavigationState
 import com.greenvenom.core_navigation.routes.Destination
-import com.greenvenom.core_navigation.utils.AppNavigator
 
-class AppNavigatorImpl: AppNavigator {
+class AppNavigator {
     private lateinit var navigationState: NavigationState
 
-    override fun bind(
+    fun bind(
         navigationState: NavigationState
     ) {
         this.navigationState = navigationState
     }
 
-    override fun navigateTo(target: Destination) {
+    fun navigateTo(target: Destination) {
         navigate(target)
     }
 
-    override fun navigateBack() {
+    fun navigateBack() {
         goBack()
     }
 
-    override fun navigateAndClearBackStack(target: Destination) {
+    fun navigateAndClearBackStack(target: Destination) {
         navigationState.backStacks.forEach { (_, stack) ->
             while (stack.size > 1) stack.removeLastOrNull()
         }
@@ -29,11 +28,11 @@ class AppNavigatorImpl: AppNavigator {
         navigationState.topLevelRoute = target
     }
 
-    override fun getCurrentDestination(): Destination {
+    fun getCurrentDestination(): Destination {
         return navigationState.currentRoute as Destination
     }
 
-    override fun getPreviousDestination(): Destination? {
+    fun getPreviousDestination(): Destination? {
         return navigationState.previousRoute as Destination?
     }
 

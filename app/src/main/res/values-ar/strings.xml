@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="edit_hub_Details">تعديل معلومات المخزن</string>
+    <string name="my_hubs">مخازني</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="shared_hubs">مخازن الآخرين</string>
+    <string name="menu">المزيد</string>
+    <string name="navigation_icon">أيقونة التنقل %1$s</string>
 </resources>

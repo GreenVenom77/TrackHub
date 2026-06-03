@@ -16,7 +16,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.greenvenom.core_navigation.domain.rememberNavigationState
 import com.greenvenom.core_navigation.domain.repos.NavigationRepository
 import com.greenvenom.core_navigation.domain.toEntries
-import com.greenvenom.core_navigation.utils.AppNavigator
 import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.feat_auth.presentation.routes.AuthDest
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
@@ -31,7 +30,6 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
-    val appNavigator = koinInject<AppNavigator>()
     val navigationRepository = koinInject<NavigationRepository>()
     val destinationHandler = koinInject<SessionDestinationHandler>()
     val splashComplete by destinationHandler.isReady.collectAsStateWithLifecycle()
@@ -45,7 +43,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     )
 
     LaunchedEffect(Unit) {
-        appNavigator.bind(
+        navigationRepository.bind(
             navigationState = navigationState
         )
     }

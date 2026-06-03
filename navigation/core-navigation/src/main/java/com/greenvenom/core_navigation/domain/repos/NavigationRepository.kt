@@ -1,5 +1,6 @@
 package com.greenvenom.core_navigation.domain.repos
 
+import com.greenvenom.core_navigation.domain.NavigationState
 import com.greenvenom.core_navigation.utils.NavigationType
 import kotlinx.coroutines.flow.StateFlow
 
@@ -15,6 +16,14 @@ interface NavigationRepository {
      * to react to navigation state changes.
      */
     val navigationData: StateFlow<NavigationData>
+
+    /**
+     * Binds the navigator to a mutable [NavigationState] instance.
+     * This must be called before any navigation operations.
+     *
+     * @param navigationState the state to mutate
+     */
+    fun bind(navigationState: NavigationState)
 
     /**
      * Triggers a navigation action based on the provided [navigationType].

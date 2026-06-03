@@ -14,13 +14,13 @@ navigation/
 │   ├── domain/               # Pure Kotlin interfaces & data classes
 │   │   ├── repos/            # Repository interface & data types
 │   │   └── NavigationState.kt  # State management for the navigation graph
-│   ├── routes/               # Destination markers & type enums
-│   └── utils/                # AppNavigator interface & NavigationType sealed class
+│   ├── routes/               # Destination & DestinationType
+│   └── utils/                # NavigationType sealed class
 │
 └── feat-navigation/          # Feature-specific implementation
-    ├── data/repos/           # NavigationRepositoryImpl
-    ├── di/                   # Koin dependency injection module
-    └── utils/               # AppNavigatorImpl
+    ├── data/                 # AppNavigator (internal data source)
+    │   └── repos/            # NavigationRepositoryImpl
+    └── di/                   # Koin dependency injection module
 ```
 
 ---
@@ -78,7 +78,7 @@ navigation/
 | Component | Purpose |
 |-----------|---------|
 | **NavigationRepository** | Public API for all navigation actions. Handles state updates, bar visibility logic, and destination tracking |
-| **AppNavigator** | Core operations: `navigateTo()`, `navigateBack()`, `navigateAndClearBackStack()` |
+| **AppNavigator** | Internal data source: `navigateTo()`, `navigateBack()`, `navigateAndClearBackStack()`. Not exposed outside `feat-navigation` |
 | **NavigationState** | Mutable state object managed by AppNavigator implementation |
 
 ## Navigation Types
@@ -119,30 +119,17 @@ NavDisplay(
 
 ---
 
-### 2. AppNavigator (The Core Controller)
+### 2. AppNavigator (Internal Data Source)
 
-**Bind this inside your NavHost composable using `LaunchedEffect`.** The AppNavigator is the low-level controller that manages the actual navigation stack. All destinations implement the `Destination` interface (which extends `NavKey`) so they can be used directly as back stack keys.
+**Never inject or use this directly.** `AppNavigator` is a concrete class internal to `feat-navigation` that `NavigationRepositoryImpl` delegates to. It is not an interface and is not exposed outside the module. All navigation goes through `NavigationRepository`.
+
+Binding happens via `NavigationRepository.bind()`, which delegates internally to `AppNavigator.bind()` and immediately syncs the initial state:
 
 ```kotlin
-// Destination marker interface — all screens implement this
-interface Destination : NavKey {
-    val destinationType: DestinationType
-}
-
-// Top-level destinations for the bottom bar
-enum class BottomDestination(val destination: Destination) {
-    MyHubs(destination = HubDest.OwnedHubs()),
-    SharedHubs(destination = HubDest.SharedHubs()),
-    Notifications(destination = NotificationsDest.Notifications),
-    Menu(destination = MenuDest.Menu)
-}
-
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
-    val appNavigator = koinInject<AppNavigator>()
     val navigationRepository = koinInject<NavigationRepository>()
 
-    // Build the navigation state with all top-level routes
     val navigationState = rememberNavigationState(
         startRoute = AuthDest.Login,
         topLevelRoutes = buildSet {
@@ -151,9 +138,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
         }
     )
 
-    // CRITICAL: Bind AppNavigator to the state before any navigation occurs
+    // Bind through the repository — AppNavigator is an internal detail
     LaunchedEffect(Unit) {
-        appNavigator.bind(navigationState = navigationState)
+        navigationRepository.bind(
+            navigationState = navigationState
+        )
     }
 
     NavDisplay(
@@ -170,7 +159,16 @@ fun AppNavHost(modifier: Modifier = Modifier) {
 }
 ```
 
-**Use `AppNavigator` directly only when:** You need low-level back stack operations outside the repository abstraction (e.g., a custom use case or service layer). For all normal navigation, go through `NavigationRepository`.
+The Koin module wires everything internally — `AppNavigator` is registered as a `single` but never exposed as a bound interface:
+
+```kotlin
+val navigationModule = module {
+    single { AppNavigator() }
+    single<NavigationRepository> {
+        NavigationRepositoryImpl(appNavigator = get())
+    }
+}
+```
 
 ---
 
@@ -184,12 +182,21 @@ fun rememberNavigationState(
     startRoute: NavKey,
     topLevelRoutes: Set<NavKey>
 ): NavigationState {
-    // Serializes the state so it survives configuration changes and process death
-    val mainRoute = rememberSerializable(startRoute, topLevelRoutes) { mutableStateOf(startRoute) }
-    val topLevelRoute = rememberSerializable(startRoute, topLevelRoutes) { mutableStateOf(startRoute) }
+    val topLevelRoute = rememberSerializable(
+        startRoute, topLevelRoutes,
+        serializer = MutableStateSerializer(NavKeySerializer())
+    ) { mutableStateOf(startRoute) }
+
+    val mainRoute = rememberSerializable(
+        startRoute, topLevelRoutes,
+        serializer = MutableStateSerializer(NavKeySerializer())
+    ) { mutableStateOf(startRoute) }
+
     val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(key) }
-    
-    return NavigationState(mainRoute, topLevelRoute, backStacks)
+
+    return remember(startRoute, topLevelRoutes) {
+        NavigationState(mainRoute = mainRoute, topLevelRoute = topLevelRoute, backStacks = backStacks)
+    }
 }
 ```
 
@@ -213,7 +220,7 @@ The repository automatically manages bar visibility based on destination type:
 |------------------|---------|-------------|----------------|
 | **MAIN**         | ✅      | ✅          | ❌             |
 | **SIDE**         | ✅      | ❌          | ✅             |
-| **Other**        | ❌      | ❌          | ❌             |
+| **AUTH / GRAPH / OTHER** | ❌ | ❌       | ❌             |
 
 ---
 
@@ -229,9 +236,21 @@ fun rememberNavigationState(
     startRoute: NavKey,
     topLevelRoutes: Set<NavKey>
 ): NavigationState {
-    // Serializes the state so it survives process death
-    val mainRoute = rememberSerializable(startRoute, topLevelRoutes) { mutableStateOf(startRoute) }
-    // ... similar for topLevelRoute and backStacks
+    val topLevelRoute = rememberSerializable(
+        startRoute, topLevelRoutes,
+        serializer = MutableStateSerializer(NavKeySerializer())
+    ) { mutableStateOf(startRoute) }
+
+    val mainRoute = rememberSerializable(
+        startRoute, topLevelRoutes,
+        serializer = MutableStateSerializer(NavKeySerializer())
+    ) { mutableStateOf(startRoute) }
+
+    val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(key) }
+
+    return remember(startRoute, topLevelRoutes) {
+        NavigationState(mainRoute = mainRoute, topLevelRoute = topLevelRoute, backStacks = backStacks)
+    }
 }
 ```
 
@@ -261,7 +280,7 @@ fun NavigationState.toEntries(entryProvider: (NavKey) -> NavEntry<NavKey>): Snap
 ## Key Dependencies
 
 - **AppNavigator**: The central navigation controller that manages the back stack and destination routing
-- **DestinationType**: Enum defining screen types (MAIN, SIDE, etc.) for bar visibility rules
+- **DestinationType**: Enum defining screen types (`MAIN`, `SIDE`, `AUTH`, `GRAPH`, `OTHER`) for bar visibility rules
 - **androidx.navigation3.runtime**: Navigation 3 runtime APIs: NavEntry, NavKey, rememberNavBackStack
 - **Koin**: Dependency injection module for the feature navigation
 

@@ -2,4 +2,10 @@
 <resources>
     <string name="app_name" translatable="false">Track Hub</string>
     <string name="edit_hub_Details">Edit Hub Details</string>
+    <string name="my_hubs">My Hubs</string>
+    <string name="notifications">Notifications</string>
+    <string name="profile">Profile</string>
+    <string name="shared_hubs">Shared Hubs</string>
+    <string name="menu">Menu</string>
+    <string name="navigation_icon">%1$s Navigation Icon</string>
 </resources>

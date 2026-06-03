@@ -3,9 +3,9 @@ package com.skewnexus.trackhub.navigation.components
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.greenvenom.core_navigation.routes.Destination
+import com.skewnexus.trackhub.R
 import com.trackhub.feat_hub.presentation.routes.HubDest
 import com.trackhub.feat_menu.presentation.routes.MenuDest
-import com.trackhub.feat_navigation.R
 import com.trackhub.feat_notifications.presentation.routes.NotificationsDest
 
 enum class BottomDestination(
