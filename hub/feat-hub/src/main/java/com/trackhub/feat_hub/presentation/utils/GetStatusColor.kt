@@ -8,6 +8,7 @@ import com.trackhub.core_hub.domain.enums.MemberStatus
 @Composable
 fun MemberStatus.getStatusColor(): Color {
     return when (this) {
+        MemberStatus.Owner -> MaterialTheme.colorScheme.primary
         MemberStatus.Member -> MaterialTheme.colorScheme.primary
         MemberStatus.PendingInvitation -> MaterialTheme.colorScheme.tertiary
         MemberStatus.InvitationDeclined -> MaterialTheme.colorScheme.error

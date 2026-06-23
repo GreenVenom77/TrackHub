@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 @Serializable
 data class ChangeMemberRoleRequest(
     val hubId: String,
-    val userId: String,
+    val invitedUserId: String,
     val hubRole: String,
     @Transient val status: MemberStatus = MemberStatus.Member
 )

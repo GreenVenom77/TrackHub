@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +47,7 @@ import com.greenvenom.core_ui.components.buttons.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
+import com.greenvenom.core_util.logger.Logger
 import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
@@ -120,10 +122,12 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
-            scope.launch {
-                sheetState.hide()
-                itemDetailsState = false
-                isItemEdit = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    itemDetailsState = false
+                    isItemEdit = false
+                }
             }
             baseAction(BaseAction.ShowSuccessDialog())
         }
@@ -142,9 +146,11 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             if (hubSheetState) {
-                scope.launch {
-                    sheetState.hide()
-                    hubSheetState = false
+                LaunchedEffect(Unit)  {
+                    scope.launch {
+                        sheetState.hide()
+                        hubSheetState = false
+                    }
                 }
             }
             baseAction(BaseAction.ShowSuccessDialog())
@@ -162,9 +168,11 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubDeletionResult
         ?.onSuccess {
-            scope.launch {
-                sheetState.hide()
-                hubSheetState = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    hubSheetState = false
+                }
             }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.NavigateBack)
@@ -182,10 +190,12 @@ private fun HubDetailsContent(
 
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
-            scope.launch {
-                sheetState.hide()
-                itemDetailsState = false
-                isItemEdit = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    itemDetailsState = false
+                    isItemEdit = false
+                }
             }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
@@ -473,6 +483,7 @@ private fun HubDetailsContent(
                         contentType = lazyPagingItems.itemContentType { "Items" }
                     ) { index ->
                         val hubItem = lazyPagingItems[index] as Item
+                        Logger.d("HubDetailsScreen", "hubItem = $hubItem, ui = ${hubItem.toHubItemUI()}")
                         ItemListCard(
                             hubItem = hubItem.toHubItemUI(),
                             onClick = {

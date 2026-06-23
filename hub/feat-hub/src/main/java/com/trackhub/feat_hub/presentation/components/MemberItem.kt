@@ -72,7 +72,7 @@ fun MemberItem(
                     fontWeight = FontWeight.Medium
                 )
 
-                if (!viewerMode) {
+                if (!viewerMode && member.status != MemberStatus.Owner) {
                     // Status badge (only in non-viewer mode)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

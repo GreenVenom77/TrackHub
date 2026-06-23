@@ -69,11 +69,13 @@ class HubRepositoryImpl(
             manufacturerList = manufacturerList,
             categoryList = categoryList
         )
+
+        // Persist remotely first since we need the server-generated id to cache it
         val remoteResult = remoteDataSource.addHub(request)
         remoteResult.onSuccess { hubDto ->
             cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
         }
-        return remoteResult.map {  }
+        return remoteResult.map { }
     }
 
     override suspend fun updateHub(
@@ -90,23 +92,54 @@ class HubRepositoryImpl(
             manufacturerList = manufacturerList,
             categoryList = categoryList
         )
+
+        // Build an optimistic hub from current cached data and apply user changes immediately
+        val optimisticHub = cacheDataSource.getHub(id).extractHub().copy(
+            name = name,
+            description = description,
+            manufacturerList = manufacturerList,
+            categoryList = categoryList
+        )
+        cacheDataSource.updateHub(optimisticHub.toHubEntity())
+
+        // Sync with remote in the background and reconcile if the response differs
         val remoteResult = remoteDataSource.updateHub(request)
         remoteResult.onSuccess { hubDto ->
-            cacheDataSource.updateHub(hubDto.extractHub().toHubEntity())
+            val remoteHub = hubDto.extractHub()
+            if (remoteHub != optimisticHub) {
+                cacheDataSource.updateHub(remoteHub.toHubEntity())
+            }
         }
+
         return remoteResult.map { it.extractHub() }
     }
 
     override suspend fun deleteHub(hubId: String): EmptyResult<NetworkError> {
+        // Remove from cache immediately so UI reflects the deletion without delay
+        cacheDataSource.deleteHub(hubId)
+
         val remoteResult = remoteDataSource.deleteHub(hubId)
-        remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
+        remoteResult.onError {
+            // Remote failed, restore hub from remote so cache stays consistent
+            remoteDataSource.getOwnHub(hubId).onSuccess { hubDto ->
+                cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
+            }
+        }
         return remoteResult
     }
 
     override suspend fun leaveHub(hubId: String): EmptyResult<NetworkError> {
+        // Remove from cache immediately
+        cacheDataSource.deleteHub(hubId)
+
         val request = LeaveHubRequest(hubId = hubId)
         val remoteResult = remoteDataSource.leaveHub(request)
-        remoteResult.onSuccess { cacheDataSource.deleteHub(hubId) }
+        remoteResult.onError {
+            // Remote failed, restore hub from remote so cache stays consistent
+            remoteDataSource.getSharedHub(hubId).onSuccess { hubDto ->
+                cacheDataSource.addHub(hubDto.extractHub().toHubEntity())
+            }
+        }
         return remoteResult
     }
 
@@ -117,38 +150,36 @@ class HubRepositoryImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getHubs(areOwned: Boolean): Flow<NetworkResult<List<Hub>, NetworkError>> {
-        val foundHubs: MutableSet<Hub> = mutableSetOf()
+        // Local map used to track current state of hubs for efficient diffing
+        val foundHubs: MutableMap<String, Hub> = mutableMapOf()
 
         return channelFlow {
+            // Select the appropriate cache source based on ownership
             val cachedHubsFlow = if (areOwned) {
                 cacheDataSource.getOwnHubs().map {
-                    it.map { hubEntity ->
-                        hubEntity.extractHub()
-                    }
+                    it.map { hubEntity -> hubEntity.extractHub() }
                 }
             } else {
                 cacheDataSource.getSharedHubs().map {
-                    it.map { hubEntity ->
-                        hubEntity.extractHub()
-                    }
+                    it.map { hubEntity -> hubEntity.extractHub() }
                 }
             }
 
+            // Observe cache and emit immediately to show data without waiting for network
             cachedHubsFlow
                 .onEach { cachedHubs ->
-                    // Update the local collection with cached data
                     foundHubs.clear()
-                    foundHubs.addAll(cachedHubs)
-
+                    foundHubs.putAll(cachedHubs.associateBy { it.id })
                     send(NetworkResult.Success(cachedHubs))
                 }
                 .launchIn(this)
 
+            // Listen for refresh triggers, starting with an initial emit to fetch on first load
             refreshHubsTrigger
                 .onStart { emit(Unit) }
                 .flatMapLatest {
                     flow<Unit> {
-                        // Fetch remote data and update cache
+                        // Fetch from remote based on ownership type
                         val remoteHubs = if (areOwned) {
                             remoteDataSource.getOwnHubs().map { hubs ->
                                 hubs.map { it.extractHub() }
@@ -161,33 +192,45 @@ class HubRepositoryImpl(
 
                         remoteHubs
                             .onSuccess { fetchedHubs ->
-                                // Find new hubs that aren't in the current collection
-                                val newHubs = fetchedHubs.filter { it !in foundHubs }
+                                val fetchedMap = fetchedHubs.associateBy { it.id }
 
-                                // Find deleted hubs that are in the collection but not in fetched data
-                                val deletedHubs = foundHubs.filter { currentHub ->
-                                    currentHub.id !in fetchedHubs.map { it.id }
+                                // Hubs present remotely but missing from local map
+                                val newHubs = fetchedHubs.filter { it.id !in foundHubs }
+
+                                // Hubs present locally but missing from remote response
+                                val deletedHubs = foundHubs.values.filter { it.id !in fetchedMap }
+
+                                // Hubs present in both but with different data
+                                val updatedHubs = fetchedHubs.filter { fetchedHub ->
+                                    val cached = foundHubs[fetchedHub.id]
+                                    cached != null && cached != fetchedHub
                                 }
 
-                                // Update the cache with changes
-                                if (newHubs.isNotEmpty() || deletedHubs.isNotEmpty()) {
-                                    // Remove deleted hubs from cache
-                                    if (deletedHubs.isNotEmpty()) {
-                                        cacheDataSource.deleteHubs(
-                                            deletedHubs.map { it.toHubEntity() }
-                                        )
-                                        foundHubs.removeAll(deletedHubs.toSet())
-                                    }
-                                    // Add new hubs to cache
-                                    if (newHubs.isNotEmpty()) {
-                                        cacheDataSource.updateOwnHubs(
-                                            newHubs.map { it.toHubEntity() }
-                                        )
-                                        foundHubs.addAll(newHubs)
-                                    }
+                                val hasChanges = newHubs.isNotEmpty() ||
+                                        deletedHubs.isNotEmpty() ||
+                                        updatedHubs.isNotEmpty()
 
-                                    // Send the updated list
-                                    send(NetworkResult.Success(foundHubs.toList()))
+                                // Remove deleted hubs from cache and local map
+                                if (deletedHubs.isNotEmpty()) {
+                                    cacheDataSource.deleteHubs(deletedHubs.map { it.toHubEntity() })
+                                    deletedHubs.forEach { foundHubs.remove(it.id) }
+                                }
+
+                                // Insert new hubs into cache and local map
+                                if (newHubs.isNotEmpty()) {
+                                    cacheDataSource.updateOwnHubs(newHubs.map { it.toHubEntity() })
+                                    foundHubs.putAll(newHubs.associateBy { it.id })
+                                }
+
+                                // Upsert changed hubs into cache and overwrite in local map
+                                if (updatedHubs.isNotEmpty()) {
+                                    cacheDataSource.updateOwnHubs(updatedHubs.map { it.toHubEntity() })
+                                    foundHubs.putAll(updatedHubs.associateBy { it.id })
+                                }
+
+                                // Only emit if something actually changed to avoid redundant recomposition
+                                if (hasChanges) {
+                                    send(NetworkResult.Success(foundHubs.values.toList()))
                                 } else {
                                     send(NetworkResult.Success(emptyList()))
                                 }
@@ -217,6 +260,8 @@ class HubRepositoryImpl(
             manufacturer = manufacturer,
             category = category
         )
+
+        // Persist remotely first since we need the server-generated id to cache it
         return remoteDataSource.addItemToHub(request).onSuccess {
             refreshHub(hubId)
         }
@@ -240,26 +285,70 @@ class HubRepositoryImpl(
             manufacturer = manufacturer,
             category = category
         )
-        return remoteDataSource.updateItem(request).onSuccess {
-            refreshHub(currentHubId ?: return@onSuccess)
-        }
-    }
 
-    override suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError> {
-        return remoteDataSource.deleteItem(hubItemId).onSuccess {
+        // Build an optimistic item from current cached data and apply user changes immediately
+        val cachedItems = cacheDataSource.getItemsFromHub(currentHubId ?: "")
+        val optimisticItem = cachedItems.find { it.id == id }?.extractItem()?.copy(
+            name = name,
+            stockCount = stockCount,
+            unit = unit,
+            imageUrl = imageUrl,
+            manufacturer = manufacturer,
+            category = category
+        )
+
+        // Update cache immediately if we found the item
+        optimisticItem?.let {
+            cacheDataSource.updateHubItems(listOf(it.toItemEntity()))
+        }
+
+        // Sync with remote in background and reconcile if response differs
+        val remoteResult = remoteDataSource.updateItem(request)
+        remoteResult.onSuccess {
             refreshHub(currentHubId ?: return@onSuccess)
         }
+        remoteResult.onError {
+            // Remote failed, restore the original cached item
+            optimisticItem?.let {
+                val originalItem = cachedItems.find { entity -> entity.id == id }
+                originalItem?.let { cacheDataSource.updateHubItems(listOf(it)) }
+            }
+        }
+
+        return remoteResult
+    }
+    override suspend fun deleteHubItem(hubItemId: String): EmptyResult<NetworkError> {
+        val hubId = currentHubId ?: ""
+
+        // Find the item before deleting so we can restore it if remote fails
+        val itemToDelete = cacheDataSource.getItemsFromHub(hubId).find { it.id == hubItemId }
+
+        // Remove from cache immediately so UI reflects deletion without delay
+        itemToDelete?.let {
+            cacheDataSource.deleteItems(listOf(it))
+        }
+
+        val remoteResult = remoteDataSource.deleteItem(hubItemId)
+        remoteResult.onError {
+            // Remote failed, restore the item back into cache
+            itemToDelete?.let {
+                cacheDataSource.updateHubItems(listOf(it))
+            }
+        }
+
+        return remoteResult
     }
 
     /**
-     * Refresh-based sync - fetches single hub and its items once and updates cache
+     * Syncs a single hub and its items between remote and local cache.
+     * Performs a three-way diff (new, deleted, updated) for items to minimize cache writes.
+     * Returns an error if the hub is not found in cache or if the remote hub fetch fails.
      */
     private suspend fun syncHubAndItems(hubId: String): EmptyResult<NetworkError> {
-        // Get hub from cache to determine if it's owned or shared
+        // Hub must exist in cache to determine ownership before hitting remote
         val cachedHub = try {
             cacheDataSource.getHub(hubId)
         } catch (_: Exception) {
-            // Hub not in cache, return error
             return NetworkResult.Error(
                 NetworkError(
                     errorType = ErrorType.NOT_FOUND,
@@ -268,52 +357,59 @@ class HubRepositoryImpl(
             )
         }
 
-        // Refresh the specific hub (owned or shared) and update cache
+        // Fetch the hub from the correct remote endpoint based on ownership and update cache
         val hubSuccess = if (cachedHub.isOwned) {
             val hubResult = remoteDataSource.getOwnHub(hubId)
             hubResult.onSuccess { hubResponse ->
-                val hub = hubResponse.extractHub()
-                cacheDataSource.updateHub(hub.toHubEntity())
+                cacheDataSource.updateHub(hubResponse.extractHub().toHubEntity())
             }
             hubResult is NetworkResult.Success
         } else {
             val hubResult = remoteDataSource.getSharedHub(hubId)
             hubResult.onSuccess { hubResponse ->
-                val hub = hubResponse.extractHub()
-                cacheDataSource.updateHub(hub.toHubEntity())
+                cacheDataSource.updateHub(hubResponse.extractHub().toHubEntity())
             }
             hubResult is NetworkResult.Success
         }
 
-        // Fetch and sync items
+        // Fetch all items for this hub from remote
         val itemsResult = remoteDataSource.getItemsFromHub(hubId)
         itemsResult.onSuccess { fetchedItemResponses ->
             val fetchedItems = fetchedItemResponses.map { it.extractItem() }
-
-            // Get current cached items
             val cachedItems = cacheDataSource.getItemsFromHub(hubId).map { it.extractItem() }
 
-            // Find new items that aren't in the cache
+            // Items present remotely but missing from cache
             val newItems = fetchedItems.filter { item ->
                 item.id !in cachedItems.map { it.id }
             }
 
-            // Find deleted items that are in cache but not in fetched data
+            // Items present in cache but missing from remote response
             val deletedItems = cachedItems.filter { currentItem ->
                 currentItem.id !in fetchedItems.map { it.id }
             }
 
-            // Update the cache with changes
+            // Items present in both but with different data
+            val updatedItems = fetchedItems.filter { fetchedItem ->
+                val cached = cachedItems.find { it.id == fetchedItem.id }
+                cached != null && cached != fetchedItem
+            }
+
+            // Insert new items into cache
             if (newItems.isNotEmpty()) {
                 cacheDataSource.updateHubItems(newItems.map { it.toItemEntity() })
             }
 
+            // Upsert changed items into cache
+            if (updatedItems.isNotEmpty()) {
+                cacheDataSource.updateHubItems(updatedItems.map { it.toItemEntity() })
+            }
+
+            // Remove deleted items from cache
             if (deletedItems.isNotEmpty()) {
                 cacheDataSource.deleteItems(deletedItems.map { it.toItemEntity() })
             }
         }
 
-        // Return combined result
         return if (hubSuccess) {
             NetworkResult.Success(Unit)
         } else {
@@ -369,7 +465,7 @@ class HubRepositoryImpl(
             }
 
             send(NetworkResult.Success(pagedItems))
-            
+
             // Listen for refresh triggers and sync hub + items
             refreshHubTrigger
                 .onStart { emit(hubId) }
