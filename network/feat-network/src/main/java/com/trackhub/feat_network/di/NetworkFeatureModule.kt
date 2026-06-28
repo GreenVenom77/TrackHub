@@ -6,7 +6,7 @@ import com.trackhub.feat_network.data.repository.SupabaseSessionRepository
 import io.github.jan.supabase.SupabaseClient
 import org.koin.dsl.module
 
-val networkFeatureModule = module {
+val networkModule = module {
     single<SupabaseClient> { ClientFactory.buildSupabaseClient() }
 
     single<SessionRepository>(createdAtStart = true) {

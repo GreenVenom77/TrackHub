@@ -48,7 +48,7 @@ android {
 dependencies {
     implementation(project(":menu:core-menu"))
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     ksp(libs.androidx.room.compiler)
     implementation(libs.bundles.local.data.persistence)
     implementation(libs.androidx.core.ktx)

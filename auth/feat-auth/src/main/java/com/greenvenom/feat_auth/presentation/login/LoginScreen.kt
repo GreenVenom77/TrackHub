@@ -30,22 +30,26 @@ import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_util.input.domain.ValidationResult
 import com.greenvenom.feat_auth.R
 import com.greenvenom.feat_auth.presentation.component.AuthHeader
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun LoginScreen(
     navigateToRegisterScreen: () -> Unit,
     navigateToEmailVerificationScreen: () -> Unit,
-    navigateToNextScreen:() -> Unit
+    navigateToNextScreen:() -> Unit,
+    loginViewModel: LoginViewModel = koinViewModel()
 ) {
-    BaseScreen<LoginViewModel>(
-        enableCustomBack = false
-    ) { viewModel ->
-        val state by viewModel.loginState.collectAsStateWithLifecycle()
+    val baseState by loginViewModel.baseState.collectAsStateWithLifecycle()
+    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = loginViewModel,
+        baseState = baseState,
+    ) {
         LoginContent(
-            state = state,
-            loginActions = viewModel::loginAction,
-            baseActions = viewModel::baseAction,
+            state = loginState,
+            loginActions = loginViewModel::loginAction,
+            baseActions = loginViewModel::baseAction,
             navigateToRegisterScreen = navigateToRegisterScreen,
             navigateToEmailVerificationScreen = navigateToEmailVerificationScreen,
             navigateToNextScreen = navigateToNextScreen

@@ -40,22 +40,23 @@ import com.trackhub.feat_notifications.presentation.NotificationsState
 import com.trackhub.feat_notifications.presentation.components.HubInvitationItem
 import com.trackhub.feat_notifications.presentation.mappers.toUI
 import com.trackhub.feat_notifications.presentation.viewmodel.NotificationsViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun NotificationsScreen(
-    navigateBack: () -> Unit
+    notificationsViewModel: NotificationsViewModel = koinViewModel()
 ) {
-    BaseScreen<NotificationsViewModel>(
-        onPhysicalBack = {
-            navigateBack()
-        }
-    ) { viewModel ->
-        val notificationsState by viewModel.notificationsState.collectAsStateWithLifecycle()
+    val baseState by notificationsViewModel.baseState.collectAsStateWithLifecycle()
+    val notificationsState by notificationsViewModel.notificationsState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = notificationsViewModel,
+        baseState = baseState
+    ) {
         NotificationsScreenContent(
             notificationsState = notificationsState,
-            notificationsAction = viewModel::notificationsAction,
-            baseAction = viewModel::baseAction
+            notificationsAction = notificationsViewModel::notificationsAction,
+            baseAction = notificationsViewModel::baseAction
         )
     }
 }

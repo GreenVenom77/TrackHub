@@ -10,3 +10,6 @@
 .cxx
 local.properties
 secrets.properties
+repomix-output.xml
+AGENTS.md
+.agents/

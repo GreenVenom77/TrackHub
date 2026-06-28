@@ -2,7 +2,7 @@ package com.trackhub.feat_network.data.repository
 
 import com.greenvenom.core_network.data.onError
 import com.greenvenom.core_network.data.onSuccess
-import com.greenvenom.core_network.domain.SessionDestinations
+import com.greenvenom.core_network.domain.SessionDestination
 import com.greenvenom.core_network.domain.SessionRepository
 import com.greenvenom.core_network.supabase.util.extractMetadata
 import com.greenvenom.core_network.supabase.util.supabaseCall
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.ExperimentalTime
 
 class SupabaseSessionRepository(
     val supabaseClient: SupabaseClient,
@@ -33,9 +32,9 @@ class SupabaseSessionRepository(
 ): SessionRepository {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val _userSessionDestination = MutableStateFlow(SessionDestinations.INITIALIZE)
+    private val _userSessionDestination = MutableStateFlow(SessionDestination.INITIALIZE)
     override val userSessionDestination = _userSessionDestination
-        .stateIn(scope, SharingStarted.Lazily, SessionDestinations.INITIALIZE)
+        .stateIn(scope, SharingStarted.Lazily, SessionDestination.INITIALIZE)
 
     init {
         collectSessionStatus()
@@ -60,24 +59,23 @@ class SupabaseSessionRepository(
                     is SessionSource.SignIn,
                     is SessionSource.SignUp -> {
                         getUserProfile()
-                        _userSessionDestination.update { SessionDestinations.MAIN }
+                        _userSessionDestination.update { SessionDestination.MAIN }
                     }
                     is SessionSource.UserChanged -> {
-                        _userSessionDestination.update { SessionDestinations.AUTH }
+                        _userSessionDestination.update { SessionDestination.AUTH }
                     }
                     else -> { Logger.d("Session Source", sessionStatus.source.toString()) }
                 }
             }
             is SessionStatus.NotAuthenticated -> {
-                _userSessionDestination.update { SessionDestinations.AUTH }
+                _userSessionDestination.update { SessionDestination.AUTH }
             }
             is SessionStatus.RefreshFailure -> {
-                _userSessionDestination.update { SessionDestinations.AUTH }
+                _userSessionDestination.update { SessionDestination.AUTH }
             }
         }
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun getUserProfile() {
         scope.launch {
             if (profileDao.getProfile() == null) {

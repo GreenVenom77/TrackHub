@@ -62,7 +62,7 @@ class HubInvitationsRepositoryImpl(
     ): EmptyResult<NetworkError> {
         val request = RemoveMemberRequest(
             hubId = hubId,
-            userId = userId,
+            invitedUserId = userId,
             status = status
         )
         return remoteDataSource.removeUserFromHub(request)
@@ -76,7 +76,7 @@ class HubInvitationsRepositoryImpl(
     ): EmptyResult<NetworkError> {
         val request = ChangeMemberRoleRequest(
             hubId = hubId,
-            userId = userId,
+            invitedUserId = userId,
             hubRole = role.name,
             status = status
         )

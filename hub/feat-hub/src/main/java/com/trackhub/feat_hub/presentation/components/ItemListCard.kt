@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.trackhub.core_hub.domain.enums.BaseUnit
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.ItemUI
 
@@ -68,7 +70,7 @@ fun ItemListCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "${hubItem.stockCount} ${hubItem.unit}",
+                        text = "${hubItem.stockCount} ${stringResource(hubItem.unit.displayNameRes)}",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.weight(1f))
@@ -91,7 +93,7 @@ private fun ItemPreview() {
             hubId = "1",
             name = "Test Item",
             stockCount = "10",
-            unit = "pcs",
+            unit = BaseUnit.PIECES,
             imageUrl = "",
             createdAt = "March 9, 2025 at 5:30 PM",
             updatedAt = "March 9, 2025 at 5:30 PM",

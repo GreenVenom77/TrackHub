@@ -56,6 +56,7 @@
     <string name="close">إغلاق</string>
     <string name="in_stock">متوفر</string>
     <string name="out_of_stock">غير متوفر</string>
+    <string name="all_stock">كل المخزون</string>
 
     <!-- Members & Invitations -->
     <string name="members">الأعضاء</string>

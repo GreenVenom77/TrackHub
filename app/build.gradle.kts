@@ -87,8 +87,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.bundles.compose.main)
     implementation(libs.bundles.compose.navigation)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit.jupiter.api)

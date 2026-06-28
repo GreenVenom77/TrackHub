@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,27 +63,29 @@ import com.trackhub.feat_hub.presentation.mappers.toUI
 import com.trackhub.feat_hub.presentation.models.HubUI
 import com.trackhub.feat_hub.presentation.models.ItemUI
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HubDetailsScreen(
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    hubDetailsViewModel: HubDetailsViewModel = koinViewModel()
 ) {
-    BaseScreen<HubDetailsViewModel>(
-        onPhysicalBack = {
-            navigateBack()
-        }
-    ) { viewModel ->
-        val hubDetailsState by viewModel.hubDetailsState.collectAsStateWithLifecycle()
+    val baseState by hubDetailsViewModel.baseState.collectAsStateWithLifecycle()
+    val hubDetailsState by hubDetailsViewModel.hubDetailsState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = hubDetailsViewModel,
+        baseState = baseState,
+    ) {
         HubDetailsContent(
             hubDetailsState = hubDetailsState,
             hubDetailsAction = {
                 when(it) {
                     is HubDetailsAction.NavigateBack -> navigateBack()
                 }
-                viewModel.hubDetailsAction(it)
+                hubDetailsViewModel.hubDetailsAction(it)
             },
-            baseAction = viewModel::baseAction
+            baseAction = hubDetailsViewModel::baseAction
         )
     }
 }
@@ -118,10 +121,12 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))
-            scope.launch {
-                sheetState.hide()
-                itemDetailsState = false
-                isItemEdit = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    itemDetailsState = false
+                    isItemEdit = false
+                }
             }
             baseAction(BaseAction.ShowSuccessDialog())
         }
@@ -140,9 +145,11 @@ private fun HubDetailsContent(
         ?.onSuccess {
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             if (hubSheetState) {
-                scope.launch {
-                    sheetState.hide()
-                    hubSheetState = false
+                LaunchedEffect(Unit)  {
+                    scope.launch {
+                        sheetState.hide()
+                        hubSheetState = false
+                    }
                 }
             }
             baseAction(BaseAction.ShowSuccessDialog())
@@ -160,9 +167,11 @@ private fun HubDetailsContent(
 
     hubDetailsState.hubDeletionResult
         ?.onSuccess {
-            scope.launch {
-                sheetState.hide()
-                hubSheetState = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    hubSheetState = false
+                }
             }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.NavigateBack)
@@ -180,10 +189,12 @@ private fun HubDetailsContent(
 
     hubDetailsState.itemDeletionResult
         ?.onSuccess {
-            scope.launch {
-                sheetState.hide()
-                itemDetailsState = false
-                isItemEdit = false
+            LaunchedEffect(Unit)  {
+                scope.launch {
+                    sheetState.hide()
+                    itemDetailsState = false
+                    isItemEdit = false
+                }
             }
             hubDetailsAction(HubDetailsAction.ClearNetworkOperations)
             hubDetailsAction(HubDetailsAction.ChangeCurrentItem(null))

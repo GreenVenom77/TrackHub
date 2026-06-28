@@ -63,14 +63,14 @@ class SupabaseHubInvitationsRemoteDataSource(
                 supabaseClient.from("shared_hubs").delete {
                     filter {
                         RemoveMemberRequest::hubId eq removalRequest.hubId
-                        RemoveMemberRequest::userId eq removalRequest.userId
+                        RemoveMemberRequest::invitedUserId eq removalRequest.invitedUserId
                     }
                 }
             } else {
                 supabaseClient.from("invitations").delete {
                     filter {
                         RemoveMemberRequest::hubId eq removalRequest.hubId
-                        eq("invited_user_id", removalRequest.userId)
+                        RemoveMemberRequest::invitedUserId eq removalRequest.invitedUserId
                     }
                 }
             }
@@ -87,16 +87,16 @@ class SupabaseHubInvitationsRemoteDataSource(
                 ) {
                     filter {
                         ChangeMemberRoleRequest::hubId eq changeRoleRequest.hubId
-                        ChangeMemberRoleRequest::userId eq changeRoleRequest.userId
+                        ChangeMemberRoleRequest::invitedUserId eq changeRoleRequest.invitedUserId
                     }
                 }
             } else {
                 supabaseClient.from("invitations").update(
-                    { set("hub_role", changeRoleRequest.hubRole) }
+                    { ChangeMemberRoleRequest::hubRole setTo changeRoleRequest.hubRole }
                 ) {
                     filter {
                         ChangeMemberRoleRequest::hubId eq changeRoleRequest.hubId
-                        eq("invited_user_id", changeRoleRequest.userId)
+                        ChangeMemberRoleRequest::invitedUserId eq changeRoleRequest.invitedUserId
                     }
                 }
             }

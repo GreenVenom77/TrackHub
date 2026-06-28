@@ -1,12 +1,10 @@
 package com.trackhub.feat_hub.presentation.hub_list
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.greenvenom.core_network.data.map
 import com.greenvenom.core_network.data.onSuccess
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseViewModel
-import com.greenvenom.core_util.logger.Logger
 import com.trackhub.feat_hub.domain.repo.HubRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,13 +19,11 @@ import kotlinx.coroutines.withContext
 
 class HubListViewModel(
     private val hubRepository: HubRepository,
-    private val savedStateHandle: SavedStateHandle
+    val areHubsOwned: Boolean,
 ): BaseViewModel() {
     private val _hubListState: MutableStateFlow<HubListState> = MutableStateFlow(HubListState())
     val hubListState = _hubListState.onStart {
-        savedStateHandle.get<Boolean>("ownedHubs")?.let { isOwned ->
-            fetchingHubsJob = getHubs(isOwned)
-        }
+        fetchingHubsJob = getHubs(areHubsOwned)
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -35,10 +31,6 @@ class HubListViewModel(
     )
 
     private var fetchingHubsJob: Job? = null
-
-    init {
-        Logger.d(message = "HubListViewModel created")
-    }
 
     fun hubListAction(action: HubListAction) {
         when (action) {
@@ -76,13 +68,13 @@ class HubListViewModel(
         }
     }
 
-    private fun getHubs(isOwned: Boolean): Job {
+    private fun getHubs(areOwned: Boolean): Job {
         baseAction(BaseAction.ShowLoading)
         return viewModelScope.launch(Dispatchers.IO) {
-            hubRepository.getHubs(isOwned = isOwned).collectLatest { hubsResult ->
+            hubRepository.getHubs(areOwned = areOwned).collectLatest { hubsResult ->
                 withContext(Dispatchers.Main) {
                     hubsResult.onSuccess { hubs ->
-                        if (!hubs.isEmpty())_hubListState.update {
+                        if (!hubs.isEmpty()) _hubListState.update {
                             it.copy(
                                 hubs = hubs
                             )
@@ -111,7 +103,6 @@ class HubListViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        Logger.d(message = "HubListViewModel cleared")
         fetchingHubsJob?.cancel()
         fetchingHubsJob = null
     }

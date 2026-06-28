@@ -30,16 +30,21 @@ import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.feat_auth.R
 import com.greenvenom.feat_auth.presentation.component.AuthHeader
 import com.greenvenom.feat_auth.presentation.otp.components.OtpInputField
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OtpScreen(
     navigateToNextScreen: () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    otpViewModel: OtpViewModel = koinViewModel()
 ) {
-    BaseScreen<OtpViewModel>(
-        onPhysicalBack = { navigateBack() }
-    ) { viewModel ->
-        val otpState by viewModel.otpState.collectAsStateWithLifecycle()
+    val baseState by otpViewModel.baseState.collectAsStateWithLifecycle()
+    val otpState by otpViewModel.otpState.collectAsStateWithLifecycle()
+
+    BaseScreen(
+        viewModel = otpViewModel,
+        baseState = baseState,
+    ) {
         val focusRequesters = remember {
             List(6) { FocusRequester() }
         }
@@ -74,9 +79,9 @@ fun OtpScreen(
                     }
                     else -> Unit
                 }
-                viewModel.otpAction(action)
+                otpViewModel.otpAction(action)
             },
-            baseActions = viewModel::baseAction,
+            baseActions = otpViewModel::baseAction,
             focusRequesters = focusRequesters,
             navigateToNextScreen = navigateToNextScreen,
             navigateBack = navigateBack,

@@ -59,7 +59,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.material)
 
-    implementation(libs.koin.android.compose)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.bundles.dependency.injection)
     implementation(libs.libphonenumber.android)
     implementation(libs.androidx.datastore)
 

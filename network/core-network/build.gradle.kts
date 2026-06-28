@@ -65,10 +65,11 @@ dependencies {
     implementation(project(":core:core-util"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
-    implementation(libs.koin.android.compose)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.bundles.dependency.injection)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

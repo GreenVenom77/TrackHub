@@ -1,6 +1,7 @@
 package com.trackhub.feat_hub.presentation.mappers
 
 import com.greenvenom.core_ui.utils.formatDateTime
+import com.trackhub.core_hub.domain.enums.BaseUnit
 import com.trackhub.core_hub.domain.enums.InvitationStatus
 import com.trackhub.core_hub.domain.models.Hub
 import com.trackhub.core_hub.domain.models.InvitationResult
@@ -33,7 +34,7 @@ fun Item.toHubItemUI(): ItemUI {
         hubId = this.hubId,
         name = this.name,
         stockCount = this.stockCount.toString(),
-        unit = this.unit,
+        unit = BaseUnit.fromApiKey(this.unit),
         imageUrl = this.imageUrl,
         createdAt = formatDateTime(
             this.createdAt,

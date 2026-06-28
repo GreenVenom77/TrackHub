@@ -41,31 +41,31 @@ import com.trackhub.feat_hub.presentation.components.HubBottomSheet
 import com.trackhub.feat_hub.presentation.components.HubListCard
 import com.trackhub.feat_hub.presentation.mappers.toHubUI
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HubListScreen(
-    areHubsOwned: Boolean,
     navigateToHubDetails: (String) -> Unit,
     navigateBack: () -> Unit,
+    hubListViewModel: HubListViewModel = koinViewModel()
 ) {
-    BaseScreen<HubListViewModel>(
-        enableCustomBack = !areHubsOwned,
-        onPhysicalBack = {
-            navigateBack()
-        }
-    ) { viewModel ->
-        val hubListState by viewModel.hubListState.collectAsStateWithLifecycle()
+    val baseState by hubListViewModel.baseState.collectAsStateWithLifecycle()
+    val hubListState by hubListViewModel.hubListState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = hubListViewModel,
+        baseState = baseState,
+    ) {
         HubListContent(
-            areHubsOwned = areHubsOwned,
+            areHubsOwned = hubListViewModel.areHubsOwned,
             hubListState = hubListState,
             hubListAction = { action ->
                 when (action) {
                     is HubListAction.NavigateToHubDetails -> navigateToHubDetails(action.hubId)
                 }
-                viewModel.hubListAction(action)
+                hubListViewModel.hubListAction(action)
             },
-            baseAction = viewModel::baseAction
+            baseAction = hubListViewModel::baseAction
         )
     }
 }

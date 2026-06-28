@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,8 +13,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.greenvenom.core_ui.components.buttons.FilterDropdown
+import com.trackhub.feat_hub.presentation.enums.InStockOptions
 
 @Composable
 fun FilterDropdownRow(
@@ -36,17 +37,12 @@ fun FilterDropdownRow(
 ) {
     var selectedCategory by rememberSaveable { mutableStateOf(selectedCategory) }
     var selectedManufacturer by rememberSaveable { mutableStateOf(selectedManufacturer) }
-    val inStockOptions = listOf("All", "In Stock", "Out Of Stock")
-    val selectedInStockOption = when (selectedInStock) {
-        null -> "All"
-        true -> "In Stock"
-        false -> "Out Of Stock"
-    }
+    var selectedInStockOption by rememberSaveable { mutableStateOf(InStockOptions.fromValue(selectedInStock)) }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp)
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -62,7 +58,6 @@ fun FilterDropdownRow(
                     selectedCategory = category
                 },
                 modifier = Modifier
-                    .width(180.dp)
             )
         }
 
@@ -77,27 +72,23 @@ fun FilterDropdownRow(
                     selectedManufacturer = manufacturer
                 },
                 modifier = Modifier
-                    .width(180.dp)
             )
         }
 
         // InStock Dropdown
         if (showInStockFilter) {
             FilterDropdown(
-                items = inStockOptions,
-                selectedItem = selectedInStockOption,
-                defaultItem = "All",
-                onItemSelected = { option ->
-                    val inStockValue = when (option) {
-                        "All" -> null
-                        "In Stock" -> true
-                        "Out Of Stock" -> false
-                        else -> null
-                    }
-                    onInStockSelected(inStockValue)
+                items = InStockOptions.entries.filter { it != InStockOptions.ALL }.map {
+                    stringResource(it.label)
                 },
+                selectedItem = stringResource(selectedInStockOption.label),
+                defaultItem = stringResource(InStockOptions.ALL.label),
+                onItemSelected = { _, key ->
+                    onInStockSelected(key?.value)
+                    selectedInStockOption = key ?: InStockOptions.ALL
+                },
+                keys = InStockOptions.entries.filter { it != InStockOptions.ALL },
                 modifier = Modifier
-                    .width(140.dp)
             )
         }
     }
