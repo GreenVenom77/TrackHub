@@ -135,11 +135,11 @@ jobs:
           cat context.txt >> prompt.txt
 
           MODELS=(
-            "z-ai/glm-4.5-air:free"
-            "qwen/qwen3-coder:free"
             "google/gemma-4-31b-it:free"
-            "openrouter/elephant-alpha"
-            "meta-llama/llama-3.3-70b-instruct:free"
+            "google/gemma-4-26b-a4b-it:free"
+            "openai/gpt-oss-120b:free"
+            "nvidia/nemotron-3-super-120b-a12b:free"
+            "qwen/qwen3-coder:free"
           )
 
           for MODEL in "${MODELS[@]}"; do
