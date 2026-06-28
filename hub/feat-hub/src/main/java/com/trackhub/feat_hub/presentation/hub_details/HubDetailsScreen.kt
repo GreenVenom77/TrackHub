@@ -47,7 +47,6 @@ import com.greenvenom.core_ui.components.buttons.OptionsDropdownMenu
 import com.greenvenom.core_ui.presentation.BaseAction
 import com.greenvenom.core_ui.presentation.BaseScreen
 import com.greenvenom.core_ui.utils.SetScaffold
-import com.greenvenom.core_util.logger.Logger
 import com.trackhub.core_hub.domain.enums.HubRole
 import com.trackhub.core_hub.domain.models.Item
 import com.trackhub.feat_hub.R
@@ -483,7 +482,6 @@ private fun HubDetailsContent(
                         contentType = lazyPagingItems.itemContentType { "Items" }
                     ) { index ->
                         val hubItem = lazyPagingItems[index] as Item
-                        Logger.d("HubDetailsScreen", "hubItem = $hubItem, ui = ${hubItem.toHubItemUI()}")
                         ItemListCard(
                             hubItem = hubItem.toHubItemUI(),
                             onClick = {

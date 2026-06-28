@@ -6,28 +6,6 @@ Hubs can be shared with others: owners can invite users by searching their usern
 
 ---
 
-## Screenshots
-
-### Hubs
-
-| My Hubs | Hub Details | Shared Hubs |
-|---------|-------------|-------------|
-| ![My Hubs](screenshots/my_hubs.png) | ![Hub Details](screenshots/hub_details.png) | ![Shared Hubs](screenshots/shared_hubs.png) |
-
-### Dialogs
-
-| Invite User | Item Details |
-|-------------|-------------|
-| ![Invite User](screenshots/invite_user_dialog.png) | ![Item Details](screenshots/item_details_dialog.png) |
-
-### Notifications
-
-| Notifications |
-|--------------|
-| ![Notifications](screenshots/notifications.png) |
-
----
-
 ## Stack
 
 | Layer | Tech |

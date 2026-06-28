@@ -10,13 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -44,18 +45,42 @@ fun FilterDropdown(
     onItemSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    FilterDropdown<Unit>(
+        items = items,
+        selectedItem = selectedItem,
+        defaultItem = defaultItem,
+        onItemSelected = { item, _ -> onItemSelected(item) },
+        modifier = modifier,
+        keys = null
+    )
+}
+
+@Composable
+fun <K> FilterDropdown(
+    items: List<String>,
+    selectedItem: String,
+    defaultItem: String,
+    onItemSelected: (String, K?) -> Unit,
+    modifier: Modifier = Modifier,
+    keys: List<K>? = null
+) {
+    require(keys == null || keys.size == items.size) {
+        "keys list must have the same size as items list"
+    }
+
     var expanded by remember { mutableStateOf(false) }
+
+    // Helper to get key for an item by index
+    fun keyForIndex(index: Int): K? = keys?.getOrNull(index)
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },
-        modifier = modifier
+        modifier = modifier.wrapContentSize()
     ) {
         FilterChip(
             selected = selectedItem != defaultItem,
-            onClick = {
-                expanded = true
-            },
+            onClick = { expanded = !expanded },
             label = {
                 Text(
                     text = selectedItem,
@@ -80,9 +105,7 @@ fun FilterDropdown(
                     modifier = Modifier.size(18.dp)
                 )
             },
-            modifier = Modifier
-                .height(40.dp)
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.height(40.dp),
             border = FilterChipDefaults.filterChipBorder(
                 enabled = true,
                 selected = selectedItem != defaultItem,
@@ -90,11 +113,9 @@ fun FilterDropdown(
             )
         )
 
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .exposedDropdownSize()
+            onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
                 text = {
@@ -104,7 +125,7 @@ fun FilterDropdown(
                     )
                 },
                 onClick = {
-                    onItemSelected(defaultItem)
+                    onItemSelected(defaultItem, null)
                     expanded = false
                 },
                 leadingIcon = if (selectedItem == defaultItem) {
@@ -125,7 +146,8 @@ fun FilterDropdown(
                 )
             }
 
-            items.forEach { item ->
+            items.forEachIndexed { index, item ->
+                val key = keyForIndex(index)
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -135,9 +157,9 @@ fun FilterDropdown(
                     },
                     onClick = {
                         if (selectedItem == item) {
-                            onItemSelected(defaultItem)
+                            onItemSelected(defaultItem, null)
                         } else {
-                            onItemSelected(item)
+                            onItemSelected(item, key)
                         }
                         expanded = false
                     },
@@ -160,7 +182,7 @@ fun FilterDropdown(
 @Preview(showBackground = true, backgroundColor = 0xFFF5F5F5)
 @Composable
 private fun FilterDropdownPreview() {
-    MaterialTheme {
+    AppTheme {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -178,7 +200,7 @@ private fun FilterDropdownPreview() {
                 items = listOf("Electronics", "Furniture", "Food", "Clothing"),
                 selectedItem = "All Categories",
                 defaultItem = "All Categories",
-                onItemSelected = {}
+                onItemSelected = { }
             )
 
             // Selected state
@@ -186,7 +208,7 @@ private fun FilterDropdownPreview() {
                 items = listOf("Samsung", "LG", "Sony", "Apple"),
                 selectedItem = "Samsung",
                 defaultItem = "All Manufacturers",
-                onItemSelected = {}
+                onItemSelected = { }
             )
         }
     }
