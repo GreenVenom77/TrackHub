@@ -1,42 +1,53 @@
 package com.skewnexus.trackhub.navigation.utils
 
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_network.domain.SessionDestinations
+import com.greenvenom.core_navigation.domain.repos.NavigationRepository
+import com.greenvenom.core_navigation.utils.NavigationType
+import com.greenvenom.core_network.domain.SessionDestination
 import com.greenvenom.core_network.domain.SessionRepository
-import com.trackhub.feat_navigation.routes.SubGraph
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
+import com.trackhub.feat_hub.presentation.routes.HubDest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SessionDestinationHandler(
-    private val navigationStateRepository: NavigationStateRepository,
+    private val navigationRepository: NavigationRepository,
     private val sessionStateRepository: SessionRepository
 ) {
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
     fun collectSessionDestinations() {
         CoroutineScope(Dispatchers.Main).launch {
             sessionStateRepository.userSessionDestination.collectLatest { wantedDestination ->
+                _isReady.update {
+                    wantedDestination != SessionDestination.INITIALIZE
+                }
                 handleSessionStates(wantedDestination)
             }
         }
     }
 
-    private fun handleSessionStates(wantedDestination: SessionDestinations) {
+    private fun handleSessionStates(wantedDestination: SessionDestination) {
         when (wantedDestination) {
-            SessionDestinations.INITIALIZE -> {
+            SessionDestination.INITIALIZE -> {
 
             }
 
-            SessionDestinations.AUTH -> {
-                navigationStateRepository.navigate(
-                    NavigationType.ClearBackStack(SubGraph.Auth)
+            SessionDestination.AUTH -> {
+                navigationRepository.navigate(
+                    NavigationType.ClearBackStack(AuthDest.Login)
                 )
             }
 
-            SessionDestinations.MAIN -> {
-                navigationStateRepository.navigate(
-                    NavigationType.ClearBackStack(SubGraph.Main)
+            SessionDestination.MAIN -> {
+                navigationRepository.navigate(
+                    NavigationType.ClearBackStack(HubDest.OwnedHubs())
                 )
             }
         }

@@ -33,21 +33,25 @@ import com.greenvenom.feat_auth.presentation.component.AuthHeader
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun NewPasswordScreen(
     navigateBack: () -> Unit,
-    navigateToLoginScreen: () -> Unit
+    navigateToLoginScreen: () -> Unit,
+    resetPasswordViewModel: ResetPasswordViewModel = koinViewModel()
 ) {
-    BaseScreen<ResetPasswordViewModel>(
-        onPhysicalBack = { navigateBack() }
-    ) { viewModel ->
-        val resetPasswordState by viewModel.resetPasswordState.collectAsStateWithLifecycle()
+    val baseState by resetPasswordViewModel.baseState.collectAsStateWithLifecycle()
+    val resetPasswordState by resetPasswordViewModel.resetPasswordState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = resetPasswordViewModel,
+        baseState = baseState
+    ) {
         NewPasswordContent(
             state = resetPasswordState,
-            resetPasswordActions = viewModel::resetPasswordAction,
-            baseActions = viewModel::baseAction,
+            resetPasswordActions = resetPasswordViewModel::resetPasswordAction,
+            baseActions = resetPasswordViewModel::baseAction,
             navigateToLoginScreen = navigateToLoginScreen,
             navigateBack = navigateBack
         )

@@ -40,31 +40,35 @@ import com.trackhub.feat_menu.presentation.components.AppVersionItem
 import com.trackhub.feat_menu.presentation.components.SettingCard
 import com.trackhub.feat_menu.presentation.mappers.toUI
 import com.trackhub.feat_menu.presentation.models.ProfileUI
+import org.koin.compose.koinInject
 
 @Composable
 fun MenuScreen(
     navigateToProfile: () -> Unit,
-    modifier: Modifier = Modifier
+    menuViewModel: MenuViewModel = koinInject()
 ) {
+    val baseState by menuViewModel.baseState.collectAsStateWithLifecycle()
+    val menuState by menuViewModel.menuState.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
     val versionName = remember {
         context.packageManager.getPackageInfo(context.packageName, 0).versionName
     }
 
-    BaseScreen<MenuViewModel> { viewModel ->
-        val menuState by viewModel.menuState.collectAsStateWithLifecycle()
-
+    BaseScreen(
+        viewModel = menuViewModel,
+        baseState = baseState
+    ) {
         MenuContent(
             menuState = menuState,
             menuAction = { action ->
                 when (action) {
                     is MenuAction.NavigateToProfile -> navigateToProfile()
                 }
-                viewModel.menuAction(action)
+                menuViewModel.menuAction(action)
             },
-            baseAction = viewModel::baseAction,
+            baseAction = menuViewModel::baseAction,
             versionName = versionName,
-            modifier = modifier
         )
     }
 }
@@ -74,13 +78,12 @@ private fun MenuContent(
     menuState: MenuState,
     menuAction: (MenuAction) -> Unit,
     baseAction: (BaseAction) -> Unit,
-    versionName: String?,
-    modifier: Modifier = Modifier
+    versionName: String?
 ) {
     SetScaffold()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {

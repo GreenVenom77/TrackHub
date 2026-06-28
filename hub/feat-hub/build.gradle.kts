@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -50,13 +51,16 @@ dependencies {
     implementation(project(":network:core-network"))
     implementation(project(":core:core-ui"))
     implementation(project(":core:core-util"))
+    implementation(project(":navigation:core-navigation"))
 
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.navigation3.runtime)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

@@ -1,107 +1,90 @@
 package com.skewnexus.trackhub.navigation.graphs
 
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
-import com.greenvenom.core_navigation.data.NavigationType
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_navigation.domain.Destination
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.greenvenom.core_navigation.utils.NavigationType
 import com.greenvenom.feat_auth.presentation.login.LoginScreen
 import com.greenvenom.feat_auth.presentation.otp.OtpScreen
 import com.greenvenom.feat_auth.presentation.register.RegisterScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.NewPasswordScreen
 import com.greenvenom.feat_auth.presentation.reset_password.screens.VerifyEmailScreen
-import com.trackhub.feat_navigation.routes.Screen
-import com.trackhub.feat_navigation.routes.SubGraph
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
+import com.greenvenom.feat_auth.presentation.routes.OTPNext
 
-fun NavGraphBuilder.authGraph(
+fun EntryProviderScope<NavKey>.authGraph(
     navigate: (NavigationType) -> Unit,
-    navigationStateRepository: NavigationStateRepository
 ) {
-    var otpNextScreen: Destination = Screen.Login
-
-    CoroutineScope(Dispatchers.Main).launch {
-        navigationStateRepository.navigationState.collect {
-            when (it.previousDestination) {
-                is Screen.VerifyEmail -> {
-                    otpNextScreen = Screen.NewPassword
-                }
-            }
-        }
+    entry<AuthDest.Login> {
+        LoginScreen(
+            navigateToRegisterScreen = {
+                navigate(
+                    NavigationType.Standard(AuthDest.Register)
+                )
+            },
+            navigateToEmailVerificationScreen = {
+                navigate(
+                    NavigationType.Standard(AuthDest.VerifyEmail)
+                )
+            },
+            navigateToNextScreen = {  },
+        )
     }
 
-    navigation<SubGraph.Auth>(startDestination = Screen.Login) {
-        composable<Screen.Login> {
-            LoginScreen(
-                navigateToRegisterScreen = {
-                    navigationStateRepository.navigate(
-                        NavigationType.Standard(Screen.Register)
-                    )
-                },
-                navigateToEmailVerificationScreen = {
-                    navigationStateRepository.navigate(
-                        NavigationType.Standard(Screen.VerifyEmail)
-                    )
-                },
-                navigateToNextScreen = {  },
-            )
-        }
+    entry<AuthDest.Register> {
+        RegisterScreen(
+            navigateBack = {
+                navigate(NavigationType.Back)
+            },
+            navigateToAccountVerificationScreen = {
+                navigate(
+                    NavigationType.Standard(AuthDest.OTP(OTPNext.ConfirmAccount))
+                )
+            }
+        )
+    }
 
-        composable<Screen.Register> {
-            RegisterScreen(
-                navigateBack = {
-                    navigationStateRepository.navigate(NavigationType.Back)
-                },
-                navigateToAccountVerificationScreen = {
-                    navigationStateRepository.navigate(
-                        NavigationType.Standard(Screen.OTP)
-                    )
-                }
-            )
-        }
+    entry<AuthDest.VerifyEmail> {
+        VerifyEmailScreen(
+            navigateBack = {
+                navigate(NavigationType.Back)
+            },
+            navigateToOtpScreen = {
+                navigate(
+                    NavigationType.Standard(AuthDest.OTP(OTPNext.ResetPassword))
+                )
+            }
+        )
+    }
 
-        composable<Screen.VerifyEmail> {
-            VerifyEmailScreen(
-                navigateBack = {
-                    navigationStateRepository.navigate(NavigationType.Back)
-                },
-                navigateToOtpScreen = {
-                    navigationStateRepository.navigate(
-                        NavigationType.Standard(Screen.OTP)
-                    )
-                }
-            )
-        }
+    entry<AuthDest.OTP> { key ->
+        OtpScreen(
+            navigateBack = {
+                navigate(NavigationType.Back)
+            },
+            navigateToNextScreen = {
+                when (key.next) {
+                    OTPNext.ResetPassword -> {
+                        navigate(
+                            NavigationType.ClearBackStack(AuthDest.NewPassword)
+                        )
+                    }
 
-        composable<Screen.OTP> {
-            OtpScreen(
-                navigateBack = {
-                    navigate(NavigationType.Back)
-                },
-                navigateToNextScreen = {
-                    when (otpNextScreen) {
-                        is Screen.VerifyEmail -> {
-                            navigate(
-                                NavigationType.ClearBackStack(Screen.NewPassword)
-                            )
-                        }
+                    OTPNext.ConfirmAccount -> {
+
                     }
                 }
-            )
-        }
+            }
+        )
+    }
 
-        composable<Screen.NewPassword> {
-            NewPasswordScreen(
-                navigateBack = {
-                    navigationStateRepository.navigate(NavigationType.Back)
-                },
-                navigateToLoginScreen = {
+    entry<AuthDest.NewPassword> {
+        NewPasswordScreen(
+            navigateBack = {
+                navigate(NavigationType.Back)
+            },
+            navigateToLoginScreen = {
 
-                }
-            )
-        }
+            }
+        )
     }
 }

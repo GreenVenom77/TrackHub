@@ -37,20 +37,24 @@ import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordAction
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordState
 import com.greenvenom.feat_auth.presentation.reset_password.ResetPasswordViewModel
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun VerifyEmailScreen(
     navigateBack: () -> Unit,
-    navigateToOtpScreen: () -> Unit
+    navigateToOtpScreen: () -> Unit,
+    resetPasswordViewModel: ResetPasswordViewModel = koinViewModel()
 ) {
     val emailStateRepository: EmailStateRepository = koinInject()
     val emailState by emailStateRepository.emailState.collectAsStateWithLifecycle()
 
-    BaseScreen<ResetPasswordViewModel>(
-        onPhysicalBack = { navigateBack() }
-    ) { resetPasswordViewModel ->
-        val resetPasswordState by resetPasswordViewModel.resetPasswordState.collectAsStateWithLifecycle()
+    val baseState by resetPasswordViewModel.baseState.collectAsStateWithLifecycle()
+    val resetPasswordState by resetPasswordViewModel.resetPasswordState.collectAsStateWithLifecycle()
 
+    BaseScreen(
+        viewModel = resetPasswordViewModel,
+        baseState = baseState
+    ) {
         VerifyEmailContent(
             resetPasswordState = resetPasswordState,
             emailState = emailState,

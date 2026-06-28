@@ -56,7 +56,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation(libs.koin.android.compose)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.bundles.dependency.injection)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

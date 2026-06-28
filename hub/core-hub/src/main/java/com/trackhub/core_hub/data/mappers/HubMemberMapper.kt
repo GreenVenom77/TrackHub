@@ -11,8 +11,9 @@ fun HubMemberResponse.toDomain(): HubMember {
         name = this.displayName,
         email = this.email,
         role = HubRole.valueOf(this.role),
-        status = when (this.currentStatus) {
-            "member" -> MemberStatus.Member
+        status = when (this.currentStatus.lowercase()) {
+            "owner" -> MemberStatus.Owner
+            "member", "accepted" -> MemberStatus.Member
             "pending" -> MemberStatus.PendingInvitation
             "invitation_declined" -> MemberStatus.InvitationDeclined
             "not_invited" -> MemberStatus.NotInvited

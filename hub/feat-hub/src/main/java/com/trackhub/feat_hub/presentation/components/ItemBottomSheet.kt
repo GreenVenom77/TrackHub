@@ -108,9 +108,7 @@ private fun ItemSheetContent(
 ) {
     var newItemName by remember { mutableStateOf(hubItem?.name ?: "") }
     var newItemStock by remember { mutableStateOf(hubItem?.stockCount ?: "") }
-    var selectedUnit by remember { mutableStateOf<BaseUnit?>(
-        hubItem?.unit?.let { BaseUnit.fromApiKey(it) }
-    ) }
+    var selectedUnit by remember { mutableStateOf(hubItem?.unit) }
     var selectedCategory by remember { mutableStateOf(hubItem?.category) }
     var selectedManufacturer by remember { mutableStateOf(hubItem?.manufacturer) }
     var isDeletePressed by remember { mutableStateOf(false) }
@@ -451,7 +449,7 @@ private fun ItemSheetContentPreview() {
                     hubId = "hub123",
                     name = "Wireless Headphones",
                     stockCount = "50",
-                    unit = "pieces",
+                    unit = BaseUnit.PIECES,
                     imageUrl = null,
                     createdAt = "2024-01-15",
                     updatedAt = "2024-01-20",

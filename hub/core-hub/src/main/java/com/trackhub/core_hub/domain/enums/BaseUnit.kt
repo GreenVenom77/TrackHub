@@ -24,8 +24,8 @@ enum class BaseUnit(
     PAIRS("pairs", R.string.unit_pairs);
 
     companion object {
-        fun fromApiKey(apiKey: String): BaseUnit? {
-            return entries.find { it.apiKey == apiKey }
+        fun fromApiKey(apiKey: String): BaseUnit {
+            return entries.find { it.apiKey == apiKey } ?: PIECES
         }
     }
 }

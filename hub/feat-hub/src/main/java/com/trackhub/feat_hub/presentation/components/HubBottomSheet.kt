@@ -115,7 +115,7 @@ private fun HubSheetContent(
         Column(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp)
+                .padding(bottom = 4.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header with Icon

@@ -13,17 +13,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
+import com.greenvenom.core_navigation.domain.repos.NavigationRepository
 import com.greenvenom.core_ui.components.bars.TopAppBar
 import com.greenvenom.core_ui.presentation.ScaffoldViewModel
 import com.greenvenom.core_ui.theme.AppTheme
 import com.greenvenom.core_ui.utils.LocalScaffoldViewModel
 import com.greenvenom.core_util.theme.ThemeManager
 import com.skewnexus.trackhub.navigation.AppNavHost
-import com.trackhub.feat_navigation.components.BottomNavigationBar
-import com.trackhub.feat_navigation.routes.Screen
-import org.koin.androidx.compose.koinViewModel
+import com.skewnexus.trackhub.navigation.components.BottomNavigationBar
+import com.trackhub.feat_hub.presentation.routes.HubDest
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +33,8 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val themeManager = koinInject<ThemeManager>()
             val isDarkTheme by themeManager.isDarkThemeFlow.collectAsStateWithLifecycle(isSystemInDarkTheme())
-            val navigationRepository = koinInject<NavigationStateRepository>()
-            val navigationState by navigationRepository.navigationState.collectAsStateWithLifecycle()
+            val navigationRepository = koinInject<NavigationRepository>()
+            val navigationState by navigationRepository.navigationData.collectAsStateWithLifecycle()
             val scaffoldViewModel: ScaffoldViewModel = koinViewModel()
             val scaffoldState by scaffoldViewModel.scaffoldState.collectAsStateWithLifecycle()
 
@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                         bottomBar = {
                             BottomNavigationBar(
                                 defaultNavigationMethod = navigationRepository::navigate,
-                                currentDestination = navigationState.currentDestination ?: Screen.OwnedHubs(),
+                                currentDestination = navigationState.currentDestination ?: HubDest.OwnedHubs(),
                                 isVisible = navigationState.bottomBarState
                             )
                         },

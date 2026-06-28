@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import com.greenvenom.core_ui.theme.AppTheme
+import com.trackhub.core_hub.domain.enums.BaseUnit
 import com.trackhub.feat_hub.R
 import com.trackhub.feat_hub.presentation.models.ItemUI
 
@@ -225,7 +226,7 @@ fun ItemDetailsDialog(
                         InfoCard(
                             icon = Icons.Default.Scale,
                             label = stringResource(R.string.item_unit),
-                            value = item.unit,
+                            value = stringResource(item.unit.displayNameRes),
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -360,7 +361,7 @@ private fun ItemDetailsDialogPreview() {
                 hubId = "hub123",
                 name = "Wireless Headphones",
                 stockCount = "50",
-                unit = "pieces",
+                unit = BaseUnit.PIECES,
                 imageUrl = null,
                 createdAt = "2024-01-15",
                 updatedAt = "2024-01-20",

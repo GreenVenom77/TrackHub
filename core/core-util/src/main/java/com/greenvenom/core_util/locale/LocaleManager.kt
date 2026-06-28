@@ -11,6 +11,13 @@ object LocaleManager {
     private const val DEFAULT_LANGUAGE = "en"
 
     /**
+     * Toggles between English and Arabic.
+     */
+    fun toggleLanguage() {
+        setLocale(if (isArabic()) "en" else "ar")
+    }
+
+    /**
      * Change app language.
      * Automatically recreates activities and updates RTL/LTR.
      */

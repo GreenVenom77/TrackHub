@@ -33,22 +33,15 @@ jobs:
             echo -e "\n\n## Files Changed"
             git diff --stat "$BASE..HEAD" || echo "(none)"
 
-            echo -e "\n\n## New Files"
-            git diff --name-status --diff-filter=A "$BASE..HEAD" | awk '{print $2}' || echo "(none)"
-
-            echo -e "\n\n## Deleted Files"
-            git diff --name-status --diff-filter=D "$BASE..HEAD" | awk '{print $2}' || echo "(none)"
-
             echo -e "\n\n## Code Signatures (declarations added/removed)"
+            # A cleaner, structured diff grabber
             git diff "$BASE..HEAD" \
-              | grep -E '^[+-]' \
+              | grep -E '^[+-][[:space:]]*(fun |class |interface |object |data class |sealed |@Composable|suspend |override |enum )' \
               | grep -v '^[+-][+-][+-]' \
-              | grep -E '(fun |class |interface |object |data class |sealed |@Composable|suspend |override |enum |typealias |val |var )' \
               | sed 's/^+/[+] /' \
               | sed 's/^-/[-] /' \
               | sort -u \
-              | head -300 \
-              || echo "(none)"
+              | head -n 150 || echo "(none)"
 
             echo -e "\n\n## Per-File Added Content"
             while IFS= read -r file; do
@@ -59,87 +52,58 @@ jobs:
                 | grep -v '^\+[[:space:]]*//' \
                 | grep -v '^\+[[:space:]]*$' \
                 | sed 's/^+//' \
-                | head -60 \
-                || echo "(no additions)"
-            done < <(git diff --name-only --diff-filter=AM "$BASE..HEAD")
+                | head -n 40 || echo "(no additions)"
+            done < <(git diff --name-only --diff-filter=AM "$BASE..HEAD" | head -n 30)
 
           } > context.txt
 
-          # Cap at 450k chars (~112k tokens), leaving ~19k headroom for prompt +
-          # output within a 131k-context model.
-          MAX_CHARS=450000
-          ACTUAL=$(wc -c < context.txt)
-          if [ "$ACTUAL" -gt "$MAX_CHARS" ]; then
-            echo "context.txt is ${ACTUAL} chars, capping at ${MAX_CHARS}"
-            head -c "$MAX_CHARS" context.txt > context_trimmed.txt
-            echo -e "\n\n[... truncated to fit model context window ...]" >> context_trimmed.txt
+          # Safe line-based truncation (approx 60-80k tokens max safely)
+          MAX_LINES=8000
+          ACTUAL_LINES=$(wc -l < context.txt)
+          if [ "$ACTUAL_LINES" -gt "$MAX_LINES" ]; then
+            echo "context.txt is too large, capping lines."
+            head -n "$MAX_LINES" context.txt > context_trimmed.txt
+            echo -e "\n\n[... Remaining diff truncated cleanly to protect context window ...]" >> context_trimmed.txt
             mv context_trimmed.txt context.txt
           fi
-
-          {
-            echo "context<<CONTEXTEOF"
-            cat context.txt
-            echo "CONTEXTEOF"
-          } >> "$GITHUB_OUTPUT"
 
       - name: Generate PR description via OpenRouter
         id: ai
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          # Write prompt via python to avoid heredoc YAML indentation issues
+          # Streamlined prompt optimized for Free-tier reasoning models
           python3 - << 'PYEOF'
-          prompt = """You are writing a technical GitHub Pull Request description for experienced Android/Kotlin developers.
+          prompt = """You are a technical writer translating code diffs into clear pull request documentation.
 
-          RULES:
-          1. SUMMARIZE changes - do NOT copy code verbatim
-          2. Describe WHAT was implemented and HOW it works architecturally
-          3. Include function names and types naturally in sentences, not as raw code
-          4. Focus on the developer's intent and architectural patterns
-          5. NEVER use placeholder commas like: "Added functions , , , and"
+          CRITICAL INSTRUCTIONS:
+          - Write in clear, complete prose sentences.
+          - Do NOT produce trailing symbols, empty strings, or loops of punctuation (e.g., do NOT write ", , ,").
+          - Avoid outputting raw code snippets or variable decorations. Explain the concept instead.
 
-          BAD examples (do not do this):
-          - Added Column(Modifier.fillMaxWidth().padding(24.dp))
-          - Uses filter{ SharedHubResponse::hubId eq leaveHubRequest.hubId }
-          - Implements rememberSaveable{ mutableStateOf(false) }
-
-          GOOD examples (do this instead):
-          - Created InviteUserDialog composable with Material3 AlertDialog, lazy-loaded user list, and role selection dropdown
-          - Implemented leave hub functionality with Supabase delete operation and local cache invalidation
-          - Added dialog state management using rememberSaveable for persistence across recompositions
-
-          Write the PR description using this structure:
+          Strictly structure your response exactly as follows:
 
           ## Summary
-          3-4 sentences explaining the feature, architectural approach, and key technical decisions.
+          Provide a 3-4 sentence high-level explanation of why this change was introduced and how it works architecturally.
 
           ## Technical Changes
-          6-8 bullet points. Each should:
-          - Start with **Component Name**:
-          - Describe what changed in 1-2 sentences
-          - Mention key function names naturally
-          - Note important types like Flow<Result<T>>, StateFlow, or sealed classes where relevant
-          - Explain HOW things work, not just list names
-
-          Good bullet example:
-          - **HubInvitationsRepository**: Added member management via inviteUser(), removeMember(), and changeUserRole(), all returning Flow<Result<T>> for reactive state handling.
-
-          Bad bullet example:
-          - **Repository**: Added suspend fun inviteUser(request: UserInviteRequest): NetworkResult<InvitationResult, NetworkError>
+          Provide a clean markdown bulleted list (6-8 bullets max) describing the core changes.
+          Example:
+          - **Repository Layer**: Introduced user retrieval methods returning reactive Streams.
           """
           with open("prompt.txt", "w") as f:
               f.write(prompt)
           PYEOF
 
-          printf "\n\n## PR Context\n\n" >> prompt.txt
+          printf "\n\n## Git Diff Context to Analyze:\n\n" >> prompt.txt
           cat context.txt >> prompt.txt
 
+          # Re-ordered with highly robust free-tier options first
           MODELS=(
-            "z-ai/glm-4.5-air:free"
+            "meta-llama/llama-3.3-70b-instruct:free"
             "qwen/qwen3-coder:free"
             "google/gemma-4-31b-it:free"
-            "openrouter/elephant-alpha"
-            "meta-llama/llama-3.3-70b-instruct:free"
+            "google/gemma-4-26b-a4b-it:free"
           )
 
           for MODEL in "${MODELS[@]}"; do
@@ -147,12 +111,12 @@ jobs:
 
             jq -n \
               --arg model "$MODEL" \
-              --arg system "You are a technical writer summarizing code changes for developers. Describe WHAT changed and HOW it works architecturally. Never copy code verbatim." \
+              --arg system "You are an expert software engineer writing concise, grammatically flawless pull request descriptions. Do not loop punctuation." \
               --rawfile prompt prompt.txt \
               '{
                 model: $model,
-                max_tokens: 2000,
-                temperature: 0.3,
+                max_tokens: 1500,
+                temperature: 0.1,
                 messages: [
                   { role: "system", content: $system },
                   { role: "user", content: $prompt }
@@ -167,10 +131,9 @@ jobs:
               -H "X-Title: PR Description Generator" \
               -d @payload.json)
 
-            echo "HTTP status: $HTTP_CODE"
-
             if [ "$HTTP_CODE" = "200" ]; then
-              DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json)
+              # Clean up any residual artifact errors common in cheap endpoints
+              DESCRIPTION=$(jq -r '.choices[0].message.content // empty' response.json | sed 's/ ,/,/g')
               if [ -n "$DESCRIPTION" ]; then
                 echo "Success with model: $MODEL"
                 {
@@ -181,18 +144,14 @@ jobs:
                 exit 0
               fi
             else
-              echo "Failed with $MODEL, trying next..."
-              cat response.json
+              echo "Failed with $MODEL (HTTP $HTTP_CODE), trying next..."
             fi
           done
 
           echo "All models failed"
           {
             echo "description<<DESCEOF"
-            echo "Failed to generate AI description - check workflow logs."
-            echo ""
-            echo "### Manual Summary Needed"
-            echo "Please add a description for this PR."
+            echo "### Manual Summary Needed\nAI generation was unavailable or timed out."
             echo "DESCEOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -200,13 +159,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          {
-            echo "### AI-Generated Pull Request Summary"
-            echo ""
-            echo "${{ steps.ai.outputs.description }}"
-            echo ""
-            echo "---"
-            echo "*Generated by AI - please review and edit as needed*"
-          } > new_body.txt
+          cat << 'EOF' > new_body.txt
+          ### AI-Generated Pull Request Summary
+
+          ${{ steps.ai.outputs.description }}
+
+          ---
+          *Generated by AI - please review and edit as needed*
+          EOF
 
           gh pr edit ${{ github.event.pull_request.number }} --body-file new_body.txt

@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -50,9 +51,11 @@ dependencies {
     implementation(project(":auth:core-auth"))
     implementation(project(":core:core-ui"))
     implementation(project(":core:core-util"))
+    implementation(project(":navigation:core-navigation"))
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.bundles.supabase)
+    implementation(platform(libs.koin.bom))
     implementation(libs.bundles.dependency.injection)
 
     implementation(libs.androidx.core.ktx)
@@ -60,6 +63,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.navigation3.runtime)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)

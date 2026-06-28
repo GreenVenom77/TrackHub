@@ -47,7 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,7 +89,7 @@ fun <T> DialogSearchableDropdown(
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
-            text = item.toString(),
+            text = selectedItemToString(item),
             selected = selected,
             enabled = itemEnabled,
             onClick = onClick,
@@ -108,12 +108,12 @@ fun <T> DialogSearchableDropdown(
         }
     }
 
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val defaultSelectedItemsToString: (List<T>) -> String = { items ->
         when {
             items.isEmpty() -> ""
             items.size == 1 -> items.first().toString()
-            else -> context.getString(R.string.selected_items, items.size)
+            else -> resources.getString(R.string.selected_items, items.size)
         }
     }
 

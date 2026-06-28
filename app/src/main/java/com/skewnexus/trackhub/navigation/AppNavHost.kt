@@ -1,87 +1,79 @@
 package com.skewnexus.trackhub.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.greenvenom.core_navigation.data.repository.NavigationStateRepository
-import com.greenvenom.core_navigation.utils.AppNavigator
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import com.greenvenom.core_navigation.domain.rememberNavigationState
+import com.greenvenom.core_navigation.domain.repos.NavigationRepository
+import com.greenvenom.core_navigation.domain.toEntries
+import com.greenvenom.core_navigation.utils.NavigationType
+import com.greenvenom.feat_auth.presentation.routes.AuthDest
 import com.greenvenom.feat_auth.presentation.splash.SplashScreen
+import com.skewnexus.trackhub.navigation.components.BottomDestination
 import com.skewnexus.trackhub.navigation.graphs.authGraph
-import com.skewnexus.trackhub.navigation.graphs.hubDetailsGraph
-import com.skewnexus.trackhub.navigation.graphs.mainGraph
+import com.skewnexus.trackhub.navigation.graphs.menuGraph
+import com.skewnexus.trackhub.navigation.graphs.notificationsGraph
+import com.skewnexus.trackhub.navigation.graphs.ownedHubsGraph
+import com.skewnexus.trackhub.navigation.graphs.sharedHubsGraph
 import com.skewnexus.trackhub.navigation.utils.SessionDestinationHandler
-import com.trackhub.feat_navigation.routes.Screen
 import org.koin.compose.koinInject
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
-    val appNavigator = koinInject<AppNavigator>()
-    val navigationRepository = koinInject<NavigationStateRepository>()
+    val navigationRepository = koinInject<NavigationRepository>()
     val destinationHandler = koinInject<SessionDestinationHandler>()
-    val navController = rememberNavController()
+    val splashComplete by destinationHandler.isReady.collectAsStateWithLifecycle()
+
+    val navigationState = rememberNavigationState(
+        startRoute = AuthDest.Login,
+        topLevelRoutes = buildSet {
+            add(AuthDest.Login)
+            addAll(BottomDestination.entries.map { it.destination })
+        }
+    )
 
     LaunchedEffect(Unit) {
-        appNavigator.config(
-            returnedDestination = Screen::class,
-            navController = navController
+        navigationRepository.bind(
+            navigationState = navigationState
         )
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash,
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
+    AnimatedContent(
+        targetState = splashComplete,
+        transitionSpec = {
+            fadeIn(animationSpec = tween(500)) togetherWith
+                    fadeOut(animationSpec = tween(500))
         },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(300)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(300)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        modifier = modifier
-    ) {
-        composable<Screen.Splash> {
+        modifier = Modifier.fillMaxSize()
+    ) { isSplashComplete ->
+        if (!isSplashComplete) {
             SplashScreen(
-                onStart = {
-                    destinationHandler.collectSessionDestinations()
-                }
+                onStart = { destinationHandler.collectSessionDestinations() }
+            )
+        } else {
+            NavDisplay(
+                entries = navigationState.toEntries(
+                    entryProvider = entryProvider {
+                        authGraph(navigationRepository::navigate)
+                        ownedHubsGraph(navigationRepository::navigate)
+                        sharedHubsGraph(navigationRepository::navigate)
+                        notificationsGraph(navigationRepository::navigate)
+                        menuGraph(navigationRepository::navigate)
+                    }
+                ),
+                onBack = { navigationRepository.navigate(NavigationType.Back) },
+                modifier = modifier
             )
         }
-
-        authGraph(
-            navigate = navigationRepository::navigate,
-            navigationStateRepository = navigationRepository
-        )
-
-        hubDetailsGraph(
-            navigate = navigationRepository::navigate
-        )
-
-        mainGraph(
-            navigate = navigationRepository::navigate
-        )
     }
 }
